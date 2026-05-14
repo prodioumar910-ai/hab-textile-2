@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400&family=Montserrat:wght@400;500&family=Source+Sans+3:wght@600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-heading: "Source Sans 3", sans-serif;
+  --font-body: "Montserrat", sans-serif;
+  --font-footer: "Josefin Sans", sans-serif;
+
+  --color-brand-orange-light: #FFAA5E;
+  --color-brand-orange-dark: #C1541A;
+  --color-brand-black: #0A0A0A;
+}
+
+@layer base {
+  body {
+    @apply font-body text-brand-black min-h-screen bg-fixed;
+    background: radial-gradient(circle, #FFAA5E 0%, #C1541A 100%);
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.marquee-container {
+  display: flex;
+  overflow: hidden;
+  user-select: none;
+  gap: 2rem;
+}
+
+.marquee-content {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2rem;
+  min-width: 100%;
+  animation: scroll 30s linear infinite;
+}
+
+@keyframes scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - 2rem));
+  }
+}
