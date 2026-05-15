@@ -15,9 +15,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   return (
     <motion.div
       layout
-      className="bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/20 p-2 group transform-gpu"
+      className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 p-1.5 group transform-gpu"
     >
-      <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
+      <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
         <img
           src={product.image}
           alt={product.name}

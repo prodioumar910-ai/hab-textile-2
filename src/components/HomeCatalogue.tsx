@@ -54,7 +54,7 @@ const HomeCatalogue: React.FC = () => {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden mb-8"
           >
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-4 grid grid-cols-2 gap-4">
+            <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-4 grid grid-cols-2 gap-4">
               <div>
                 <p className="text-[10px] uppercase font-bold text-white/60 mb-2">Vêtement</p>
                 <div className="flex flex-wrap gap-2">

@@ -31,7 +31,7 @@ const Marquee: React.FC = () => {
           {Array.from({ length: 3 }).map((_, i) => (
             <React.Fragment key={i}>
               {testimonials.map((t, index) => (
-                <div key={`${i}-${index}`} className="flex-shrink-0 w-56 h-56 md:w-72 md:h-72 rounded-3xl overflow-hidden border border-white/40 shadow-md">
+                <div key={`${i}-${index}`} className="flex-shrink-0 w-56 h-56 md:w-72 md:h-72 rounded-2xl overflow-hidden border-[0.5px] border-white/30 shadow-md">
                   <img 
                     src={t.img} 
                     alt="Trusted client" 
