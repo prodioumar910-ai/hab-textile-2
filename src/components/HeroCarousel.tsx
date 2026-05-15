@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 const images = [
-  'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=1200&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1200&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1200&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1445205170230-053b830c6050?q=80&w=1200&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?q=80&w=1200&auto=format&fit=crop',
+  'https://lh3.googleusercontent.com/d/1srnqXGTTedQmK9t8N4cFtM8u0lGHw7t7',
+  'https://lh3.googleusercontent.com/d/1PNaxfG-rnihS1KCSo0Jo-SC9MorD2aVq',
+  'https://lh3.googleusercontent.com/d/1R8_IVuUi7fNbv-pDXriCBREDhe-IAK4z',
+  'https://lh3.googleusercontent.com/d/1elb6RCTzbeeW6CVSPyRNykjF-RVgT4de',
+  'https://lh3.googleusercontent.com/d/11a8rfgbPLBLKsgAj1U1tdmqEcmuGfg0E',
 ];
 
 const HeroCarousel: React.FC = () => {
@@ -34,6 +34,7 @@ const HeroCarousel: React.FC = () => {
             src={images[index]}
             alt={`Hero ${index + 1}`}
             className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
           />
         </motion.div>
       </AnimatePresence>
