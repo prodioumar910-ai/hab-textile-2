@@ -26,6 +26,9 @@ export const MOCK_PRODUCTS: Product[] = [
   { id: '2', name: 'Chemise Bazin Chic', price: 85, image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=500&auto=format&fit=crop', category: 'Classique', target: 'Homme', garmentType: 'chemise', fabricType: 'bazin' },
   { id: '3', name: 'Pantalon Coton Slim', price: 60, image: 'https://images.unsplash.com/photo-1624371414361-e6e9efc99142?q=80&w=500&auto=format&fit=crop', category: 'Tendance', target: 'Homme', garmentType: 'pantalon', fabricType: 'coton' },
   { id: '4', name: 'Ensemble Petit Prince', price: 95, image: 'https://images.unsplash.com/photo-1519457431-75514b723006?q=80&w=500&auto=format&fit=crop', category: 'Ensemble Royal', target: 'Enfant', garmentType: 'boubou', fabricType: 'wax' },
+  { id: '9', name: 'Boubou Junior Bazin', price: 75, image: 'https://images.unsplash.com/photo-1519704201730-802551ec9413?q=80&w=500&auto=format&fit=crop', category: 'Ensemble Royal', target: 'Enfant', garmentType: 'boubou', fabricType: 'bazin' },
+  { id: '10', name: 'Chemise Enfant Coton', price: 45, image: 'https://images.unsplash.com/photo-1503919919749-646dfc4a5bb9?q=80&w=500&auto=format&fit=crop', category: 'Classique', target: 'Enfant', garmentType: 'chemise', fabricType: 'coton' },
+  { id: '11', name: 'Accessoire Kid Styl', price: 25, image: 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?q=80&w=500&auto=format&fit=crop', category: 'Accessoires', target: 'Enfant', garmentType: 'accessoire', fabricType: 'wax' },
   { id: '5', name: 'Chaussures Cuir Habé', price: 120, image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=500&auto=format&fit=crop', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
   { id: '6', name: 'Montre Luxe Habé', price: 210, image: 'https://images.unsplash.com/photo-1524592091214-8f97ad337cf5?q=80&w=500&auto=format&fit=crop', category: 'Accessoires', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
   { id: '7', name: 'Parfum Signature', price: 80, image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=500&auto=format&fit=crop', category: 'Parfum', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
@@ -35,7 +38,12 @@ export const MOCK_PRODUCTS: Product[] = [
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [cart, setCart] = useState<Product[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [activeTarget, setActiveTarget] = useState<Target>('Homme');
+  const [activeTarget, setActiveTargetState] = useState<Target>('Homme');
+  
+  const setActiveTarget = (target: Target) => {
+    setActiveTargetState(target);
+    setFilters({ garmentType: null, fabricType: null });
+  };
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [filters, setFilters] = useState<{ garmentType: GarmentType | null, fabricType: FabricType | null }>({
     garmentType: null,

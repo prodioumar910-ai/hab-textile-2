@@ -9,9 +9,9 @@ const categories: { name: Category; icon: string }[] = [
   { name: 'Chaussures', icon: '👟' },
   { name: 'Ensemble Royal', icon: '👑' },
   { name: 'Tendance', icon: '🔥' },
-  { name: 'Classique', icon: '🎩' },
-  { name: 'Chapeau', icon: '🪖' },
-  { name: 'Parfum', icon: '🌸' },
+  { name: 'Classique', icon: '👔' },
+  { name: 'Chapeau', icon: '🎩' },
+  { name: 'Parfum', icon: '🧴' },
 ];
 
 const Boutique: React.FC = () => {
@@ -19,7 +19,7 @@ const Boutique: React.FC = () => {
 
   const filteredProducts = activeCategory 
     ? MOCK_PRODUCTS.filter(p => p.category === activeCategory)
-    : MOCK_PRODUCTS;
+    : MOCK_PRODUCTS.filter(p => p.garmentType === 'accessoire');
 
   return (
     <motion.div

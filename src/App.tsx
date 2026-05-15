@@ -35,6 +35,10 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [activePage]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [activePage]);
+
   const renderPage = () => {
     switch (activePage) {
       case 0: return <Home />;

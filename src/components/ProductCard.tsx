@@ -15,10 +15,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-20px" }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
       className="bg-white/10 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/20 p-2 group transform-gpu"
     >
       <div className="relative aspect-[3/4] rounded-xl overflow-hidden">

@@ -10,28 +10,19 @@ const HomeCatalogue: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   const filteredProducts = MOCK_PRODUCTS.filter(p => {
+    const isClothing = p.garmentType !== 'accessoire';
     const matchTarget = p.target === activeTarget;
     const matchGarment = filters.garmentType ? p.garmentType === filters.garmentType : true;
     const matchFabric = filters.fabricType ? p.fabricType === filters.fabricType : true;
-    return matchTarget && matchGarment && matchFabric;
+    return isClothing && matchTarget && matchGarment && matchFabric;
   });
 
-  const garmentTypes: GarmentType[] = ['chemise', 'pantalon', 'boubou', 'accessoire'];
+  const garmentTypes: GarmentType[] = ['chemise', 'pantalon', 'boubou'];
   const fabricTypes: FabricType[] = ['wax', 'bazin', 'coton', 'soie'];
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      className="px-6 pb-32"
-    >
-      <motion.div 
-        initial={{ y: 30, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true }}
-        className="flex items-center justify-between mb-8"
-      >
+    <div className="px-6 pb-32">
+      <div className="flex items-center justify-between mb-8">
         <div className="flex gap-4">
           {(['Homme', 'Enfant'] as const).map((t) => (
             <button
@@ -53,7 +44,7 @@ const HomeCatalogue: React.FC = () => {
           <Filter className="w-3.5 h-3.5" />
           <span className="text-xs font-medium">Filtre</span>
         </button>
-      </motion.div>
+      </div>
 
       <AnimatePresence>
         {showFilters && (
@@ -110,28 +101,18 @@ const HomeCatalogue: React.FC = () => {
       </AnimatePresence>
 
       <motion.div 
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true }}
-        variants={{
-          hidden: { opacity: 0 },
-          show: {
-            opacity: 1,
-            transition: {
-              staggerChildren: 0.1
-            }
-          }
-        }}
+        layout
         className="grid grid-cols-2 md:grid-cols-3 gap-4"
       >
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence mode="wait">
           {filteredProducts.map((p) => (
             <motion.div
+              layout
               key={p.id}
-              variants={{
-                hidden: { opacity: 0, y: 20 },
-                show: { opacity: 1, y: 0 }
-              }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.2 }}
             >
               <ProductCard product={p} />
             </motion.div>
@@ -144,7 +125,7 @@ const HomeCatalogue: React.FC = () => {
           Aucun produit trouvé avec ces filtres.
         </div>
       )}
-    </motion.div>
+    </div>
   );
 };
 
