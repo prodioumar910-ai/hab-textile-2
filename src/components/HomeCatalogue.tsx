@@ -21,8 +21,8 @@ const HomeCatalogue: React.FC = () => {
   const fabricTypes: FabricType[] = ['wax', 'bazin', 'coton', 'soie'];
 
   return (
-    <div className="px-6 pb-32">
-      <div className="flex items-center justify-between mb-8">
+    <div className="px-4 pb-32">
+      <div className="flex items-center justify-between mb-8 px-2">
         <div className="flex gap-4">
           {(['Homme', 'Enfant'] as const).map((t) => (
             <button
@@ -102,7 +102,7 @@ const HomeCatalogue: React.FC = () => {
 
       <motion.div 
         layout
-        className="grid grid-cols-2 md:grid-cols-3 gap-4"
+        className="grid grid-cols-2 gap-3"
       >
         <AnimatePresence mode="wait">
           {filteredProducts.map((p) => (
@@ -114,7 +114,7 @@ const HomeCatalogue: React.FC = () => {
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.2 }}
             >
-              <ProductCard product={p} />
+              <ProductCard product={p} isSharp={true} />
             </motion.div>
           ))}
         </AnimatePresence>

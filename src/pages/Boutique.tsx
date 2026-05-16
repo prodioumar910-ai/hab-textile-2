@@ -26,7 +26,7 @@ const Boutique: React.FC = () => {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="px-6 pt-4 pb-32"
+      className="px-4 pt-4 pb-32"
     >
       <motion.section 
         initial={{ opacity: 0, y: 40 }}
@@ -75,7 +75,7 @@ const Boutique: React.FC = () => {
             }
           }
         }}
-        className="grid grid-cols-2 md:grid-cols-3 gap-4"
+        className="grid grid-cols-2 gap-3"
       >
         <AnimatePresence mode="popLayout">
           {filteredProducts.map((p) => (

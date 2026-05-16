@@ -6,18 +6,19 @@ import { useStore } from '../context/StoreContext';
 
 interface ProductCardProps {
   product: Product;
+  isSharp?: boolean;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false }) => {
   const { toggleFavorite, favorites, addToCart } = useStore();
   const isFavorite = favorites.includes(product.id);
 
   return (
     <motion.div
       layout
-      className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden border border-white/20 p-1.5 group transform-gpu"
+      className="overflow-hidden group transform-gpu"
     >
-      <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
+      <div className={`relative aspect-[3/4] ${isSharp ? '' : 'rounded-lg'} overflow-hidden`}>
         <img
           src={product.image}
           alt={product.name}
@@ -44,7 +45,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         
         <button
           onClick={() => addToCart(product)}
-          className="w-full mt-3 py-2 bg-white text-brand-black rounded-lg font-body font-medium text-xs hover:bg-opacity-90 transition-all"
+          className={`w-full mt-3 py-2 bg-white text-brand-black ${isSharp ? '' : 'rounded-lg'} font-body font-medium text-xs hover:bg-opacity-90 transition-all`}
         >
           Ajouter au panier
         </button>
