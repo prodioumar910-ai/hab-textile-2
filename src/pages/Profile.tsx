@@ -3,9 +3,15 @@ import { motion } from 'motion/react';
 import { Package, Heart, Settings, LogOut, ChevronRight, Bell, Globe } from 'lucide-react';
 import { useStore, MOCK_PRODUCTS } from '../context/StoreContext';
 import ProductCard from '../components/ProductCard';
+import Auth from './Auth';
 
 const Profile: React.FC = () => {
-  const { favorites } = useStore();
+  const { favorites, user, signOut } = useStore();
+  
+  if (!user) {
+    return <Auth />;
+  }
+
   const favoriteProducts = MOCK_PRODUCTS.filter(p => favorites.includes(p.id));
 
   const orders = [
@@ -33,7 +39,9 @@ const Profile: React.FC = () => {
             className="w-full h-full object-cover"
           />
         </div>
-        <h2 className="font-heading font-bold text-xl text-brand-black">Jean Dupont</h2>
+        <h2 className="font-heading font-bold text-xl text-brand-black">
+          {user.user_metadata?.full_name || user.email}
+        </h2>
         <button className="mt-2 px-4 py-1.5 bg-white/30 backdrop-blur-md rounded-full text-xs font-body font-medium text-brand-black border border-white/20">
           Modifier le profil
         </button>
@@ -108,9 +116,17 @@ const Profile: React.FC = () => {
           {[
             { icon: Bell, label: 'Notifications' },
             { icon: Globe, label: 'Langue (Français)' },
-            { icon: LogOut, label: 'Déconnexion' },
+            { 
+              icon: LogOut, 
+              label: 'Déconnexion', 
+              onClick: signOut 
+            },
           ].map((item, idx) => (
-            <button key={idx} className="w-full px-4 py-4 flex items-center justify-between group hover:bg-white/10 transition-colors">
+            <button 
+              key={idx} 
+              onClick={item.onClick}
+              className="w-full px-4 py-4 flex items-center justify-between group hover:bg-white/10 transition-colors"
+            >
               <div className="flex items-center gap-3">
                 <item.icon className="w-4 h-4 text-brand-black/70" />
                 <span className="text-sm font-body font-medium text-brand-black">{item.label}</span>

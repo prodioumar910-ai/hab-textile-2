@@ -38,7 +38,7 @@
   flex-shrink: 0;
   gap: 2rem;
   min-width: 100%;
-  animation: scroll 30s linear infinite;
+  animation: scroll 65s linear infinite;
 }
 
 @keyframes scroll {

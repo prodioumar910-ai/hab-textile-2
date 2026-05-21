@@ -18,12 +18,24 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false }) =
       layout
       className="overflow-hidden group transform-gpu"
     >
-      <div className={`relative aspect-[3/4] ${isSharp ? '' : 'rounded-lg'} overflow-hidden`}>
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-        />
+      <div className={`relative aspect-[3/4] ${isSharp ? '' : 'rounded-lg'} overflow-hidden bg-gradient-to-b from-stone-900 to-stone-950 flex items-center justify-center border border-black/10`}>
+        {product.image ? (
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center p-4 text-center select-none">
+            <span className="font-heading font-extrabold text-3xl tracking-widest text-amber-500/80 group-hover:scale-115 transition-transform duration-500">
+              HT
+            </span>
+            <span className="text-[8px] font-mono tracking-[0.25em] text-stone-400 mt-3 uppercase opacity-90">
+              Habé Textile
+            </span>
+            <div className="w-8 h-[1px] bg-amber-500/20 mt-3" />
+          </div>
+        )}
         <button
           onClick={(e) => {
             e.stopPropagation();
