@@ -11,11 +11,15 @@ import Home from './pages/Home';
 import Boutique from './pages/Boutique';
 import Profile from './pages/Profile';
 import Auth from './pages/Auth';
+import Admin from './pages/Admin';
 import { AnimatePresence, motion } from 'motion/react';
+import { ArrowLeft } from 'lucide-react';
+import { ProductDetailModal } from './components/ProductDetailModal';
 
 function AppContent() {
-  const { user } = useStore();
+  const { user, selectedProduct } = useStore();
   const [activePage, setActivePage] = useState(0);
+  const [isAdminMode, setIsAdminMode] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [hasSkipped, setHasSkipped] = useState(() => {
     return localStorage.getItem('habe_skip_auth') === 'true';
@@ -52,10 +56,12 @@ function AppContent() {
   }, [activePage]);
 
   const renderPage = () => {
+    if (isAdminMode) return <Admin />;
+    
     switch (activePage) {
       case 0: return <Home />;
       case 1: return <Boutique />;
-      case 2: return <Profile />;
+      case 2: return <Profile onOpenAdmin={() => setIsAdminMode(true)} />;
       default: return <Home />;
     }
   };
@@ -75,15 +81,28 @@ function AppContent() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header positioning */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-transparent border-transparent shadow-none border-b-0 transition-all duration-300 transform-gpu">
-        <Header activePage={activePage} setActivePage={setActivePage} isTransparent={activePage === 0 && !isScrolled} />
-      </div>
+      {/* Admin Back Button */}
+      {isAdminMode && (
+        <button
+          onClick={() => setIsAdminMode(false)}
+          className="fixed bottom-6 left-6 z-[10001] bg-brand-black text-white px-6 py-3 rounded-full flex items-center gap-2 text-xs font-heading font-bold shadow-2xl active:scale-95 border border-white/10"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Quitter Admin
+        </button>
+      )}
 
-      <main className={`flex-1 overflow-x-hidden ${activePage !== 0 ? 'pt-20' : ''}`}>
+      {/* Header positioning */}
+      {!isAdminMode && !selectedProduct && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-transparent border-transparent shadow-none border-b-0 transition-all duration-300 transform-gpu">
+          <Header activePage={activePage} setActivePage={setActivePage} isTransparent={activePage === 0 && !isScrolled} />
+        </div>
+      )}
+
+      <main className={`flex-1 overflow-x-hidden ${activePage !== 0 && !isAdminMode ? 'pt-20' : ''}`}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
-            key={activePage}
+            key={isAdminMode ? 'admin' : activePage}
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.02 }}
@@ -96,18 +115,23 @@ function AppContent() {
       </main>
 
       <AnimatePresence>
-        <motion.div
-          initial={{ opacity: 0, y: 100 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 100 }}
-          transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-          className="z-[9999] fixed inset-x-0 bottom-0 pointer-events-none"
-        >
-          <div className="pointer-events-auto">
-            <BottomNav activePage={activePage} setActivePage={setActivePage} />
-          </div>
-        </motion.div>
+        {!isAdminMode && !selectedProduct && (
+          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 100 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+            className="z-[9999] fixed inset-x-0 bottom-0 pointer-events-none"
+          >
+            <div className="pointer-events-auto">
+              <BottomNav activePage={activePage} setActivePage={setActivePage} />
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
+
+      {/* Global High-Z Product Detail Overlay */}
+      <ProductDetailModal />
     </div>
   );
 }

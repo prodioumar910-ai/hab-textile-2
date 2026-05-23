@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { Filter } from 'lucide-react';
-import { useStore, MOCK_PRODUCTS } from '../context/StoreContext';
+import { useStore } from '../context/StoreContext';
 import ProductCard from './ProductCard';
 import { motion, AnimatePresence } from 'motion/react';
 import { GarmentType, FabricType } from '../types';
 
 const HomeCatalogue: React.FC = () => {
-  const { activeTarget, setActiveTarget, filters, setFilters } = useStore();
+  const { activeTarget, setActiveTarget, filters, setFilters, products } = useStore();
   const [showFilters, setShowFilters] = useState(false);
 
-  const filteredProducts = MOCK_PRODUCTS.filter(p => {
+  const filteredProducts = products.filter(p => {
     const isClothing = p.garmentType !== 'accessoire';
     const matchTarget = p.target === activeTarget;
     const matchGarment = filters.garmentType ? p.garmentType === filters.garmentType : true;
@@ -36,7 +36,6 @@ const HomeCatalogue: React.FC = () => {
             </button>
           ))}
         </div>
-
         <button
           onClick={() => setShowFilters(!showFilters)}
           className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg transition-all"

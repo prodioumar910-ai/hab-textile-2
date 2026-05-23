@@ -24,6 +24,91 @@ const TrendingSection: React.FC = () => {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [isZoomed, setIsZoomed] = useState(false);
 
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const isDragActive = React.useRef(false);
+  const startX = React.useRef(0);
+  const startScrollLeft = React.useRef(0);
+  const dragMoved = React.useRef(false);
+  const [isMouseDown, setIsMouseDown] = useState(false);
+
+  // Initialize and handle endless wrap-around scroll
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const initScroll = () => {
+      const singleTrackWidth = container.scrollWidth / 3;
+      // Scroll to the start of the middle track
+      container.scrollLeft = singleTrackWidth;
+    };
+
+    // Run immediately and after a short paint cycle
+    initScroll();
+    const rAF = requestAnimationFrame(initScroll);
+    const timer = setTimeout(initScroll, 150);
+
+    return () => {
+      cancelAnimationFrame(rAF);
+      clearTimeout(timer);
+    };
+  }, []);
+
+  const handleScroll = () => {
+    const container = containerRef.current;
+    if (!container) return;
+    const { scrollLeft, scrollWidth } = container;
+    const singleTrackWidth = scrollWidth / 3;
+
+    // Left threshold: near the first half of the first division, snap to second division
+    if (scrollLeft < singleTrackWidth - 100) {
+      container.scrollLeft = scrollLeft + singleTrackWidth;
+    } 
+    // Right threshold: near the start of the third division, snap to second division
+    else if (scrollLeft >= singleTrackWidth * 2 - 100) {
+      container.scrollLeft = scrollLeft - singleTrackWidth;
+    }
+  };
+
+  // Mouse drag functionality for desktop users
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const container = containerRef.current;
+    if (!container) return;
+    isDragActive.current = true;
+    setIsMouseDown(true);
+    startX.current = e.pageX - container.offsetLeft;
+    startScrollLeft.current = container.scrollLeft;
+    dragMoved.current = false;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragActive.current) return;
+    const container = containerRef.current;
+    if (!container) return;
+    e.preventDefault();
+    const x = e.pageX - container.offsetLeft;
+    const walk = (x - startX.current) * 1.5; // scroll speed multiplier
+
+    if (Math.abs(walk) > 5) {
+      dragMoved.current = true;
+    }
+
+    container.scrollLeft = startScrollLeft.current - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    isDragActive.current = false;
+    setIsMouseDown(false);
+  };
+
+  const handleItemClick = (idx: number, e: React.MouseEvent) => {
+    if (dragMoved.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    setViewerIndex(idx % TRENDING_ITEMS.length);
+  };
+
   const handlePrev = useCallback(() => {
     setIsZoomed(false);
     setViewerIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : TRENDING_ITEMS.length - 1));
@@ -73,36 +158,98 @@ const TrendingSection: React.FC = () => {
         </span>
       </div>
       
-      <div className="flex overflow-x-auto gap-6 px-6 pb-6 no-scrollbar snap-x snap-mandatory">
-        {TRENDING_ITEMS.map((product, idx) => (
-          <motion.div 
-            key={product.id}
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="flex-shrink-0 w-60 snap-start"
-            onClick={() => setViewerIndex(idx)}
-          >
-            <div className="group cursor-pointer relative">
-              <div className="aspect-[9/16] overflow-hidden rounded-2xl bg-transparent relative">
-                <img 
-                  src={product.image} 
-                  alt={product.name} 
-                  className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute inset-0 bg-black/[0.02] group-hover:bg-black/10 transition-all pointer-events-none rounded-2xl flex items-center justify-center">
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 backdrop-blur-md text-brand-black py-2 px-4 rounded-full text-[10px] font-heading font-semibold tracking-wider uppercase flex items-center gap-1.5 shadow-md">
-                    <Eye className="w-3.5 h-3.5" />
-                    Agrandir
+      <div 
+        ref={containerRef}
+        onScroll={handleScroll}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUpOrLeave}
+        onMouseLeave={handleMouseUpOrLeave}
+        className={`flex overflow-x-auto gap-6 py-6 px-6 no-scrollbar select-none w-full scroll-smooth ${isMouseDown ? 'cursor-grabbing' : 'cursor-grab'}`}
+      >
+        {/* Track 1: Prefix */}
+        <div className="flex gap-6 flex-shrink-0">
+          {TRENDING_ITEMS.map((product, idx) => (
+            <div 
+              key={`${product.id}-prefix`}
+              className="flex-shrink-0 w-60"
+              onClick={(e) => handleItemClick(idx, e)}
+            >
+              <div className="group cursor-pointer relative">
+                <div className="aspect-[9/16] overflow-hidden rounded-2xl bg-transparent relative">
+                  <img 
+                    src={product.image} 
+                    alt={product.name} 
+                    className="w-full h-full object-contain pointer-events-none transition-transform duration-700 group-hover:scale-105"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-black/[0.02] group-hover:bg-black/10 transition-all pointer-events-none rounded-2xl flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 backdrop-blur-md text-brand-black py-2 px-4 rounded-full text-[10px] font-heading font-semibold tracking-wider uppercase flex items-center gap-1.5 shadow-md">
+                      <Eye className="w-3.5 h-3.5" />
+                      Agrandir
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </motion.div>
-        ))}
-        {/* Spacer at the end for padding-right equivalent in scroll */}
-        <div className="flex-shrink-0 w-4" />
+          ))}
+        </div>
+
+        {/* Track 2: Main */}
+        <div className="flex gap-6 flex-shrink-0">
+          {TRENDING_ITEMS.map((product, idx) => (
+            <div 
+              key={`${product.id}-main`}
+              className="flex-shrink-0 w-60"
+              onClick={(e) => handleItemClick(idx, e)}
+            >
+              <div className="group cursor-pointer relative">
+                <div className="aspect-[9/16] overflow-hidden rounded-2xl bg-transparent relative">
+                  <img 
+                    src={product.image} 
+                    alt={product.name} 
+                    className="w-full h-full object-contain pointer-events-none transition-transform duration-700 group-hover:scale-105"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-black/[0.02] group-hover:bg-black/10 transition-all pointer-events-none rounded-2xl flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 backdrop-blur-md text-brand-black py-2 px-4 rounded-full text-[10px] font-heading font-semibold tracking-wider uppercase flex items-center gap-1.5 shadow-md">
+                      <Eye className="w-3.5 h-3.5" />
+                      Agrandir
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Track 3: Suffix */}
+        <div className="flex gap-6 flex-shrink-0">
+          {TRENDING_ITEMS.map((product, idx) => (
+            <div 
+              key={`${product.id}-suffix`}
+              className="flex-shrink-0 w-60"
+              onClick={(e) => handleItemClick(idx, e)}
+            >
+              <div className="group cursor-pointer relative">
+                <div className="aspect-[9/16] overflow-hidden rounded-2xl bg-transparent relative">
+                  <img 
+                    src={product.image} 
+                    alt={product.name} 
+                    className="w-full h-full object-contain pointer-events-none transition-transform duration-700 group-hover:scale-105"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-black/[0.02] group-hover:bg-black/10 transition-all pointer-events-none rounded-2xl flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 backdrop-blur-md text-brand-black py-2 px-4 rounded-full text-[10px] font-heading font-semibold tracking-wider uppercase flex items-center gap-1.5 shadow-md">
+                      <Eye className="w-3.5 h-3.5" />
+                      Agrandir
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Modern High-Fidelity Lightbox with Animation */}
@@ -204,6 +351,21 @@ const TrendingSection: React.FC = () => {
         .no-scrollbar {
           -ms-overflow-style: none;
           scrollbar-width: none;
+        }
+        @keyframes trending-scroll {
+          from {
+            transform: translateX(0);
+          }
+          to {
+            transform: translateX(calc(-100% - 1.5rem));
+          }
+        }
+        .animate-trending-scroll {
+          animation: trending-scroll 45s linear infinite;
+          will-change: transform;
+        }
+        .trending-marquee-content:hover .animate-trending-scroll {
+          animation-play-state: paused;
         }
       `}} />
     </section>

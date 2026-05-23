@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useStore, MOCK_PRODUCTS } from '../context/StoreContext';
+import { useStore } from '../context/StoreContext';
 import ProductCard from '../components/ProductCard';
 import { Category } from '../types';
 
@@ -15,11 +15,11 @@ const categories: { name: Category; icon: string }[] = [
 ];
 
 const Boutique: React.FC = () => {
-  const { activeCategory, setActiveCategory } = useStore();
+  const { activeCategory, setActiveCategory, products } = useStore();
 
   const filteredProducts = activeCategory 
-    ? MOCK_PRODUCTS.filter(p => p.category === activeCategory)
-    : MOCK_PRODUCTS.filter(p => p.garmentType === 'accessoire');
+    ? products.filter(p => p.category === activeCategory)
+    : products.filter(p => p.garmentType === 'accessoire');
 
   return (
     <motion.div

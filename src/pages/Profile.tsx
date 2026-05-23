@@ -1,18 +1,22 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Package, Heart, Settings, LogOut, ChevronRight, Bell, Globe } from 'lucide-react';
-import { useStore, MOCK_PRODUCTS } from '../context/StoreContext';
+import { Package, Heart, Settings, LogOut, ChevronRight, Bell, Globe, ShieldCheck } from 'lucide-react';
+import { useStore } from '../context/StoreContext';
 import ProductCard from '../components/ProductCard';
 import Auth from './Auth';
 
-const Profile: React.FC = () => {
-  const { favorites, user, signOut } = useStore();
+interface ProfileProps {
+  onOpenAdmin?: () => void;
+}
+
+const Profile: React.FC<ProfileProps> = ({ onOpenAdmin }) => {
+  const { favorites, user, signOut, products } = useStore();
   
   if (!user) {
     return <Auth />;
   }
 
-  const favoriteProducts = MOCK_PRODUCTS.filter(p => favorites.includes(p.id));
+  const favoriteProducts = products.filter(p => favorites.includes(p.id));
 
   const orders = [
     { id: '#HB-1029', date: '12 Mai 2024', status: 'en cours', total: 150 },
@@ -116,6 +120,11 @@ const Profile: React.FC = () => {
           {[
             { icon: Bell, label: 'Notifications' },
             { icon: Globe, label: 'Langue (Français)' },
+            ...(onOpenAdmin && user?.email === 'prodimany@gmail.com' ? [{ 
+              icon: ShieldCheck, 
+              label: 'Administration Boutique', 
+              onClick: onOpenAdmin 
+            }] : []),
             { 
               icon: LogOut, 
               label: 'Déconnexion', 
