@@ -26,6 +26,10 @@ interface StoreContextType {
   signOut: () => Promise<void>;
   selectedProduct: Product | null;
   setSelectedProduct: (product: Product | null) => void;
+  isTrendingOpen: boolean;
+  setIsTrendingOpen: (open: boolean) => void;
+  isPretAPorterOpen: boolean;
+  setIsPretAPorterOpen: (open: boolean) => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -105,6 +109,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   });
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isTrendingOpen, setIsTrendingOpen] = useState<boolean>(false);
+  const [isPretAPorterOpen, setIsPretAPorterOpen] = useState<boolean>(false);
 
   const addToCart = (product: Product) => setCart((prev) => [...prev, product]);
   const removeFromCart = (productId: string) => setCart((prev) => prev.filter((p) => p.id !== productId));
@@ -123,7 +129,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       activeTarget, setActiveTarget, activeCategory, setActiveCategory,
       filters, setFilters,
       user, signOut,
-      selectedProduct, setSelectedProduct
+      selectedProduct, setSelectedProduct,
+      isTrendingOpen, setIsTrendingOpen,
+      isPretAPorterOpen, setIsPretAPorterOpen
     }}>
       {children}
     </StoreContext.Provider>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { useStore } from '../context/StoreContext';
 
 const TRENDING_ITEMS = [
   { id: 't1', name: 'Boubou Majesté', image: 'https://lh3.googleusercontent.com/d/1jnoz-YiJjiXAg5ulvILf85v_pAqmRtQ4' },
@@ -21,8 +22,16 @@ const TRENDING_ITEMS = [
 ];
 
 const TrendingSection: React.FC = () => {
+  const { setIsTrendingOpen } = useStore();
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [isZoomed, setIsZoomed] = useState(false);
+
+  useEffect(() => {
+    setIsTrendingOpen(viewerIndex !== null);
+    return () => {
+      setIsTrendingOpen(false);
+    };
+  }, [viewerIndex, setIsTrendingOpen]);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
   const isDragActive = React.useRef(false);
@@ -259,86 +268,63 @@ const TrendingSection: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[10000] bg-brand-black/98 backdrop-blur-xl flex flex-col justify-between p-4 md:p-8"
+            className="fixed inset-0 z-[10000] bg-black/60 backdrop-blur-xl flex items-center justify-center overflow-hidden"
           >
-            {/* Top Toolbar */}
-            <div className="flex items-center justify-between w-full h-16 z-50">
-              <div className="flex flex-col text-left">
-                <span className="text-[10px] font-mono tracking-[0.2em] text-white/40 uppercase">
-                  Tendance {viewerIndex + 1} / {TRENDING_ITEMS.length}
-                </span>
-                <span className="text-sm font-heading font-semibold text-white tracking-wide uppercase mt-0.5">
-                  {TRENDING_ITEMS[viewerIndex].name}
-                </span>
-              </div>
+            {/* Screen-level navigation controls next to/beside the content */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePrev();
+              }}
+              className="fixed left-4 md:left-8 top-1/2 -translate-y-1/2 z-[100003] p-3 rounded-full bg-white/10 hover:bg-brand-orange-light text-white hover:text-white border border-white/10 transition-all hover:scale-110 active:scale-90 flex items-center justify-center cursor-pointer shadow-lg"
+              title="Précédent"
+            >
+              <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
+            </button>
 
-              <div className="flex items-center gap-3">
-                {/* Zoom Helper Buttons */}
-                <button
-                  onClick={() => setIsZoomed(!isZoomed)}
-                  className="p-3 bg-white/5 hover:bg-white/15 text-white/80 hover:text-white rounded-full transition-all outline-none"
-                  title={isZoomed ? "Zoom arrière" : "Zoom avant"}
-                >
-                  {isZoomed ? <ZoomOut className="w-5 h-5" /> : <ZoomIn className="w-5 h-5" />}
-                </button>
-                {/* Close Button */}
-                <button
-                  onClick={handleClose}
-                  className="p-3 bg-white/10 hover:bg-white/20 active:scale-95 text-white font-medium rounded-full transition-all outline-none"
-                  title="Fermer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNext();
+              }}
+              className="fixed right-4 md:right-8 top-1/2 -translate-y-1/2 z-[100003] p-3 rounded-full bg-white/10 hover:bg-brand-orange-light text-white hover:text-white border border-white/10 transition-all hover:scale-110 active:scale-90 flex items-center justify-center cursor-pointer shadow-lg"
+              title="Suivant"
+            >
+              <ChevronRight className="w-5 h-5 stroke-[2.5]" />
+            </button>
 
-            {/* Main Stage */}
-            <div className="flex-1 relative flex items-center justify-center overflow-hidden w-full select-none">
-              {/* Left Navigation Arrow */}
-              <button
-                onClick={handlePrev}
-                className="absolute left-2 md:left-6 z-50 p-3 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-all outline-none active:scale-90"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
+            {/* Close button in top right of the viewport screen, next to the image content */}
+            <button
+              onClick={handleClose}
+              className="fixed top-6 right-6 z-[100003] p-3 rounded-full bg-white text-brand-black hover:bg-brand-orange-light hover:text-white transition-all shadow-2xl active:scale-95 flex items-center justify-center cursor-pointer"
+              title="Fermer"
+            >
+              <X className="w-6 h-6 stroke-[2.5]" />
+            </button>
 
-              {/* Lightbox Image Container */}
-              <div className="w-full h-full flex items-center justify-center">
+            {/* Main Stage (Full screen space with backdrop click to close) */}
+            <div 
+              className="absolute inset-0 flex items-center justify-center overflow-hidden w-full h-full select-none cursor-pointer"
+              onClick={handleClose}
+            >
+              <div className="w-full h-full flex items-center justify-center p-4">
                 <motion.div
                   key={viewerIndex}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3 }}
-                  className="relative max-w-full max-h-[75vh] flex items-center justify-center"
+                  className="relative flex items-center justify-center"
+                  onClick={(e) => e.stopPropagation()} // Prevent click inside image container from closing
                 >
-                  <motion.img
+                  <img
                     src={TRENDING_ITEMS[viewerIndex].image}
                     alt={TRENDING_ITEMS[viewerIndex].name}
-                    className={`max-w-[90vw] max-h-[75vh] object-contain transition-all duration-300 ease-out ${
-                      isZoomed ? 'scale-150 cursor-zoom-out' : 'scale-100 cursor-zoom-in'
-                    }`}
+                    className="w-auto h-auto max-w-[85vw] max-h-[82vh] md:max-w-[70vw] md:max-h-[82vh] rounded-3xl object-contain shadow-[0_25px_60px_rgba(0,0,0,0.6)] border border-white/10"
                     referrerPolicy="no-referrer"
-                    onClick={() => setIsZoomed(!isZoomed)}
-                    layout
                   />
                 </motion.div>
               </div>
-
-              {/* Right Navigation Arrow */}
-              <button
-                onClick={handleNext}
-                className="absolute right-2 md:right-6 z-50 p-3 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-full transition-all outline-none active:scale-90"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Bottom Info Bar / Instructions */}
-            <div className="w-full text-center py-4 z-50">
-              <p className="text-[10px] font-mono tracking-widest text-white/30 uppercase">
-                {isZoomed ? "Pincez ou cliquez sur la photo pour revenir à l'affichage normal" : "Cliquez sur la photo pour zoomer sur les détails du tissu"}
-              </p>
             </div>
           </motion.div>
         )}

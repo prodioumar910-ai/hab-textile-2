@@ -17,7 +17,7 @@ import { ArrowLeft } from 'lucide-react';
 import { ProductDetailModal } from './components/ProductDetailModal';
 
 function AppContent() {
-  const { user, selectedProduct } = useStore();
+  const { user, selectedProduct, isTrendingOpen, isPretAPorterOpen } = useStore();
   const [activePage, setActivePage] = useState(0);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -93,7 +93,7 @@ function AppContent() {
       )}
 
       {/* Header positioning */}
-      {!isAdminMode && !selectedProduct && (
+      {!isAdminMode && !selectedProduct && !isTrendingOpen && !isPretAPorterOpen && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-transparent border-transparent shadow-none border-b-0 transition-all duration-300 transform-gpu">
           <Header activePage={activePage} setActivePage={setActivePage} isTransparent={activePage === 0 && !isScrolled} />
         </div>
@@ -115,7 +115,7 @@ function AppContent() {
       </main>
 
       <AnimatePresence>
-        {!isAdminMode && !selectedProduct && (
+        {!isAdminMode && !selectedProduct && !isTrendingOpen && !isPretAPorterOpen && (
           <motion.div
             initial={{ opacity: 0, y: 100 }}
             animate={{ opacity: 1, y: 0 }}
