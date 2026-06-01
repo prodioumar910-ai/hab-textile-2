@@ -21,6 +21,7 @@ function AppContent() {
   const [activePage, setActivePage] = useState(0);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showBottomNav, setShowBottomNav] = useState(false);
   const [hasSkipped, setHasSkipped] = useState(() => {
     return localStorage.getItem('habe_skip_auth') === 'true';
   });
@@ -33,17 +34,18 @@ function AppContent() {
   useEffect(() => {
     if (activePage !== 0) {
       setIsScrolled(true);
+      setShowBottomNav(true);
       return;
     }
 
     const handleScroll = () => {
       // Transition as we start moving into the second section (below Hero's 100vh)
-      const threshold = window.innerHeight * 0.6;
-      if (window.scrollY > threshold) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      const scrollPos = window.scrollY;
+      const thresholdHeader = window.innerHeight * 0.4;
+      const thresholdNav = window.innerHeight * 1.5; // Threshold for 3rd section
+
+      setIsScrolled(scrollPos > thresholdHeader);
+      setShowBottomNav(scrollPos > thresholdNav);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -115,7 +117,7 @@ function AppContent() {
       </main>
 
       <AnimatePresence>
-        {!isAdminMode && !selectedProduct && !isTrendingOpen && !isPretAPorterOpen && (
+        {!isAdminMode && !selectedProduct && !isTrendingOpen && !isPretAPorterOpen && showBottomNav && (
           <motion.div
             initial={{ opacity: 0, y: 100 }}
             animate={{ opacity: 1, y: 0 }}

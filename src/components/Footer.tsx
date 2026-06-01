@@ -73,6 +73,16 @@ const Footer: React.FC = () => {
               <Facebook className="w-4 h-4" />
             </a>
           </div>
+
+          <div className="mt-4 p-4 rounded-2xl bg-white/5 border border-white/10">
+            <h4 className="text-[10px] font-bold text-white uppercase tracking-tighter mb-2">
+              Installer l'application mobile
+            </h4>
+            <p className="text-[9px] text-white/40 leading-tight mb-3">
+              Sur iPhone: Partager &gt; "Sur l'écran d'accueil"<br/>
+              Sur Android: Menu &gt; "Installer l'application"
+            </p>
+          </div>
         </div>
 
       </div>
