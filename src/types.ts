@@ -28,3 +28,12 @@ export interface Order {
   status: 'en cours' | 'livré' | 'annulé';
   total: number;
 }
+
+export interface PretProduct {
+  id: string;
+  name: string;
+  price: number;
+  images: string[];
+  description: string;
+}
+

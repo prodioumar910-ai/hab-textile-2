@@ -15,6 +15,7 @@ import Admin from './pages/Admin';
 import { AnimatePresence, motion } from 'motion/react';
 import { ArrowLeft } from 'lucide-react';
 import { ProductDetailModal } from './components/ProductDetailModal';
+import { PretAPorterModal } from './components/PretAPorterModal';
 
 function AppContent() {
   const { user, selectedProduct, isTrendingOpen, isPretAPorterOpen } = useStore();
@@ -134,6 +135,7 @@ function AppContent() {
 
       {/* Global High-Z Product Detail Overlay */}
       <ProductDetailModal />
+      <PretAPorterModal />
     </div>
   );
 }

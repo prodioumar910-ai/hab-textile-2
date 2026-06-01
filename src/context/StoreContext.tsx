@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Product, Target, Category, GarmentType, FabricType } from '../types';
+import { Product, Target, Category, GarmentType, FabricType, PretProduct } from '../types';
 import { supabase } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
 
@@ -26,6 +26,8 @@ interface StoreContextType {
   signOut: () => Promise<void>;
   selectedProduct: Product | null;
   setSelectedProduct: (product: Product | null) => void;
+  selectedPretProduct: PretProduct | null;
+  setSelectedPretProduct: (product: PretProduct | null) => void;
   isTrendingOpen: boolean;
   setIsTrendingOpen: (open: boolean) => void;
   isPretAPorterOpen: boolean;
@@ -67,15 +69,35 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // Check local admin fallback
     const isLocalAdmin = localStorage.getItem('habe_local_admin') === 'true';
     if (isLocalAdmin) {
+      const adminEmail = localStorage.getItem('habe_local_admin_email') || 'prodioumar910@gmail.com';
       setUser({
         id: 'admin-local-id',
-        email: 'prodimany@gmail.com',
+        email: adminEmail,
         user_metadata: { full_name: 'Habé Administrateur' },
         aud: 'authenticated',
         role: 'authenticated',
         created_at: new Date().toISOString(),
       } as any);
       return;
+    }
+
+    // Check local user fallback
+    const isLocalUserJson = localStorage.getItem('habe_local_user');
+    if (isLocalUserJson) {
+      try {
+        const localUser = JSON.parse(isLocalUserJson);
+        setUser({
+          id: 'user-local-id',
+          email: localUser.email,
+          user_metadata: { full_name: localUser.fullName },
+          aud: 'authenticated',
+          role: 'authenticated',
+          created_at: new Date().toISOString(),
+        } as any);
+        return;
+      } catch (e) {
+        localStorage.removeItem('habe_local_user');
+      }
     }
 
     // Check current session
@@ -94,7 +116,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const signOut = async () => {
     localStorage.removeItem('habe_local_admin');
-    await supabase.auth.signOut();
+    localStorage.removeItem('habe_local_admin_email');
+    localStorage.removeItem('habe_local_user');
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn('Ignore Supabase signOut error:', e);
+    }
     setUser(null);
   };
   
@@ -109,6 +137,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   });
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedPretProduct, setSelectedPretProduct] = useState<PretProduct | null>(null);
   const [isTrendingOpen, setIsTrendingOpen] = useState<boolean>(false);
   const [isPretAPorterOpen, setIsPretAPorterOpen] = useState<boolean>(false);
 
@@ -130,6 +159,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       filters, setFilters,
       user, signOut,
       selectedProduct, setSelectedProduct,
+      selectedPretProduct, setSelectedPretProduct,
       isTrendingOpen, setIsTrendingOpen,
       isPretAPorterOpen, setIsPretAPorterOpen
     }}>

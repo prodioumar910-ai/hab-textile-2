@@ -120,7 +120,7 @@ const Profile: React.FC<ProfileProps> = ({ onOpenAdmin }) => {
           {[
             { icon: Bell, label: 'Notifications' },
             { icon: Globe, label: 'Langue (Français)' },
-            ...(onOpenAdmin && user?.email === 'prodimany@gmail.com' ? [{ 
+            ...(onOpenAdmin && (user?.email?.toLowerCase() === 'prodimany@gmail.com' || user?.email?.toLowerCase() === 'prodioumar910@gmail.com') ? [{ 
               icon: ShieldCheck, 
               label: 'Administration Boutique', 
               onClick: onOpenAdmin 
