@@ -115,7 +115,7 @@ const HomeCatalogue: React.FC = () => {
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.2 }}
             >
-              <ProductCard product={p} isSharp={true} />
+              <ProductCard product={p} isSharp={true} showDetails={false} />
             </motion.div>
           ))}
         </AnimatePresence>

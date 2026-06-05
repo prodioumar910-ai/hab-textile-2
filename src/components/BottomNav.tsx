@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Home, ShoppingBag, User } from 'lucide-react';
+import { Home, ShoppingBag, User, Info } from 'lucide-react';
 
 interface BottomNavProps {
   activePage: number;
@@ -12,10 +12,11 @@ const BottomNav: React.FC<BottomNavProps> = ({ activePage, setActivePage }) => {
     { icon: Home, label: 'Accueil', index: 0 },
     { icon: ShoppingBag, label: 'Boutique', index: 1 },
     { icon: User, label: 'Profil', index: 2 },
+    { icon: Info, label: 'À propos', index: 3 },
   ];
 
   return (
-    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[80%] max-w-[240px] h-10 bg-white/95 backdrop-blur-xl flex items-center justify-around px-2 z-[9999] rounded-full shadow-[0_10px_25px_rgba(0,0,0,0.15)] border border-white/40">
+    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[85%] max-w-[320px] h-10 bg-white/95 backdrop-blur-xl flex items-center justify-around px-2 z-[9999] rounded-full shadow-[0_10px_25px_rgba(0,0,0,0.15)] border border-white/40">
       {navItems.map((item) => {
         const isActive = activePage === item.index;
         const Icon = item.icon;

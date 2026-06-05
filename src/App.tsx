@@ -10,6 +10,7 @@ import BottomNav from './components/BottomNav';
 import Home from './pages/Home';
 import Boutique from './pages/Boutique';
 import Profile from './pages/Profile';
+import About from './pages/About';
 import Auth from './pages/Auth';
 import Admin from './pages/Admin';
 import { AnimatePresence, motion } from 'motion/react';
@@ -65,6 +66,7 @@ function AppContent() {
       case 0: return <Home />;
       case 1: return <Boutique />;
       case 2: return <Profile onOpenAdmin={() => setIsAdminMode(true)} />;
+      case 3: return <About />;
       default: return <Home />;
     }
   };
