@@ -17,6 +17,8 @@ const HomeCatalogue: React.FC = () => {
     return isClothing && matchTarget && matchGarment && matchFabric;
   });
 
+  const displayProducts = activeTarget === 'Enfant' ? filteredProducts : filteredProducts.slice(0, 3);
+
   const garmentTypes: GarmentType[] = ['chemise', 'pantalon', 'boubou'];
   const fabricTypes: FabricType[] = ['wax', 'bazin', 'coton', 'soie'];
 
@@ -104,7 +106,7 @@ const HomeCatalogue: React.FC = () => {
         className="grid grid-cols-2 gap-3"
       >
         <AnimatePresence mode="wait">
-          {filteredProducts.map((p) => (
+          {displayProducts.map((p) => (
             <motion.div
               layout
               key={p.id}
@@ -119,7 +121,7 @@ const HomeCatalogue: React.FC = () => {
         </AnimatePresence>
       </motion.div>
 
-      {filteredProducts.length === 0 && (
+      {displayProducts.length === 0 && (
         <div className="py-20 text-center text-white/60 font-body">
           Aucun produit trouvé avec ces filtres.
         </div>

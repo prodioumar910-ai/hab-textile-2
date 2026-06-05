@@ -195,7 +195,7 @@ export const PretAPorterModal: React.FC = () => {
                   className="flex-shrink-0 w-[48vw] sm:w-[38vw] max-w-[190px] snap-start cursor-pointer group"
                   onClick={() => switchProduct(prod)}
                 >
-                  <div className="relative aspect-[3/4] h-auto w-full rounded-xl overflow-hidden mb-2 border border-white/5 shadow-md bg-stone-900">
+                  <div className="relative aspect-[9/16] h-auto w-full rounded-xl overflow-hidden mb-2 border border-white/5 shadow-md bg-stone-900">
                     <img 
                       src={prod.images[0]} 
                       alt={prod.name} 

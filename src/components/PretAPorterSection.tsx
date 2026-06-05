@@ -88,7 +88,7 @@ const PretAPorterSection: React.FC = () => {
               className="flex-shrink-0 w-[58vw] sm:w-[48vw] md:w-[36vw] lg:w-[24vw] max-w-[230px] snap-start cursor-pointer group"
               onClick={() => handleProductClick(prod)}
             >
-              <div className="relative aspect-[3/4] h-auto w-full rounded-2xl overflow-hidden mb-2 border border-white/5 shadow-md">
+              <div className="relative aspect-[9/16] h-auto w-full rounded-2xl overflow-hidden mb-2 border border-white/5 shadow-md">
                 <img 
                   src={prod.images[0]} 
                   alt={prod.name} 

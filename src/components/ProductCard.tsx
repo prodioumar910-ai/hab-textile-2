@@ -7,6 +7,7 @@ import { useStore } from '../context/StoreContext';
 interface ProductCardProps {
   product: Product;
   isSharp?: boolean;
+  showDetails?: boolean;
 }
 
 const categories: Category[] = ['Accessoires', 'Chaussures', 'Ensemble Royal', 'Tendance', 'Classique', 'Chapeau', 'Parfum'];
@@ -14,7 +15,7 @@ const targets: Target[] = ['Homme', 'Enfant'];
 const garmentTypes: GarmentType[] = ['chemise', 'pantalon', 'boubou', 'accessoire', 'autre'];
 const fabricTypes: FabricType[] = ['wax', 'bazin', 'coton', 'soie'];
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false, showDetails = true }) => {
   const { toggleFavorite, favorites, addToCart, user, removeProduct, updateProduct, setSelectedProduct } = useStore();
   const isFavorite = favorites.includes(product.id);
   const isAdmin = user?.email?.toLowerCase() === 'prodimany@gmail.com' || user?.email?.toLowerCase() === 'prodioumar910@gmail.com';
@@ -152,26 +153,28 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false }) =
             </button>
           </div>
           
-          <div className="p-3 flex flex-col flex-grow justify-between">
-            <div>
-              <h3 className="font-body font-medium text-sm text-brand-black line-clamp-1 text-left">
-                {product.name}
-              </h3>
-              <p className="font-heading font-bold text-lg text-brand-black mt-1 text-left">
-                {product.price} FCFA
-              </p>
+          {showDetails && (
+            <div className="p-3 flex flex-col flex-grow justify-between">
+              <div>
+                <h3 className="font-body font-medium text-sm text-brand-black line-clamp-1 text-left">
+                  {product.name}
+                </h3>
+                <p className="font-heading font-bold text-lg text-brand-black mt-1 text-left">
+                  {product.price} FCFA
+                </p>
+              </div>
+              
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addToCart(product);
+                }}
+                className={`w-full mt-3 py-2 bg-white text-brand-black ${isSharp ? '' : 'rounded-lg'} font-body font-medium text-xs hover:bg-opacity-90 transition-all border border-stone-200 shadow-sm`}
+              >
+                Ajouter au panier
+              </button>
             </div>
-            
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                addToCart(product);
-              }}
-              className={`w-full mt-3 py-2 bg-white text-brand-black ${isSharp ? '' : 'rounded-lg'} font-body font-medium text-xs hover:bg-opacity-90 transition-all border border-stone-200 shadow-sm`}
-            >
-              Ajouter au panier
-            </button>
-          </div>
+          )}
         </div>
       </motion.div>
 

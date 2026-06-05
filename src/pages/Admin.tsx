@@ -478,28 +478,16 @@ const Admin: React.FC = () => {
                     />
                   </label>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <label className="block text-left">
-                      <span className="text-[10px] uppercase font-bold text-stone-400 mb-1.5 block tracking-widest">Prix (FCFA)</span>
-                        <input
-                          required
-                          type="number"
-                          className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-black/5 focus:border-brand-black outline-none transition-all"
-                          value={formData.price}
-                          onChange={e => setFormData({ ...formData, price: parseInt(e.target.value) })}
-                        />
-                    </label>
-                    <label className="block text-left">
-                      <span className="text-[10px] uppercase font-bold text-stone-400 mb-1.5 block tracking-widest">Cible</span>
-                      <select
-                        className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-black/5 focus:border-brand-black outline-none transition-all"
-                        value={formData.target}
-                        onChange={e => setFormData({ ...formData, target: e.target.value as Target })}
-                      >
-                        {targets.map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                    </label>
-                  </div>
+                  <label className="block text-left">
+                    <span className="text-[10px] uppercase font-bold text-stone-400 mb-1.5 block tracking-widest">Prix (FCFA)</span>
+                    <input
+                      required
+                      type="number"
+                      className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-black/5 focus:border-brand-black outline-none transition-all"
+                      value={formData.price}
+                      onChange={e => setFormData({ ...formData, price: parseInt(e.target.value) })}
+                    />
+                  </label>
                 </div>
 
                 {/* Categorization */}
