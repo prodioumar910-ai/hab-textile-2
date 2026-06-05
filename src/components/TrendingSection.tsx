@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { getOptimizedImage } from '../utils/image';
 
 const TRENDING_ITEMS = [
   { id: 't1', name: 'Boubou Majesté', image: 'https://lh3.googleusercontent.com/d/1jnoz-YiJjiXAg5ulvILf85v_pAqmRtQ4' },
@@ -187,7 +188,7 @@ const TrendingSection: React.FC = () => {
               <div className="group cursor-pointer relative">
                 <div className="aspect-[9/16] overflow-hidden rounded-2xl bg-transparent relative">
                   <img 
-                    src={product.image} 
+                    src={getOptimizedImage(product.image, 300)} 
                     alt={product.name} 
                     className="w-full h-full object-contain pointer-events-none transition-transform duration-700 group-hover:scale-105"
                     referrerPolicy="no-referrer"
@@ -215,7 +216,7 @@ const TrendingSection: React.FC = () => {
               <div className="group cursor-pointer relative">
                 <div className="aspect-[9/16] overflow-hidden rounded-2xl bg-transparent relative">
                   <img 
-                    src={product.image} 
+                    src={getOptimizedImage(product.image, 300)} 
                     alt={product.name} 
                     className="w-full h-full object-contain pointer-events-none transition-transform duration-700 group-hover:scale-105"
                     referrerPolicy="no-referrer"
@@ -243,7 +244,7 @@ const TrendingSection: React.FC = () => {
               <div className="group cursor-pointer relative">
                 <div className="aspect-[9/16] overflow-hidden rounded-2xl bg-transparent relative">
                   <img 
-                    src={product.image} 
+                    src={getOptimizedImage(product.image, 300)} 
                     alt={product.name} 
                     className="w-full h-full object-contain pointer-events-none transition-transform duration-700 group-hover:scale-105"
                     referrerPolicy="no-referrer"
@@ -318,7 +319,7 @@ const TrendingSection: React.FC = () => {
                   onClick={(e) => e.stopPropagation()} // Prevent click inside image container from closing
                 >
                   <img
-                    src={TRENDING_ITEMS[viewerIndex].image}
+                    src={getOptimizedImage(TRENDING_ITEMS[viewerIndex].image, 600)}
                     alt={TRENDING_ITEMS[viewerIndex].name}
                     className="w-auto h-auto max-w-[85vw] max-h-[82vh] md:max-w-[70vw] md:max-h-[82vh] rounded-3xl object-contain shadow-[0_25px_60px_rgba(0,0,0,0.6)] border border-white/10"
                     referrerPolicy="no-referrer"

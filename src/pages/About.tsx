@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { MapPin, Phone, MessageSquare, Instagram, Truck, ExternalLink } from 'lucide-react';
+import { getOptimizedImage } from '../utils/image';
 
 const About: React.FC = () => {
   const whatsappUrl1 = "https://wa.me/22394077011?text=Bonjour%20Hab%C3%A9%20Textile%2C%20je%20souhaite%20finaliser%20ma%20commande.";
@@ -16,25 +17,20 @@ const About: React.FC = () => {
       transition={{ duration: 0.4 }}
       className="px-6 pt-4 pb-32 max-w-lg mx-auto"
     >
-      {/* SECTION 1: VIDEO DEMO ONLY & WORLDWIDE DELIVERY CAPTION */}
+      {/* SECTION 1: PRESENTATION IMAGE & WORLDWIDE DELIVERY CAPTION */}
       <section className="mb-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="relative h-64 rounded-3xl overflow-hidden shadow-xl bg-stone-900 border border-white/10"
+          className="relative h-64 rounded-3xl overflow-hidden shadow-xl bg-stone-900 border border-white/10 group"
         >
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover"
-            src="https://player.vimeo.com/external/371433846.sd.mp4?s=236da2f3c054273b16f906decb04471cd68dcaf2&profile_id=139&oauth2_token_id=57447761"
-            poster="https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=600&auto=format&fit=crop"
+          <img
+            src={getOptimizedImage('https://lh3.googleusercontent.com/d/1CoA_6G1815Rkxit3aHaXmUhakZO3NuMi', 600)}
+            alt="Habé Textile"
+            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
+            referrerPolicy="no-referrer"
           />
-          {/* Overlay gradient to look premium and consistent */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
         </motion.div>
         
         {/* Caption below the video */}

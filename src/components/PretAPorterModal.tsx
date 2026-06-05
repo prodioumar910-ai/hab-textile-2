@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ChevronLeft, ChevronRight, X, ShoppingBag } from 'lucide-react';
 import { PRET_PRODUCTS } from './PretAPorterSection';
 import { PretProduct } from '../types';
+import { getOptimizedImage } from '../utils/image';
 
 export const PretAPorterModal: React.FC = () => {
   const { isPretAPorterOpen, setIsPretAPorterOpen, selectedPretProduct, setSelectedPretProduct, addToCart } = useStore();
@@ -129,7 +130,7 @@ export const PretAPorterModal: React.FC = () => {
               <AnimatePresence mode="wait">
                 <motion.img
                   key={carouselIndex}
-                  src={selectedPretProduct.images[carouselIndex]}
+                  src={getOptimizedImage(selectedPretProduct.images[carouselIndex], 600)}
                   alt={`${selectedPretProduct.name} - Vue ${carouselIndex + 1}`}
                   className="w-auto h-auto max-w-[85vw] max-h-[64vh] object-contain rounded-3xl"
                   initial={{ opacity: 0, scale: 0.98 }}
@@ -197,7 +198,7 @@ export const PretAPorterModal: React.FC = () => {
                 >
                   <div className="relative aspect-[9/16] h-auto w-full rounded-xl overflow-hidden mb-2 border border-white/5 shadow-md bg-stone-900">
                     <img 
-                      src={prod.images[0]} 
+                      src={getOptimizedImage(prod.images[0], 250)} 
                       alt={prod.name} 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       referrerPolicy="no-referrer"

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Heart, Edit3, Trash2, X, Image as ImageIcon } from 'lucide-react';
 import { Product, Category, Target, GarmentType, FabricType } from '../types';
 import { useStore } from '../context/StoreContext';
+import { getOptimizedImage } from '../utils/image';
 
 interface ProductCardProps {
   product: Product;
@@ -100,7 +101,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false, sho
           <div className={`relative aspect-[3/4] ${isSharp ? '' : 'rounded-lg'} overflow-hidden bg-gradient-to-b from-stone-900 to-stone-950 flex items-center justify-center border border-black/10`}>
             {product.image ? (
               <img
-                src={product.image}
+                src={getOptimizedImage(product.image, 350)}
                 alt={product.name}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />

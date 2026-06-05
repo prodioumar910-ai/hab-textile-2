@@ -4,15 +4,16 @@ import { useStore } from '../context/StoreContext';
 import ProductCard from '../components/ProductCard';
 import { Category } from '../types';
 import { TransparentIcon } from '../components/TransparentIcon';
+import { getOptimizedImage } from '../utils/image';
 
 const categories: { name: Category; src?: string; icon: string; directImg?: boolean }[] = [
-  { name: 'Accessoires', src: '/accessories_raw.jpg', icon: '⌚' },
-  { name: 'Chaussures', src: '/shoes_raw.jpg', icon: '👟' },
-  { name: 'Ensemble Royal', src: '/royal_raw.jpg', icon: '👑' },
+  { name: 'Accessoires', src: 'https://lh3.googleusercontent.com/d/12huYtS1oArRGqVW5C3DyqkYEN4bXDOSN', icon: '⌚' },
+  { name: 'Chaussures', src: 'https://lh3.googleusercontent.com/d/1ASOzctlG7h-ApAd5zx_1oaaVoWkHAE8c', icon: '👟' },
+  { name: 'Ensemble Royal', src: 'https://lh3.googleusercontent.com/d/1V4Iz_hYaXGR3nr4cdZ71wJlxoW-8Bl9w', icon: '👑' },
   { name: 'Tendance', icon: '🔥' },
   { name: 'Classique', icon: '👔' },
   { name: 'Chapeau', icon: '🎩' },
-  { name: 'Parfum', src: '/parfum_raw.jpg', icon: '🧴' },
+  { name: 'Parfum', src: 'https://lh3.googleusercontent.com/d/1_KAX3Wtr_yMgxDH4O89rpxBgAybLul5U', icon: '🧴' },
 ];
 
 const Boutique: React.FC = () => {
@@ -61,7 +62,7 @@ const Boutique: React.FC = () => {
                     />
                   ) : (
                     <TransparentIcon
-                      src={cat.src}
+                      src={getOptimizedImage(cat.src, 120)}
                       alt={cat.name}
                       fallbackIcon={<span className="text-4xl">{cat.icon}</span>}
                       className="w-20 h-20 object-contain drop-shadow-md select-none transition-transform duration-300"

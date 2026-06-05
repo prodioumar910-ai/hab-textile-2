@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Heart } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { getOptimizedImage } from '../utils/image';
 
 export const ProductDetailModal: React.FC = () => {
   const { selectedProduct, setSelectedProduct, addToCart, toggleFavorite, favorites } = useStore();
@@ -46,7 +47,7 @@ export const ProductDetailModal: React.FC = () => {
               <div className="aspect-[3/4] rounded-2xl bg-black flex items-center justify-center overflow-hidden border border-white/5 relative">
                 {selectedImg ? (
                   <img
-                    src={selectedImg}
+                    src={getOptimizedImage(selectedImg, 600)}
                     alt={selectedProduct.name}
                     className="w-full h-full object-cover"
                   />
@@ -66,7 +67,7 @@ export const ProductDetailModal: React.FC = () => {
                       selectedImg === selectedProduct.image ? 'border-brand-orange-light animate-pulse' : 'border-white/10 opacity-60 hover:opacity-100'
                     }`}
                   >
-                    <img src={selectedProduct.image} alt="image 1" className="w-full h-full object-cover pointer-events-none" />
+                    <img src={getOptimizedImage(selectedProduct.image, 150)} alt="image 1" className="w-full h-full object-cover pointer-events-none" />
                   </button>
                   {selectedProduct.image2 && (
                     <button
@@ -75,7 +76,7 @@ export const ProductDetailModal: React.FC = () => {
                         selectedImg === selectedProduct.image2 ? 'border-brand-orange-light animate-pulse' : 'border-white/10 opacity-60 hover:opacity-100'
                       }`}
                     >
-                      <img src={selectedProduct.image2} alt="image 2" className="w-full h-full object-cover pointer-events-none" />
+                      <img src={getOptimizedImage(selectedProduct.image2, 150)} alt="image 2" className="w-full h-full object-cover pointer-events-none" />
                     </button>
                   )}
                   {selectedProduct.image3 && (
@@ -85,7 +86,7 @@ export const ProductDetailModal: React.FC = () => {
                         selectedImg === selectedProduct.image3 ? 'border-brand-orange-light animate-pulse' : 'border-white/10 opacity-60 hover:opacity-100'
                       }`}
                     >
-                      <img src={selectedProduct.image3} alt="image 3" className="w-full h-full object-cover pointer-events-none" />
+                      <img src={getOptimizedImage(selectedProduct.image3, 150)} alt="image 3" className="w-full h-full object-cover pointer-events-none" />
                     </button>
                   )}
                 </div>

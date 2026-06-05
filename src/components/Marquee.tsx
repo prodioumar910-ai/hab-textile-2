@@ -25,7 +25,7 @@ const testimonials: TestimonialItem[] = [
 
 const SafeImage: React.FC<{ id: string }> = ({ id }) => {
   // Try dynamic high-res download first, then standard preview download, then direct show
-  const [src, setSrc] = React.useState(`https://lh3.googleusercontent.com/d/${id}`);
+  const [src, setSrc] = React.useState(`https://lh3.googleusercontent.com/d/${id}=w450-rw`);
   const [errorCount, setErrorCount] = React.useState(0);
 
   const handleError = () => {

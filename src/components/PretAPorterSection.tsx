@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
 import { PretProduct } from '../types';
+import { getOptimizedImage } from '../utils/image';
 
 export const PRET_PRODUCTS: PretProduct[] = [
   {
@@ -90,7 +91,7 @@ const PretAPorterSection: React.FC = () => {
             >
               <div className="relative aspect-[9/16] h-auto w-full rounded-2xl overflow-hidden mb-2 border border-white/5 shadow-md">
                 <img 
-                  src={prod.images[0]} 
+                  src={getOptimizedImage(prod.images[0], 350)} 
                   alt={prod.name} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   referrerPolicy="no-referrer"

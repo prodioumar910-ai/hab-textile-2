@@ -45,8 +45,23 @@ export const TransparentIcon: React.FC<TransparentIconProps> = ({
     img.onload = () => {
       try {
         const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth || img.width;
-        canvas.height = img.naturalHeight || img.height;
+        
+        // Downscale image to a max dimension of 120px to process pixels instantly
+        const maxDimension = 120;
+        let w = img.naturalWidth || img.width || 120;
+        let h = img.naturalHeight || img.height || 120;
+        if (w > maxDimension || h > maxDimension) {
+          if (w > h) {
+            h = Math.round((h * maxDimension) / w);
+            w = maxDimension;
+          } else {
+            w = Math.round((w * maxDimension) / h);
+            h = maxDimension;
+          }
+        }
+        
+        canvas.width = w;
+        canvas.height = h;
         const ctx = canvas.getContext('2d');
 
         if (!ctx) {
@@ -55,15 +70,14 @@ export const TransparentIcon: React.FC<TransparentIconProps> = ({
           return;
         }
 
-        ctx.drawImage(img, 0, 0);
+        // Draw scaled
+        ctx.drawImage(img, 0, 0, w, h);
 
-        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const imgData = ctx.getImageData(0, 0, w, h);
         const data = imgData.data;
 
         // 1. Sampling multi-point border colors to build an exhaustive background baseline
         const samplePoints: [number, number][] = [];
-        const w = canvas.width;
-        const h = canvas.height;
 
         // Sample along top and bottom edges
         for (let x = 0; x < w; x += Math.max(1, Math.floor(w / 6))) {
