@@ -131,16 +131,41 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [favorites, setFavorites] = useState<string[]>([]);
   const [products, setProducts] = useState<Product[]>(() => {
     const saved = localStorage.getItem('habe_products');
-    const version = localStorage.getItem('habe_products_v9');
-    if (saved && version === 'v9') {
+    if (saved) {
       try {
-        return JSON.parse(saved) as Product[];
+        const parsed = JSON.parse(saved) as Product[];
+        
+        // Sync & heal stored products with updated defaults from codebase
+        const merged = parsed.map(savedProd => {
+          const defaultProd = INITIAL_PRODUCTS.find(p => p.id === savedProd.id);
+          if (defaultProd) {
+            // Restore latest codebase definition for core products to reflect moved categories/targets/renamings
+            return {
+              ...savedProd,
+              name: defaultProd.name,
+              price: defaultProd.price,
+              image: defaultProd.image,
+              category: defaultProd.category,
+              target: defaultProd.target,
+              garmentType: defaultProd.garmentType,
+              fabricType: defaultProd.fabricType
+            };
+          }
+          return savedProd;
+        });
+
+        // Add any brand new default products not yet in the stored list
+        const savedIds = new Set(parsed.map(p => p.id));
+        const newDefaults = INITIAL_PRODUCTS.filter(p => !savedIds.has(p.id));
+        
+        const finalProducts = [...merged, ...newDefaults];
+        localStorage.setItem('habe_products', JSON.stringify(finalProducts));
+        return finalProducts;
       } catch (e) {
         return INITIAL_PRODUCTS;
       }
     }
     localStorage.setItem('habe_products', JSON.stringify(INITIAL_PRODUCTS));
-    localStorage.setItem('habe_products_v9', 'v9');
     return INITIAL_PRODUCTS;
   });
   const [activeTarget, setActiveTargetState] = useState<Target>('Homme');
