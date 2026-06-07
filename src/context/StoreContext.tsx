@@ -38,7 +38,89 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 // Initial data
 const INITIAL_PRODUCTS: Product[] = [
-  // Ensemble Royal (all items)
+  // Nouvelles Images Homme Habé (target 'Homme')
+  {
+    id: 'hm-1',
+    name: "Boubou Royal d'Or",
+    price: 185000,
+    image: 'https://lh3.googleusercontent.com/d/18HxJiKqb9dRx5J_9OHyLwQwbwViDnmws',
+    category: 'Ensemble Royal',
+    target: 'Homme',
+    garmentType: 'boubou',
+    fabricType: 'bazin'
+  },
+  {
+    id: 'hm-2',
+    name: 'Kaftan Bleu Nuit Brodé',
+    price: 165000,
+    image: 'https://lh3.googleusercontent.com/d/1G3sC5y1cwyJd3Ml2pX7yXS0NbH_pVtoY',
+    category: 'Ensemble Royal',
+    target: 'Homme',
+    garmentType: 'boubou',
+    fabricType: 'coton'
+  },
+  {
+    id: 'hm-3',
+    name: 'Kaftan Blanc Éclat',
+    price: 155000,
+    image: 'https://lh3.googleusercontent.com/d/1UcSo_tVI3CrUuH9LBrL4eQpIA1i-uY3k',
+    category: 'Classique',
+    target: 'Homme',
+    garmentType: 'boubou',
+    fabricType: 'coton'
+  },
+  {
+    id: 'hm-4',
+    name: 'Boubou Prestige Moutarde',
+    price: 175000,
+    image: 'https://lh3.googleusercontent.com/d/1w9n95-LCG8z6oSKgrY4pz78VlSMJ7gR2',
+    category: 'Tendance',
+    target: 'Homme',
+    garmentType: 'boubou',
+    fabricType: 'bazin'
+  },
+  {
+    id: 'hm-5',
+    name: 'Sénateur Moderne Vert',
+    price: 135000,
+    image: 'https://lh3.googleusercontent.com/d/1q5B8bLIKQaFVvKVnxmuSEz6MTn0M7NCm',
+    category: 'Tendance',
+    target: 'Homme',
+    garmentType: 'chemise',
+    fabricType: 'coton'
+  },
+  {
+    id: 'hm-6',
+    name: 'Kaftan Impérial Brodé',
+    price: 195000,
+    image: 'https://lh3.googleusercontent.com/d/1eZ48hX3O_tlrBe1iDSTCIBlmlBsjX6Ma',
+    category: 'Ensemble Royal',
+    target: 'Homme',
+    garmentType: 'boubou',
+    fabricType: 'bazin'
+  },
+  {
+    id: 'hm-7',
+    name: 'Ensemble Signature Noir',
+    price: 145000,
+    image: 'https://lh3.googleusercontent.com/d/1iB0le1uZbHdah4xrz6PvAyb8-D1LYfiS',
+    category: 'Classique',
+    target: 'Homme',
+    garmentType: 'boubou',
+    fabricType: 'coton'
+  },
+  {
+    id: 'hm-8',
+    name: 'Boubou Royal Excellence',
+    price: 220000,
+    image: 'https://lh3.googleusercontent.com/d/1CSU6vDruqukQpvS5FV8_pWFIZdITPRZj',
+    category: 'Ensemble Royal',
+    target: 'Homme',
+    garmentType: 'boubou',
+    fabricType: 'bazin'
+  },
+
+  // Boutique Collection: Ensemble Royal
   { id: 'e1', name: "Boubou Royal Bazin d'Or", price: 185000, image: 'https://lh3.googleusercontent.com/d/19EDo6smyP73MPiQhqt9eyqUGgAN5Igic', category: 'Ensemble Royal', target: 'Homme', garmentType: 'boubou', fabricType: 'bazin' },
   { id: 'e2', name: 'Habit Impérial Brodé', price: 195000, image: 'https://lh3.googleusercontent.com/d/15tR0qCfDHh5TikDGFfXT-V4whDvtL7lp', category: 'Ensemble Royal', target: 'Homme', garmentType: 'boubou', fabricType: 'coton' },
   { id: 'e3', name: 'Kaftan Prestige Royal', price: 160000, image: 'https://lh3.googleusercontent.com/d/1XXH7d1Wu9QSnMZHu4lKpGgDY9DVm8kt8', category: 'Ensemble Royal', target: 'Homme', garmentType: 'boubou', fabricType: 'soie' },
@@ -46,24 +128,7 @@ const INITIAL_PRODUCTS: Product[] = [
   { id: 'e5', name: 'Boubou Souverain Bazin', price: 175000, image: 'https://lh3.googleusercontent.com/d/1F6DeuYDLtrVs7R5rV-RYA8GBUAmT0PEc', category: 'Ensemble Royal', target: 'Homme', garmentType: 'boubou', fabricType: 'bazin' },
   { id: 'e6', name: 'Sénateur Couronne Blanche', price: 165000, image: 'https://lh3.googleusercontent.com/d/1GafK8RmJWGRWIIXQrYbqXU34r84g9tTa', category: 'Ensemble Royal', target: 'Homme', garmentType: 'boubou', fabricType: 'coton' },
   { id: 'e7', name: 'Boubou Majesté Céleste', price: 210000, image: 'https://lh3.googleusercontent.com/d/1V5aCeWTy_BP8rozBXJklIcHI0NcBS7Re', category: 'Ensemble Royal', target: 'Homme', garmentType: 'boubou', fabricType: 'bazin' },
-
-  // Nouvelles Images pour Enfants du Google Drive
-  { id: 'kd-1', name: "Ensemble Royal Junior Or", price: 125000, image: 'https://lh3.googleusercontent.com/d/1WhYofpnj4MpoDAIY2wvWX-qYwfl9Nqve', category: 'Ensemble Royal', target: 'Enfant', garmentType: 'boubou', fabricType: 'bazin' },
-  { id: 'kd-2', name: "Kaftan Royal Kid Indigo", price: 115000, image: 'https://lh3.googleusercontent.com/d/13urnzRLr1NkJfn8Q4Y5vO3GAieBEAxrY', category: 'Ensemble Royal', target: 'Enfant', garmentType: 'boubou', fabricType: 'coton' },
-  { id: 'kd-3', name: "Boubou Impérial Kid", price: 135000, image: 'https://lh3.googleusercontent.com/d/1T0OQcSvsgR6GbMuR128mIjIr46scc5Px', category: 'Ensemble Royal', target: 'Enfant', garmentType: 'boubou', fabricType: 'bazin' },
-  { id: 'kd-4', name: "Sénateur Kid Tissu Vert", price: 85000, image: 'https://lh3.googleusercontent.com/d/1Zkg3F_-ua_y6YEFtMu2TZEji1kSWjsT-', category: 'Tendance', target: 'Enfant', garmentType: 'chemise', fabricType: 'coton' },
-  { id: 'kd-5', name: "Kaftan Tendance Enfant", price: 95000, image: 'https://lh3.googleusercontent.com/d/1jr5_YsrKKIpeI2gWwaqiE0vWpBLR1Id6', category: 'Tendance', target: 'Enfant', garmentType: 'boubou', fabricType: 'soie' },
-  { id: 'kd-6', name: "Boubou Kid Classique Blanc", price: 105000, image: 'https://lh3.googleusercontent.com/d/1IF-BiRIF_HHwqWIH9umqoHrA9nF4N16A', category: 'Classique', target: 'Enfant', garmentType: 'boubou', fabricType: 'bazin' },
-  { id: 'kd-7', name: "Tunique Prince Junior", price: 110000, image: 'https://lh3.googleusercontent.com/d/1pGFOVA28xr-Z1M8yiaWsqDEnjn8SEM2B', category: 'Classique', target: 'Enfant', garmentType: 'boubou', fabricType: 'coton' },
-  { id: 'kd-8', name: "Ensemble Dynastie Kid Wax", price: 125000, image: 'https://lh3.googleusercontent.com/d/1MgkG5BWdubX74GSs1QSOihYxPNOI4HLL', category: 'Ensemble Royal', target: 'Enfant', garmentType: 'boubou', fabricType: 'wax' },
-  { id: 'kd-9', name: "Boubou d'Or Enfant", price: 140000, image: 'https://lh3.googleusercontent.com/d/11H8t34yu0Xe4lQUgEkTWHk8BWP3UdKmX', category: 'Ensemble Royal', target: 'Enfant', garmentType: 'boubou', fabricType: 'bazin' },
-  { id: 'kd-10', name: "Tunique Célébration Junior", price: 85000, image: 'https://lh3.googleusercontent.com/d/1Ncw0Uj5NgciVeWhftZatsKIURJYrHaAG', category: 'Tendance', target: 'Enfant', garmentType: 'boubou', fabricType: 'coton' },
-  { id: 'kd-11', name: "Boubou Kid Style Moderne", price: 95000, image: 'https://lh3.googleusercontent.com/d/1qF_4ZnrtzPQoAtmlubpDhej8Nt8YA3w8', category: 'Tendance', target: 'Enfant', garmentType: 'boubou', fabricType: 'soie' },
-  { id: 'kd-12', name: "Sénateur Junior Coton Blanc", price: 75000, image: 'https://lh3.googleusercontent.com/d/1EZUWME88o6eMKY2vMjBnhzkJkHVwzuFb', category: 'Classique', target: 'Enfant', garmentType: 'chemise', fabricType: 'coton' },
-  { id: 'kd-13', name: "Kaftan Sagesse Junior", price: 90000, image: 'https://lh3.googleusercontent.com/d/1sOwoJa1uzpc4rZwpcOuBI-Ih5KzUlsIO', category: 'Classique', target: 'Enfant', garmentType: 'boubou', fabricType: 'coton' },
-
   { id: 'e8', name: 'Ensemble Prince Héritier', price: 130000, image: 'https://lh3.googleusercontent.com/d/1YFwogT5ogm4gNM-sO9aCLtZ1SiKBQT8E', category: 'Ensemble Royal', target: 'Homme', garmentType: 'boubou', fabricType: 'wax' },
-  { id: 'e9', name: 'Tunique Royale Junior', price: 110000, image: 'https://lh3.googleusercontent.com/d/1yeajzyrvgzNNdkslAaL1yVLctlwC8gc3', category: 'Ensemble Royal', target: 'Enfant', garmentType: 'boubou', fabricType: 'coton' },
   { id: 'e10', name: 'Boubou Petit Sultan', price: 125000, image: 'https://lh3.googleusercontent.com/d/1a5vv9YcCtqrQLhR9POIXHHtCIM0Or0VS', category: 'Ensemble Royal', target: 'Homme', garmentType: 'boubou', fabricType: 'bazin' },
   { id: 'e11', name: 'Kaftan Monarque pour Enfant', price: 115000, image: 'https://lh3.googleusercontent.com/d/1TnPNKlzumvTONcm2gFJukEQtM9gnhb-1', category: 'Ensemble Royal', target: 'Homme', garmentType: 'boubou', fabricType: 'soie' },
   { id: 'e12', name: 'Ensemble Impérial Junior', price: 140000, image: 'https://lh3.googleusercontent.com/d/1DijS_nDBx67QPiDMwmzLgDyhVkU72TzU', category: 'Ensemble Royal', target: 'Homme', garmentType: 'boubou', fabricType: 'coton' },
@@ -73,7 +138,7 @@ const INITIAL_PRODUCTS: Product[] = [
   { id: 'e16', name: 'Ensemble Noblesse Africaine', price: 190000, image: 'https://lh3.googleusercontent.com/d/1O2w0q-l-duwHBaW31JF0Tzq_gN4NB6Op', category: 'Ensemble Royal', target: 'Homme', garmentType: 'boubou', fabricType: 'soie' },
   { id: 'e17', name: 'Boubou Prestige de Dynastie', price: 200000, image: 'https://lh3.googleusercontent.com/d/1MAl-Puj6xz5EdwCAIGUXWV5ZebiV3Y7y', category: 'Ensemble Royal', target: 'Homme', garmentType: 'boubou', fabricType: 'wax' },
 
-  // Tendance (all items)
+  // Boutique Collection: Tendance
   { id: 't-1', name: 'Ensemble Tendance Sahel', price: 125000, image: 'https://lh3.googleusercontent.com/d/1_NzbrKI2c3AwwKp5Ziu-Ebl6fLX-Cmtw', category: 'Tendance', target: 'Homme', garmentType: 'boubou', fabricType: 'coton' },
   { id: 't-2', name: 'Boubou Moderne Indigo', price: 145000, image: 'https://lh3.googleusercontent.com/d/1I9bwGoj463BaAAli3ZkbP-U-iiIy-78M', category: 'Tendance', target: 'Homme', garmentType: 'boubou', fabricType: 'bazin' },
   { id: 't-3', name: 'Ensemble Casual Bazin', price: 95000, image: 'https://lh3.googleusercontent.com/d/1qorqgwu9SChXC_l-jnf9fIzBGLqadHhR', category: 'Tendance', target: 'Homme', garmentType: 'chemise', fabricType: 'bazin' },
@@ -85,7 +150,7 @@ const INITIAL_PRODUCTS: Product[] = [
   { id: 't-9', name: 'Agbada Tendance Moderne', price: 165000, image: 'https://lh3.googleusercontent.com/d/10kb70-WencerYbRhmP1cwYA9Lwi4hSuK', category: 'Tendance', target: 'Homme', garmentType: 'boubou', fabricType: 'bazin' },
   { id: 't-10', name: 'Kaftan Tendance Elite', price: 120000, image: 'https://lh3.googleusercontent.com/d/1zNe6PiCw53GskYu_c6ra6GuWc5pqOEjh', category: 'Tendance', target: 'Homme', garmentType: 'boubou', fabricType: 'soie' },
 
-  // Classique (all items)
+  // Boutique Collection: Classique
   { id: 'c-1', name: "Boubou Classique d'Ébène", price: 110000, image: 'https://lh3.googleusercontent.com/d/1XNu7SYAfT_zA6yF8-w7fmMEQqA3Htkdl', category: 'Classique', target: 'Homme', garmentType: 'boubou', fabricType: 'bazin' },
   { id: 'c-2', name: 'Sénateur Traditionnel Blanc', price: 95000, image: 'https://lh3.googleusercontent.com/d/1gtmksbtCYRCRuzmL71FC9FDKj1dM7PhA', category: 'Classique', target: 'Homme', garmentType: 'boubou', fabricType: 'coton' },
   { id: 'c-3', name: 'Kaftan Élégance Classique', price: 105000, image: 'https://lh3.googleusercontent.com/d/1vkGVgeZ5p7NOXoEhJCse83Gf4YI7FHKS', category: 'Classique', target: 'Homme', garmentType: 'boubou', fabricType: 'coton' },
@@ -108,7 +173,23 @@ const INITIAL_PRODUCTS: Product[] = [
   { id: 'c-20', name: 'Kaftan Sagesse Classique', price: 115000, image: 'https://lh3.googleusercontent.com/d/1VGCuvp449LC1lE9lJ8oqQu0JGm2UqDWz', category: 'Classique', target: 'Homme', garmentType: 'boubou', fabricType: 'coton' },
   { id: 'c-21', name: 'Ensemble Authentique Bazin', price: 130000, image: 'https://lh3.googleusercontent.com/d/1dNev1tJUmOzrKa9rOrBlfGu39YaLlzLy', category: 'Classique', target: 'Homme', garmentType: 'boubou', fabricType: 'bazin' },
 
-  // Chaussures
+  // Nouvelles Images pour Enfants du Google Drive
+  { id: 'kd-1', name: "Ensemble Royal Junior Or", price: 125000, image: 'https://lh3.googleusercontent.com/d/1WhYofpnj4MpoDAIY2wvWX-qYwfl9Nqve', category: 'Ensemble Royal', target: 'Enfant', garmentType: 'boubou', fabricType: 'bazin' },
+  { id: 'kd-2', name: "Kaftan Royal Kid Indigo", price: 115000, image: 'https://lh3.googleusercontent.com/d/13urnzRLr1NkJfn8Q4Y5vO3GAieBEAxrY', category: 'Ensemble Royal', target: 'Enfant', garmentType: 'boubou', fabricType: 'coton' },
+  { id: 'kd-3', name: "Boubou Impérial Kid", price: 135000, image: 'https://lh3.googleusercontent.com/d/1T0OQcSvsgR6GbMuR128mIjIr46scc5Px', category: 'Ensemble Royal', target: 'Enfant', garmentType: 'boubou', fabricType: 'bazin' },
+  { id: 'kd-4', name: "Sénateur Kid Tissu Vert", price: 85000, image: 'https://lh3.googleusercontent.com/d/1Zkg3F_-ua_y6YEFtMu2TZEji1kSWjsT-', category: 'Tendance', target: 'Enfant', garmentType: 'chemise', fabricType: 'coton' },
+  { id: 'kd-5', name: "Kaftan Tendance Enfant", price: 95000, image: 'https://lh3.googleusercontent.com/d/1jr5_YsrKKIpeI2gWwaqiE0vWpBLR1Id6', category: 'Tendance', target: 'Enfant', garmentType: 'boubou', fabricType: 'soie' },
+  { id: 'kd-6', name: "Boubou Kid Classique Blanc", price: 105000, image: 'https://lh3.googleusercontent.com/d/1IF-BiRIF_HHwqWIH9umqoHrA9nF4N16A', category: 'Classique', target: 'Enfant', garmentType: 'boubou', fabricType: 'bazin' },
+  { id: 'kd-7', name: "Tunique Prince Junior", price: 110000, image: 'https://lh3.googleusercontent.com/d/1pGFOVA28xr-Z1M8yiaWsqDEnjn8SEM2B', category: 'Classique', target: 'Enfant', garmentType: 'boubou', fabricType: 'coton' },
+  { id: 'kd-8', name: "Ensemble Dynastie Kid Wax", price: 125000, image: 'https://lh3.googleusercontent.com/d/1MgkG5BWdubX74GSs1QSOihYxPNOI4HLL', category: 'Ensemble Royal', target: 'Enfant', garmentType: 'boubou', fabricType: 'wax' },
+  { id: 'kd-9', name: "Boubou d'Or Enfant", price: 140000, image: 'https://lh3.googleusercontent.com/d/11H8t34yu0Xe4lQUgEkTWHk8BWP3UdKmX', category: 'Ensemble Royal', target: 'Enfant', garmentType: 'boubou', fabricType: 'bazin' },
+  { id: 'kd-10', name: "Tunique Célébration Junior", price: 85000, image: 'https://lh3.googleusercontent.com/d/1Ncw0Uj5NgciVeWhftZatsKIURJYrHaAG', category: 'Tendance', target: 'Enfant', garmentType: 'boubou', fabricType: 'coton' },
+  { id: 'kd-11', name: "Boubou Kid Style Moderne", price: 95000, image: 'https://lh3.googleusercontent.com/d/1qF_4ZnrtzPQoAtmlubpDhej8Nt8YA3w8', category: 'Tendance', target: 'Enfant', garmentType: 'boubou', fabricType: 'soie' },
+  { id: 'kd-12', name: "Sénateur Junior Coton Blanc", price: 75000, image: 'https://lh3.googleusercontent.com/d/1EZUWME88o6eMKY2vMjBnhzkJkHVwzuFb', category: 'Classique', target: 'Enfant', garmentType: 'chemise', fabricType: 'coton' },
+  { id: 'kd-13', name: "Kaftan Sagesse Junior", price: 90000, image: 'https://lh3.googleusercontent.com/d/1sOwoJa1uzpc4rZwpcOuBI-Ih5KzUlsIO', category: 'Classique', target: 'Enfant', garmentType: 'boubou', fabricType: 'coton' },
+  { id: 'e9', name: 'Tunique Royale Junior', price: 110000, image: 'https://lh3.googleusercontent.com/d/1yeajzyrvgzNNdkslAaL1yVLctlwC8gc3', category: 'Ensemble Royal', target: 'Enfant', garmentType: 'boubou', fabricType: 'coton' },
+
+  // Chaussures Homme
   { id: 'sh-1', name: 'Babouche Royale en Cuir', price: 120000, image: 'https://lh3.googleusercontent.com/d/1USF9ImJ4hCkhPyYFEfI4xjKo0TUkt7cc', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
   { id: 'sh-2', name: 'Babouche Prestige Habé', price: 110000, image: 'https://lh3.googleusercontent.com/d/1Fq27Cr76otnudicas8oYwq_LAlAxFNvA', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
   { id: 'sh-3', name: 'Mocassin Traditionnel', price: 130000, image: 'https://lh3.googleusercontent.com/d/12o-IBS9vBX5ElUT2ytuykiXFDCe4J62V', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
@@ -134,9 +215,19 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (saved) {
       try {
         const parsed = JSON.parse(saved) as Product[];
+        const defaultIds = new Set(INITIAL_PRODUCTS.map(p => p.id));
         
+        // Filter out obsolete or deleted default products, preserving custom items added by users
+        const filteredParsed = parsed.filter(savedProd => {
+          const isDefaultPattern = /^(e\d+|t-\d+|c-\d+|kd-\d+|sh-\d+|hm-\d+|6|7|8|11)$/.test(savedProd.id);
+          if (isDefaultPattern) {
+            return defaultIds.has(savedProd.id);
+          }
+          return true;
+        });
+
         // Sync & heal stored products with updated defaults from codebase
-        const merged = parsed.map(savedProd => {
+        const merged = filteredParsed.map(savedProd => {
           const defaultProd = INITIAL_PRODUCTS.find(p => p.id === savedProd.id);
           if (defaultProd) {
             // Restore latest codebase definition for core products to reflect moved categories/targets/renamings
@@ -155,7 +246,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         });
 
         // Add any brand new default products not yet in the stored list
-        const savedIds = new Set(parsed.map(p => p.id));
+        const savedIds = new Set(filteredParsed.map(p => p.id));
         const newDefaults = INITIAL_PRODUCTS.filter(p => !savedIds.has(p.id));
         
         const finalProducts = [...merged, ...newDefaults];

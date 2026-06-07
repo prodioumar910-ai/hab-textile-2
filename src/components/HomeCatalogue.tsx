@@ -14,10 +14,17 @@ const HomeCatalogue: React.FC = () => {
     const matchTarget = p.target === activeTarget;
     const matchGarment = filters.garmentType ? p.garmentType === filters.garmentType : true;
     const matchFabric = filters.fabricType ? p.fabricType === filters.fabricType : true;
+    
+    // Pour la section Homme de la page d'accueil, on affiche uniquement les images Homme Habé (IDs hm-1 à hm-8)
+    // sans les mélanger avec la collection de la boutique (e1, t-, c- etc.)
+    if (activeTarget === 'Homme' && !p.id.startsWith('hm-')) {
+      return false;
+    }
+    
     return isClothing && matchTarget && matchGarment && matchFabric;
   });
 
-  const displayProducts = activeTarget === 'Enfant' ? filteredProducts : filteredProducts.slice(0, 3);
+  const displayProducts = filteredProducts;
 
   const garmentTypes: GarmentType[] = ['chemise', 'pantalon', 'boubou'];
   const fabricTypes: FabricType[] = ['wax', 'bazin', 'coton', 'soie'];
