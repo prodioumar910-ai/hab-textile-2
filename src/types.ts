@@ -15,6 +15,7 @@ export interface Product {
   garmentType: GarmentType;
   fabricType: FabricType;
   description?: string;
+  isEdited?: boolean;
 }
 
 export interface User {

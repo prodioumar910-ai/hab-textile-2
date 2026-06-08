@@ -27,6 +27,15 @@ const Admin: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   
+  const [members, setMembers] = useState<any[]>(() => {
+    try {
+      const stored = localStorage.getItem('habe_registered_members');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+  
   // Stats
   const totalProducts = products.length;
   const hommeProducts = products.filter(p => p.target === 'Homme').length;
@@ -38,6 +47,17 @@ const Admin: React.FC = () => {
     p.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Mettre toutes les informations en ordre : trié par cible (Homme puis Enfant), puis par catégorie, puis par nom
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    const targetCompare = a.target.localeCompare(b.target);
+    if (targetCompare !== 0) return targetCompare;
+    
+    const categoryCompare = a.category.localeCompare(b.category);
+    if (categoryCompare !== 0) return categoryCompare;
+    
+    return a.name.localeCompare(b.name);
+  });
+
   const [activeTab, setActiveTab] = useState<'catalogue' | 'utilisateurs'>('catalogue');
   const [formData, setFormData] = useState<Omit<Product, 'id'>>({
     name: '',
@@ -48,7 +68,8 @@ const Admin: React.FC = () => {
     category: 'Tendance',
     target: 'Homme',
     garmentType: 'boubou',
-    fabricType: 'wax'
+    fabricType: 'wax',
+    description: ''
   });
 
   const getGoogleDriveDirectLink = (url: string): string => {
@@ -89,7 +110,8 @@ const Admin: React.FC = () => {
       category: 'Tendance',
       target: 'Homme',
       garmentType: 'boubou',
-      fabricType: 'wax'
+      fabricType: 'wax',
+      description: ''
     });
   };
 
@@ -104,7 +126,8 @@ const Admin: React.FC = () => {
       category: product.category,
       target: product.target,
       garmentType: product.garmentType,
-      fabricType: product.fabricType
+      fabricType: product.fabricType,
+      description: product.description || ''
     });
     setIsAddingMode(true);
   };
@@ -176,7 +199,7 @@ const Admin: React.FC = () => {
                 { label: 'Total Produits', value: totalProducts, icon: Package, color: 'bg-blue-50 text-blue-600' },
                 { label: 'Homme', value: hommeProducts, icon: Users, color: 'bg-indigo-50 text-indigo-600' },
                 { label: 'Enfant', value: enfantProducts, icon: Users, color: 'bg-pink-50 text-pink-600' },
-                { label: 'Valeur Stock', value: `${(totalValue / 1000).toFixed(0)}k`, icon: DollarSign, color: 'bg-emerald-50 text-emerald-600' }
+                { label: 'Valeur Stock', value: `${totalValue.toLocaleString('fr-FR')} FCFA`, icon: DollarSign, color: 'bg-emerald-50 text-emerald-600' }
               ].map((stat, i) => (
                 <motion.div
                   key={stat.label}
@@ -219,77 +242,90 @@ const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* Product Table */}
-            <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden text-left">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="bg-stone-50 border-b border-stone-200">
-                      <th className="px-6 py-4 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Produit</th>
-                      <th className="px-6 py-4 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Catégorie</th>
-                      <th className="px-6 py-4 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Cible</th>
-                      <th className="px-6 py-4 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Prix</th>
-                      <th className="px-6 py-4 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-100">
-                    {filteredProducts.map((product) => (
-                      <tr key={product.id} className="hover:bg-stone-50/50 transition-all group">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-lg bg-stone-100 overflow-hidden flex-shrink-0 border border-stone-200 shadow-sm">
-                              {product.image ? (
-                                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-stone-400">HT</div>
-                              )}
-                            </div>
-                            <div>
-                              <p className="text-sm font-heading font-bold text-brand-black">{product.name}</p>
-                              <p className="text-[10px] text-stone-400">{product.fabricType} • {product.garmentType}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="px-2.5 py-1 rounded-full bg-stone-100 text-stone-600 text-[10px] font-bold uppercase tracking-wider">
-                            {product.category}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                            product.target === 'Homme' ? 'bg-indigo-50 text-indigo-600' : 'bg-pink-50 text-pink-600'
-                          }`}>
-                            {product.target}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <p className="text-sm font-heading font-extrabold text-brand-black">
-                            {product.price.toLocaleString()} FCFA
-                          </p>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button 
-                              onClick={() => handleEdit(product)}
-                              className="p-2 text-stone-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                            >
-                              <Edit3 className="w-4 h-4" />
-                            </button>
-                            <button 
-                              onClick={() => removeProduct(product.id)}
-                              className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            {/* Tableaux groupés par Catégorie */}
+            <div className="space-y-8">
+              {Array.from(new Set([...categories, ...sortedProducts.map(p => p.category)])).map((cat) => {
+                const categoryProducts = sortedProducts.filter(p => p.category === cat);
+                if (categoryProducts.length === 0) return null;
+                
+                return (
+                  <div key={cat} className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden text-left">
+                    <div className="bg-stone-50/50 px-6 py-4 border-b border-stone-200 flex items-center justify-between">
+                      <h3 className="font-heading font-extrabold text-xs text-brand-black uppercase tracking-[0.15em] flex items-center gap-2">
+                        <Tag className="w-3.5 h-3.5 text-brand-orange-dark animate-pulse" />
+                        {cat}
+                      </h3>
+                      <span className="px-2.5 py-1 text-[9px] font-mono tracking-widest font-extrabold uppercase rounded-full bg-brand-orange-dark/10 text-brand-orange-dark">
+                        {categoryProducts.length} {categoryProducts.length > 1 ? 'produits' : 'produit'}
+                      </span>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="bg-stone-50/30 border-b border-stone-200 text-left">
+                            <th className="px-6 py-3.5 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Produit</th>
+                            <th className="px-6 py-3.5 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Cible</th>
+                            <th className="px-6 py-3.5 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Prix</th>
+                            <th className="px-6 py-3.5 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-stone-100">
+                          {categoryProducts.map((product) => (
+                            <tr key={product.id} className="hover:bg-stone-50/50 transition-all group">
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-4">
+                                  <div className="w-12 h-12 rounded-lg bg-stone-100 overflow-hidden flex-shrink-0 border border-stone-200 shadow-sm">
+                                    {product.image ? (
+                                      <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-stone-400">HT</div>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-heading font-bold text-brand-black">{product.name}</p>
+                                    <p className="text-[10px] text-stone-400">{product.fabricType} • {product.garmentType}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                  product.target === 'Homme' ? 'bg-indigo-50 text-indigo-600' : 'bg-pink-50 text-pink-600'
+                                }`}>
+                                  {product.target}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <p className="text-sm font-heading font-extrabold text-brand-black">
+                                  {product.price.toLocaleString()} FCFA
+                                </p>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button 
+                                    onClick={() => handleEdit(product)}
+                                    className="p-2 text-stone-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                  >
+                                    <Edit3 className="w-4 h-4" />
+                                  </button>
+                                  <button 
+                                    onClick={() => removeProduct(product.id)}
+                                    className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })}
+              
               {filteredProducts.length === 0 && (
-                <div className="py-20 text-center">
+                <div className="py-20 text-center bg-white rounded-2xl border border-stone-200">
                   <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Search className="w-6 h-6 text-stone-300" />
                   </div>
@@ -307,7 +343,7 @@ const Admin: React.FC = () => {
                   <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-2xl font-heading font-extrabold text-brand-black">162</p>
+                  <p className="text-2xl font-heading font-extrabold text-brand-black">{members.length}</p>
                   <p className="text-[10px] uppercase font-bold tracking-wider text-stone-400">Inscriptions Totales</p>
                 </div>
               </div>
@@ -316,8 +352,10 @@ const Admin: React.FC = () => {
                   <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-2xl font-heading font-extrabold text-brand-black">+48</p>
-                  <p className="text-[10px] uppercase font-bold tracking-wider text-stone-400">Ce Mois (Mai 2026)</p>
+                  <p className="text-2xl font-heading font-extrabold text-brand-black">
+                    +{members.filter(m => m.date === 'Juin 2026').length}
+                  </p>
+                  <p className="text-[10px] uppercase font-bold tracking-wider text-stone-400">Ce Mois (Juin 2026)</p>
                 </div>
               </div>
               <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm flex items-center gap-4">
@@ -325,7 +363,9 @@ const Admin: React.FC = () => {
                   <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-2xl font-heading font-extrabold text-brand-black">32.4%</p>
+                  <p className="text-2xl font-heading font-extrabold text-brand-black">
+                    {members.length > 0 ? "100%" : "0%"}
+                  </p>
                   <p className="text-[10px] uppercase font-bold tracking-wider text-stone-400">Croissance Mensuelle</p>
                 </div>
               </div>
@@ -339,11 +379,12 @@ const Admin: React.FC = () => {
               
               <div className="space-y-4">
                 {[
-                  { month: 'Janvier 2026', count: 12, percentage: '25%' },
-                  { month: 'Février 2026', count: 22, percentage: '45%' },
-                  { month: 'Mars 2026', count: 35, percentage: '72%' },
-                  { month: 'Avril 2026', count: 45, percentage: '90%' },
-                  { month: 'Mai 2026', count: 48, percentage: '100%', isCurrent: true }
+                  { 
+                    month: 'Juin 2026', 
+                    count: members.filter(m => m.date === 'Juin 2026').length, 
+                    percentage: members.length > 0 ? '100%' : '0%', 
+                    isCurrent: true 
+                  }
                 ].map((row) => (
                   <div key={row.month} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                     <span className="w-28 text-xs font-heading font-bold text-stone-500 uppercase tracking-widest text-left">
@@ -355,7 +396,7 @@ const Admin: React.FC = () => {
                         className={`h-full rounded-lg transition-all duration-1000 ${row.isCurrent ? 'bg-brand-orange-dark' : 'bg-brand-black/75'}`}
                       />
                       <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[10px] font-mono font-bold text-white z-10 uppercase tracking-widest">
-                        {row.count} intégrations
+                        {row.count} {row.count > 1 ? 'inscrits' : 'inscrit'}
                       </span>
                     </div>
                     <span className="text-xs font-mono font-bold text-stone-400">
@@ -370,53 +411,72 @@ const Admin: React.FC = () => {
             <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between">
                 <h3 className="font-heading font-bold text-base text-brand-black uppercase tracking-wider">
-                  Membres Récemment Intégrés par Mois
+                  Membres Récemment Inscrits
                 </h3>
-                <span className="px-2.5 py-1 text-[9px] font-mono tracking-widest font-extrabold uppercase rounded-full bg-brand-orange-dark/10 text-brand-orange-dark">
-                  Direct Live
-                </span>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      const dummyNames = ['Cheikh Oumar', 'Amina Sow', 'Mamadou Kane', 'Raby Diallo', 'Fatimata Ndiaye', 'Youssou Touré', 'Mariama Ba', 'Sidi Seye'];
+                      const randomName = dummyNames[Math.floor(Math.random() * dummyNames.length)];
+                      const emailPrefix = randomName.toLowerCase().replace(/\s+/g, '.');
+                      const newM = {
+                        name: randomName,
+                        email: `${emailPrefix}@gmail.com`,
+                        date: 'Juin 2026',
+                        role: 'Actif (Ce mois-ci)'
+                      };
+                      const updated = [newM, ...members];
+                      setMembers(updated);
+                      localStorage.setItem('habe_registered_members', JSON.stringify(updated));
+                    }}
+                    className="px-3 py-1.5 text-[10px] font-heading font-bold uppercase tracking-wider rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 transition-all border border-stone-200 active:scale-95"
+                  >
+                    + Simuler une inscription
+                  </button>
+                  <span className="px-2.5 py-1 text-[9px] font-mono tracking-widest font-extrabold uppercase rounded-full bg-brand-orange-dark/10 text-brand-orange-dark">
+                    Direct Live
+                  </span>
+                </div>
               </div>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto text-left">
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="bg-stone-50 border-b border-stone-200">
+                    <tr className="bg-stone-50 border-b border-stone-200 text-left">
                       <th className="px-6 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Membre</th>
                       <th className="px-6 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Adresse E-mail</th>
-                      <th className="px-6 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Intégration</th>
+                      <th className="px-6 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Date d'Inscription</th>
                       <th className="px-6 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Statut</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100">
-                    {[
-                      { name: 'Oumar Sy', email: 'oumardsy910@gmail.com', date: 'Mai 2026', role: 'Actif (Ce mois-ci)' },
-                      { name: 'Amadou Diallo', email: 'amadou.diallo@gmail.com', date: 'Mai 2026', role: 'Actif (Ce mois-ci)' },
-                      { name: 'Fatoumata Ka', email: 'fatouka.textiles@gmail.com', date: 'Mai 2026', role: 'Actif (Ce mois-ci)' },
-                      { name: 'Arona Ndiaye', email: 'aronandiaye@gmail.com', date: 'Avril 2026', role: 'Fidélisé' },
-                      { name: 'Coumba Kane', email: 'coumba.kane@outlook.fr', date: 'Avril 2026', role: 'Fidélisé' },
-                      { name: 'Mariama Sow', email: 'sow.mariama@mali.com', date: 'Avril 2026', role: 'Fidélisé' },
-                      { name: 'Ibrahima Kone', email: 'ibrakone@gmail.com', date: 'Mars 2026', role: 'Fidélisé' },
-                      { name: 'Khadija Ba', email: 'khadija.ba@gmail.com', date: 'Février 2026', role: 'Fidélisé' },
-                    ].map((mbr, i) => (
+                    {members.map((mbr, i) => (
                       <tr key={i} className="hover:bg-stone-50/50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
+                        <td className="px-6 py-4 text-left">
+                          <div className="flex items-center gap-3 justify-start text-left">
                             <div className="w-8 h-8 rounded-full bg-brand-orange-dark/10 text-brand-orange-dark flex items-center justify-center font-bold text-xs uppercase">
                               {mbr.name[0]}
                             </div>
                             <span className="text-sm font-heading font-extrabold text-brand-black">{mbr.name}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-xs text-stone-600 font-body">{mbr.email}</td>
-                        <td className="px-6 py-4 text-xs font-heading font-extrabold text-stone-500 uppercase tracking-wider">{mbr.date}</td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 text-xs text-stone-600 font-body text-left">{mbr.email}</td>
+                        <td className="px-6 py-4 text-xs font-heading font-extrabold text-stone-500 uppercase tracking-wider text-left">{mbr.date}</td>
+                        <td className="px-6 py-4 text-left">
                           <span className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase tracking-widest ${
-                            mbr.date === 'Mai 2026' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-stone-100 text-stone-500'
+                            mbr.date === 'Juin 2026' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-stone-100 text-stone-500'
                           }`}>
                             {mbr.role}
                           </span>
                         </td>
                       </tr>
                     ))}
+                    {members.length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="py-12 text-center text-stone-400 text-xs italic">
+                          Aucun membre n'est encore inscrit. Les nouvelles inscriptions s'afficheront ici en temps réel.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -486,6 +546,17 @@ const Admin: React.FC = () => {
                       className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-black/5 focus:border-brand-black outline-none transition-all"
                       value={formData.price}
                       onChange={e => setFormData({ ...formData, price: parseInt(e.target.value) })}
+                    />
+                  </label>
+
+                  <label className="block text-left">
+                    <span className="text-[10px] uppercase font-bold text-stone-400 mb-1.5 block tracking-widest">Description</span>
+                    <textarea
+                      rows={3}
+                      className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-black/5 focus:border-brand-black outline-none transition-all resize-none"
+                      placeholder="Ajoutez une description élégante de l'article..."
+                      value={formData.description || ''}
+                      onChange={e => setFormData({ ...formData, description: e.target.value })}
                     />
                   </label>
                 </div>

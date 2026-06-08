@@ -88,6 +88,24 @@ const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
           }
         }
       } else {
+        const storeNewMember = () => {
+          try {
+            const newM = {
+              name: fullName.trim() || emailLower.split('@')[0],
+              email: emailLower,
+              date: 'Juin 2026',
+              role: 'Actif (Ce mois-ci)'
+            };
+            const existing = JSON.parse(localStorage.getItem('habe_registered_members') || '[]');
+            if (!existing.some((m: any) => m.email.toLowerCase() === newM.email.toLowerCase())) {
+              existing.unshift(newM);
+              localStorage.setItem('habe_registered_members', JSON.stringify(existing));
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        };
+
         try {
           const { error: signUpError } = await supabase.auth.signUp({
             email: email.trim(),
@@ -99,6 +117,7 @@ const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
             },
           });
           if (signUpError) throw signUpError;
+          storeNewMember();
           setSuccess('Votre compte a été créé avec succès ! Veuillez vérifier votre boîte email pour valider votre inscription.');
           
           // Clear sign up inputs after success
@@ -109,6 +128,7 @@ const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
           console.warn('Supabase signup failed, trying local fallback:', supaErr);
           // Create local session immediately so they don't get blocked
           localStorage.setItem('habe_local_user', JSON.stringify({ email: emailLower, fullName: fullName.trim() }));
+          storeNewMember();
           setSuccess('Votre compte a été configuré localement avec succès ! Vous êtes connecté.');
           
           setFullName('');

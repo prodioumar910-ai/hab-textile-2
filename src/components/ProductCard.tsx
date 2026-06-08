@@ -32,6 +32,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false, sho
     target: product.target,
     garmentType: product.garmentType,
     fabricType: product.fabricType,
+    description: product.description || '',
   });
 
   // Sync edit form with product changes or state activation
@@ -47,6 +48,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false, sho
         target: product.target,
         garmentType: product.garmentType,
         fabricType: product.fabricType,
+        description: product.description || '',
       });
     }
   }, [isEditing, product]);
@@ -78,6 +80,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false, sho
       ...product,
       name: editForm.name,
       price: Number(editForm.price),
+      description: editForm.description,
       category: editForm.category,
       target: editForm.target,
       garmentType: editForm.garmentType,
@@ -106,19 +109,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false, sho
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
             ) : (
-              <div className="flex flex-col items-center justify-center p-4 text-center select-none">
-                <span className="font-heading font-extrabold text-3xl tracking-widest text-amber-500/80 group-hover:scale-115 transition-transform duration-500">
-                  HT
-                </span>
-                <span className="text-[8px] font-mono tracking-[0.25em] text-stone-400 mt-3 uppercase opacity-90">
-                  Habé Textile
-                </span>
-                <div className="w-8 h-[1px] bg-amber-500/20 mt-3" />
+              <div className="flex flex-col items-center justify-center p-4 text-center select-none w-full h-full bg-stone-100/85">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditing(true);
+                  }}
+                  className="px-4 py-2.5 bg-brand-black text-white hover:bg-stone-800 rounded-full font-heading font-extrabold text-[11px] uppercase tracking-wider shadow-md transition-all active:scale-95 duration-200 border border-brand-black"
+                >
+                  À venir bientôt
+                </button>
               </div>
             )}
 
             {/* Admin Controls */}
-            {isAdmin && (
+            {isAdmin && product.image && (
               <div className="absolute top-2 left-2 flex gap-1.5 z-40">
                 <button
                   type="button"
@@ -165,15 +171,27 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false, sho
                 </p>
               </div>
               
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  addToCart(product);
-                }}
-                className={`w-full mt-3 py-2 bg-white text-brand-black ${isSharp ? '' : 'rounded-lg'} font-body font-medium text-xs hover:bg-opacity-90 transition-all border border-stone-200 shadow-sm`}
-              >
-                Ajouter au panier
-              </button>
+              {!product.image ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditing(true);
+                  }}
+                  className={`w-full mt-3 py-2 bg-amber-500 hover:bg-amber-600 text-white ${isSharp ? '' : 'rounded-lg'} font-body font-bold text-xs uppercase tracking-wider transition-all border border-amber-400 shadow-sm active:scale-95`}
+                >
+                  Changer l'image
+                </button>
+              ) : (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    addToCart(product);
+                  }}
+                  className={`w-full mt-3 py-2 bg-white text-brand-black ${isSharp ? '' : 'rounded-lg'} font-body font-medium text-xs hover:bg-opacity-90 transition-all border border-stone-200 shadow-sm`}
+                >
+                  Ajouter au panier
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -236,6 +254,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false, sho
                     onChange={e => setEditForm({ ...editForm, price: Number(e.target.value) })}
                     className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-black/5 focus:border-brand-black outline-none transition-all"
                     placeholder="Ex: 85000"
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="text-left">
+                  <label className="block text-[10px] uppercase font-bold text-stone-400 mb-1 tracking-widest">Description</label>
+                  <textarea
+                    rows={3}
+                    value={editForm.description}
+                    onChange={e => setEditForm({ ...editForm, description: e.target.value })}
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-black/5 focus:border-brand-black outline-none transition-all resize-none"
+                    placeholder="Ajoutez une description de l'article..."
                   />
                 </div>
 

@@ -228,6 +228,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
         // Sync & heal stored products with updated defaults from codebase
         const merged = filteredParsed.map(savedProd => {
+          if (savedProd.isEdited) {
+            return savedProd;
+          }
           const defaultProd = INITIAL_PRODUCTS.find(p => p.id === savedProd.id);
           if (defaultProd) {
             // Restore latest codebase definition for core products to reflect moved categories/targets/renamings
@@ -349,7 +352,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const addProduct = (product: Product) => setProducts(prev => [product, ...prev]);
   const removeProduct = (productId: string) => setProducts(prev => prev.filter(p => p.id !== productId));
-  const updateProduct = (updatedProduct: Product) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+  const updateProduct = (updatedProduct: Product) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? { ...updatedProduct, isEdited: true } : p));
 
   return (
     <StoreContext.Provider value={{

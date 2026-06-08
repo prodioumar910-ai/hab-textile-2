@@ -36,11 +36,15 @@ const Profile: React.FC<ProfileProps> = ({ onOpenAdmin }) => {
         transition={{ duration: 0.6 }}
         className="flex flex-col items-center mb-12"
       >
-        <div className="w-24 h-24 rounded-full border-4 border-white/40 overflow-hidden mb-4 shadow-xl">
+        <div className="w-24 h-24 rounded-full border-4 border-white/40 overflow-hidden mb-4 shadow-xl bg-white p-1">
           <img
-            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop"
+            src={user.email?.toLowerCase() === 'prodimany@gmail.com' || user.email?.toLowerCase() === 'prodioumar910@gmail.com'
+              ? "https://lh3.googleusercontent.com/d/1rIc99ggOZFOnB_wYD9Fnq1klzVJTkAma"
+              : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop"
+            }
             alt="Avatar"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain rounded-full"
+            referrerPolicy="no-referrer"
           />
         </div>
         <h2 className="font-heading font-bold text-xl text-brand-black">

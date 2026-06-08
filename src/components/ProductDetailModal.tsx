@@ -135,7 +135,11 @@ export const ProductDetailModal: React.FC = () => {
                 <div className="space-y-2">
                   <span className="text-[10px] uppercase font-bold text-stone-400 tracking-widest block">Description du modèle</span>
                   <p className="text-xs font-body font-normal text-stone-300 leading-relaxed">
-                    Cette superbe pièce de haute couture signée par la maison <strong className="text-brand-orange-light font-bold">Habé Textile</strong> est le symbole suprême de raffinement et d'authenticité. Conçue avec des finitions d'excellence à la main, elle assure une silhouette majestueuse et un confort haut de gamme pour toutes vos grandes occasions.
+                    {selectedProduct.description ? selectedProduct.description : (
+                      <>
+                        Cette superbe pièce de haute couture signée par la maison <strong className="text-brand-orange-light font-bold">Habé Textile</strong> est le symbole suprême de raffinement et d'authenticité. Conçue avec des finitions d'excellence à la main, elle assure une silhouette majestueuse et un confort haut de gamme pour toutes vos grandes occasions.
+                      </>
+                    )}
                   </p>
                 </div>
               </div>

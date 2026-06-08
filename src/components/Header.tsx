@@ -49,9 +49,20 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, isTransparen
               }`}>
                 {user.user_metadata?.full_name?.split(' ')[0] || 'Compte'}
               </span>
-              <div className="w-7 h-7 bg-brand-orange-dark text-white rounded-full flex items-center justify-center text-xs font-heading font-bold uppercase shadow-sm">
-                {(user.user_metadata?.full_name?.[0] || user.email?.[0] || 'U')}
-              </div>
+              {user.email?.toLowerCase() === 'prodimany@gmail.com' || user.email?.toLowerCase() === 'prodioumar910@gmail.com' ? (
+                <div className="w-7 h-7 rounded-full overflow-hidden border border-brand-orange-dark/50 bg-white p-0.5 shadow-sm">
+                  <img 
+                    src="https://lh3.googleusercontent.com/d/1rIc99ggOZFOnB_wYD9Fnq1klzVJTkAma" 
+                    alt="Admin Avatar" 
+                    className="w-full h-full object-contain"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              ) : (
+                <div className="w-7 h-7 bg-brand-orange-dark text-white rounded-full flex items-center justify-center text-xs font-heading font-bold uppercase shadow-sm">
+                  {(user.user_metadata?.full_name?.[0] || user.email?.[0] || 'U')}
+                </div>
+              )}
             </div>
           ) : (
             <div className={`p-1 rounded-full transition-colors ${isTransparent ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}>
