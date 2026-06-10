@@ -49,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, isTransparen
               }`}>
                 {user.user_metadata?.full_name?.split(' ')[0] || 'Compte'}
               </span>
-              {user.email?.toLowerCase() === 'prodimany@gmail.com' || user.email?.toLowerCase() === 'prodioumar910@gmail.com' ? (
+              {user.email?.toLowerCase() === 'prodioumar910@gmail.com' ? (
                 <div className="w-7 h-7 rounded-full overflow-hidden border border-brand-orange-dark/50 bg-white p-0.5 shadow-sm">
                   <img 
                     src="https://lh3.googleusercontent.com/d/1rIc99ggOZFOnB_wYD9Fnq1klzVJTkAma" 

@@ -15,10 +15,13 @@ const HomeCatalogue: React.FC = () => {
     const matchGarment = filters.garmentType ? p.garmentType === filters.garmentType : true;
     const matchFabric = filters.fabricType ? p.fabricType === filters.fabricType : true;
     
-    // Pour la section Homme de la page d'accueil, on affiche uniquement les images Homme Habé (IDs hm-1 à hm-8)
-    // sans les mélanger avec la collection de la boutique (e1, t-, c- etc.)
-    if (activeTarget === 'Homme' && !p.id.startsWith('hm-')) {
-      return false;
+    // Pour la section Homme de la page d'accueil, on affiche les images Homme Habé (IDs hm-1 à hm-8) et les nouveaux articles,
+    // sans y mêler le catalogue complet de la boutique par défaut (e1, t-, c- etc.)
+    if (activeTarget === 'Homme') {
+      const isBoutiqueDefault = /^(e\d+|t-\d+|c-\d+|kd-\d+|sh-\d+|6|7|8|11)$/.test(p.id);
+      if (isBoutiqueDefault) {
+        return false;
+      }
     }
     
     return isClothing && matchTarget && matchGarment && matchFabric;

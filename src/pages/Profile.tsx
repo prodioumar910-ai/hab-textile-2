@@ -38,7 +38,7 @@ const Profile: React.FC<ProfileProps> = ({ onOpenAdmin }) => {
       >
         <div className="w-24 h-24 rounded-full border-4 border-white/40 overflow-hidden mb-4 shadow-xl bg-white p-1">
           <img
-            src={user.email?.toLowerCase() === 'prodimany@gmail.com' || user.email?.toLowerCase() === 'prodioumar910@gmail.com'
+            src={user.email?.toLowerCase() === 'prodioumar910@gmail.com'
               ? "https://lh3.googleusercontent.com/d/1rIc99ggOZFOnB_wYD9Fnq1klzVJTkAma"
               : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop"
             }
@@ -124,7 +124,7 @@ const Profile: React.FC<ProfileProps> = ({ onOpenAdmin }) => {
           {[
             { icon: Bell, label: 'Notifications' },
             { icon: Globe, label: 'Langue (Français)' },
-            ...(onOpenAdmin && (user?.email?.toLowerCase() === 'prodimany@gmail.com' || user?.email?.toLowerCase() === 'prodioumar910@gmail.com') ? [{ 
+            ...(onOpenAdmin && user?.email?.toLowerCase() === 'prodioumar910@gmail.com' ? [{ 
               icon: ShieldCheck, 
               label: 'Administration Boutique', 
               onClick: onOpenAdmin 

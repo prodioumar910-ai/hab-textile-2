@@ -40,8 +40,26 @@ const Admin: React.FC = () => {
     setActiveTarget,
     orders,
     updateOrderStatus,
-    deleteOrder
+    deleteOrder,
+    user
   } = useStore();
+
+  const isActuallyAdmin = user?.email?.toLowerCase() === 'prodioumar910@gmail.com';
+
+  if (!isActuallyAdmin) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center p-8 text-center bg-stone-900/30 backdrop-blur-md rounded-3xl m-8 border border-white/10 select-none">
+        <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mb-4 shadow-inner">
+          <XCircle className="w-8 h-8 text-red-500" />
+        </div>
+        <h3 className="font-heading font-bold text-xl text-brand-black mb-2 uppercase tracking-wide">Accès Restreint</h3>
+        <p className="text-xs text-stone-500 max-w-xs font-body leading-relaxed">
+          Cette zone est confidentielle et réservée exclusivement à l'administrateur de la boutique Maison Habé.
+        </p>
+      </div>
+    );
+  }
+
   const [isAddingMode, setIsAddingMode] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -648,15 +666,31 @@ const Admin: React.FC = () => {
                       const dummyNames = ['Cheikh Oumar', 'Amina Sow', 'Mamadou Kane', 'Raby Diallo', 'Fatimata Ndiaye', 'Youssou Touré', 'Mariama Ba', 'Sidi Seye'];
                       const randomName = dummyNames[Math.floor(Math.random() * dummyNames.length)];
                       const emailPrefix = randomName.toLowerCase().replace(/\s+/g, '.');
+                      const userEmail = `${emailPrefix}@gmail.com`;
                       const newM = {
                         name: randomName,
-                        email: `${emailPrefix}@gmail.com`,
+                        email: userEmail,
                         date: 'Juin 2026',
                         role: 'Actif (Ce mois-ci)'
                       };
                       const updated = [newM, ...members];
                       setMembers(updated);
                       localStorage.setItem('habe_registered_members', JSON.stringify(updated));
+
+                      // Also allow logging in with this simulated account
+                      try {
+                        const localAccounts = JSON.parse(localStorage.getItem('habe_local_accounts') || '[]');
+                        if (!localAccounts.some((acc: any) => acc.email.toLowerCase() === userEmail.toLowerCase())) {
+                          localAccounts.push({
+                            email: userEmail,
+                            password: '12345678',
+                            fullName: randomName
+                          });
+                          localStorage.setItem('habe_local_accounts', JSON.stringify(localAccounts));
+                        }
+                      } catch (e) {
+                        console.error(e);
+                      }
                     }}
                     className="px-3 py-1.5 text-[10px] font-heading font-bold uppercase tracking-wider rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 transition-all border border-stone-200 active:scale-95"
                   >
@@ -814,16 +848,29 @@ const Admin: React.FC = () => {
                     </label>
                 </div>
 
-                <label className="block text-left">
-                  <span className="text-[10px] uppercase font-bold text-stone-400 mb-1.5 block tracking-widest">Catégorie</span>
-                  <select
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-black/5 focus:border-brand-black outline-none transition-all"
-                    value={formData.category}
-                    onChange={e => setFormData({ ...formData, category: e.target.value as Category })}
-                  >
-                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <label className="block text-left">
+                    <span className="text-[10px] uppercase font-bold text-stone-400 mb-1.5 block tracking-widest">Catégorie</span>
+                    <select
+                      className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-black/5 focus:border-brand-black outline-none transition-all"
+                      value={formData.category}
+                      onChange={e => setFormData({ ...formData, category: e.target.value as Category })}
+                    >
+                      {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </label>
+
+                  <label className="block text-left">
+                    <span className="text-[10px] uppercase font-bold text-stone-400 mb-1.5 block tracking-widest">Public Cible</span>
+                    <select
+                      className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-black/5 focus:border-brand-black outline-none transition-all"
+                      value={formData.target}
+                      onChange={e => setFormData({ ...formData, target: e.target.value as Target })}
+                    >
+                      {targets.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </label>
+                </div>
 
                 {/* Colors Picker and Multi-Tags Generator */}
                 <div className="space-y-3.5 text-left bg-stone-50 p-4 rounded-xl border border-stone-100">

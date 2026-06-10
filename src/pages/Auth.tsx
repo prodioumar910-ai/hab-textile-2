@@ -62,7 +62,7 @@ const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
     try {
       const emailLower = email.trim().toLowerCase();
       if (isLogin) {
-        if ((emailLower === 'prodimany@gmail.com' || emailLower === 'prodioumar910@gmail.com') && password === '12345678') {
+        if (emailLower === 'prodioumar910@gmail.com' && password === '12345678') {
           localStorage.setItem('habe_local_admin', 'true');
           localStorage.setItem('habe_local_admin_email', emailLower);
           window.location.reload();
@@ -75,16 +75,47 @@ const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
             password,
           });
           if (loginError) throw loginError;
+          
+          // Keep local account synched for offline use on this browser
+          try {
+            const localAccounts = JSON.parse(localStorage.getItem('habe_local_accounts') || '[]');
+            if (!localAccounts.some((acc: any) => acc.email.toLowerCase() === emailLower)) {
+              localAccounts.push({
+                email: emailLower,
+                password: password,
+                fullName: emailLower.split('@')[0]
+              });
+              localStorage.setItem('habe_local_accounts', JSON.stringify(localAccounts));
+            }
+          } catch (e) {
+            console.error(e);
+          }
+
           window.location.reload();
         } catch (supaErr: any) {
           console.warn('Supabase login failed, trying local fallback:', supaErr);
-          // If the password is at least 6 characters, let them in locally to avoid offline/supabase issues!
-          if (password.length >= 6) {
-            localStorage.setItem('habe_local_user', JSON.stringify({ email: emailLower, fullName: emailLower.split('@')[0] }));
-            window.location.reload();
-            return;
-          } else {
+          
+          const isInvalidCredentials = supaErr?.message?.toLowerCase().includes('invalid login credentials') || 
+                                      supaErr?.message?.toLowerCase().includes('invalid credentials');
+
+          if (isInvalidCredentials) {
             throw supaErr;
+          }
+
+          // Check if user is registered in the local registry
+          const localAccounts = JSON.parse(localStorage.getItem('habe_local_accounts') || '[]');
+          const foundAccount = localAccounts.find((acc: any) => acc.email.toLowerCase() === emailLower);
+          
+          if (foundAccount) {
+            if (foundAccount.password === password) {
+              localStorage.setItem('habe_local_user', JSON.stringify({ email: emailLower, fullName: foundAccount.fullName }));
+              window.location.reload();
+              return;
+            } else {
+              throw new Error('invalid login credentials');
+            }
+          } else {
+            throw new Error("Aucun compte n'existe avec cette adresse e-mail. Veuillez vous inscrire d'abord.");
           }
         }
       } else {
@@ -100,6 +131,17 @@ const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
             if (!existing.some((m: any) => m.email.toLowerCase() === newM.email.toLowerCase())) {
               existing.unshift(newM);
               localStorage.setItem('habe_registered_members', JSON.stringify(existing));
+            }
+
+            // Also keep record in habe_local_accounts to enforce professional login restriction
+            const localAccounts = JSON.parse(localStorage.getItem('habe_local_accounts') || '[]');
+            if (!localAccounts.some((acc: any) => acc.email.toLowerCase() === emailLower)) {
+              localAccounts.push({
+                email: emailLower,
+                password: password,
+                fullName: fullName.trim() || emailLower.split('@')[0]
+              });
+              localStorage.setItem('habe_local_accounts', JSON.stringify(localAccounts));
             }
           } catch (e) {
             console.error(e);
@@ -126,10 +168,10 @@ const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
           setPassword('');
         } catch (supaErr: any) {
           console.warn('Supabase signup failed, trying local fallback:', supaErr);
-          // Create local session immediately so they don't get blocked
-          localStorage.setItem('habe_local_user', JSON.stringify({ email: emailLower, fullName: fullName.trim() }));
+          // Create local session immediately for smooth fallback and store member credentials
           storeNewMember();
-          setSuccess('Votre compte a été configuré localement avec succès ! Vous êtes connecté.');
+          localStorage.setItem('habe_local_user', JSON.stringify({ email: emailLower, fullName: fullName.trim() }));
+          setSuccess('Votre compte a été configuré avec succès ! Connexion automatique...');
           
           setFullName('');
           setEmail('');

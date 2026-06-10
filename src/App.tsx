@@ -60,7 +60,8 @@ function AppContent() {
   }, [activePage]);
 
   const renderPage = () => {
-    if (isAdminMode) return <Admin />;
+    const isActuallyAdmin = user?.email?.toLowerCase() === 'prodioumar910@gmail.com';
+    if (isAdminMode && isActuallyAdmin) return <Admin />;
     
     switch (activePage) {
       case 0: return <Home />;

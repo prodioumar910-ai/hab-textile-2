@@ -19,7 +19,7 @@ const fabricTypes: FabricType[] = ['wax', 'bazin', 'coton', 'soie'];
 const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false, showDetails = true }) => {
   const { toggleFavorite, favorites, addToCart, user, removeProduct, updateProduct, setSelectedProduct } = useStore();
   const isFavorite = favorites.includes(product.id);
-  const isAdmin = user?.email?.toLowerCase() === 'prodimany@gmail.com' || user?.email?.toLowerCase() === 'prodioumar910@gmail.com';
+  const isAdmin = user?.email?.toLowerCase() === 'prodioumar910@gmail.com';
 
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
