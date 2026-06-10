@@ -16,13 +16,32 @@ import {
   MoreVertical,
   Search,
   Filter,
-  ArrowLeft
+  ArrowLeft,
+  ShoppingBag,
+  Calendar,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Phone,
+  MapPin,
+  Palette
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { Product, Category, Target, GarmentType, FabricType } from '../types';
 
 const Admin: React.FC = () => {
-  const { products, addProduct, removeProduct, updateProduct, activeTarget, setActiveTarget } = useStore();
+  const { 
+    products, 
+    addProduct, 
+    removeProduct, 
+    updateProduct, 
+    activeTarget, 
+    setActiveTarget,
+    orders,
+    updateOrderStatus,
+    deleteOrder
+  } = useStore();
   const [isAddingMode, setIsAddingMode] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -58,7 +77,7 @@ const Admin: React.FC = () => {
     return a.name.localeCompare(b.name);
   });
 
-  const [activeTab, setActiveTab] = useState<'catalogue' | 'utilisateurs'>('catalogue');
+  const [activeTab, setActiveTab] = useState<'catalogue' | 'utilisateurs' | 'commandes'>('catalogue');
   const [formData, setFormData] = useState<Omit<Product, 'id'>>({
     name: '',
     price: 0,
@@ -69,8 +88,11 @@ const Admin: React.FC = () => {
     target: 'Homme',
     garmentType: 'boubou',
     fabricType: 'wax',
-    description: ''
+    description: '',
+    colors: []
   });
+
+  const [customColorInput, setCustomColorInput] = useState('');
 
   const getGoogleDriveDirectLink = (url: string): string => {
     if (!url) return '';
@@ -111,8 +133,10 @@ const Admin: React.FC = () => {
       target: 'Homme',
       garmentType: 'boubou',
       fabricType: 'wax',
-      description: ''
+      description: '',
+      colors: []
     });
+    setCustomColorInput('');
   };
 
   const handleEdit = (product: Product) => {
@@ -127,8 +151,10 @@ const Admin: React.FC = () => {
       target: product.target,
       garmentType: product.garmentType,
       fabricType: product.fabricType,
-      description: product.description || ''
+      description: product.description || '',
+      colors: product.colors || []
     });
+    setCustomColorInput('');
     setIsAddingMode(true);
   };
 
@@ -176,6 +202,19 @@ const Admin: React.FC = () => {
           >
             Catalogue Produits
           </button>
+          
+          <button
+            onClick={() => setActiveTab('commandes')}
+            className={`pb-3.5 px-1 text-xs font-heading font-extrabold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+              activeTab === 'commandes'
+                ? 'border-brand-orange-dark text-brand-orange-dark'
+                : 'border-transparent text-stone-400 hover:text-stone-600'
+            }`}
+          >
+            <ShoppingBag className="w-4 h-4" />
+            Commandes Clients ({orders.length})
+          </button>
+
           <button
             onClick={() => setActiveTab('utilisateurs')}
             className={`pb-3.5 px-1 text-xs font-heading font-extrabold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
@@ -334,6 +373,196 @@ const Admin: React.FC = () => {
               )}
             </div>
           </>
+        ) : activeTab === 'commandes' ? (
+          <div className="space-y-8 text-left">
+            {/* Orders statistics metrics */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: 'Total Commandes', value: orders.length, icon: ShoppingBag, color: 'bg-indigo-50 text-indigo-600' },
+                { label: 'En Cours de Confection', value: orders.filter(o => o.status === 'en cours').length, icon: Clock, color: 'bg-amber-50 text-amber-600' },
+                { label: 'Livrées & Confectionnées', value: orders.filter(o => o.status === 'livré').length, icon: CheckCircle2, color: 'bg-emerald-50 text-emerald-600' },
+                { 
+                  label: "Chiffre d'Affaires Réalisé", 
+                  value: `${orders.filter(o => o.status === 'livré').reduce((sum, o) => sum + o.total, 0).toLocaleString('fr-FR')} FCFA`, 
+                  icon: DollarSign, 
+                  color: 'bg-blue-50 text-blue-600' 
+                }
+              ].map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm"
+                >
+                  <div className="p-2 rounded-lg inline-block mb-3.5 food-badge-shape bg-stone-50 text-stone-600">
+                    <stat.icon className={`w-4 h-4 ${stat.color.split(' ')[1]}`} />
+                  </div>
+                  <p className="text-xl md:text-2xl font-heading font-extrabold text-brand-black">{stat.value}</p>
+                  <p className="text-[10px] uppercase tracking-widest font-bold text-stone-400 mt-1">{stat.label}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Orders list block */}
+            <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-5 border-b border-stone-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h3 className="font-heading font-extrabold text-base text-brand-black uppercase tracking-wider">
+                    Suivi des Commandes clients
+                  </h3>
+                  <p className="text-xs text-stone-400 mt-0.5">Consultez, modifiez le statut ou gérez les commandes envoyées depuis WhatsApp.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 text-[9px] font-mono tracking-widest font-extrabold uppercase rounded-full bg-brand-orange-dark/10 text-brand-orange-dark animate-pulse">
+                    En temps réel
+                  </span>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-stone-50 border-b border-stone-200 text-left">
+                      <th className="px-6 py-4 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Client / Coordonnées</th>
+                      <th className="px-6 py-4 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Articles Commandés</th>
+                      <th className="px-6 py-4 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Livraison & Paiement</th>
+                      <th className="px-6 py-4 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Total Facturé</th>
+                      <th className="px-6 py-4 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Statut de Suivi</th>
+                      <th className="px-6 py-4 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100 text-stone-700">
+                    {orders.map((ord) => (
+                      <tr key={ord.id} className="hover:bg-stone-50/50 transition-all select-none">
+                        {/* Client details info */}
+                        <td className="px-6 py-4 align-top">
+                          <div className="space-y-1">
+                            <h4 className="font-heading font-bold text-sm text-brand-black">{ord.clientName}</h4>
+                            <a 
+                              href={`https://wa.me/${ord.clientPhone.replace(/\s+/g, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-emerald-600 hover:underline font-mono font-semibold flex items-center gap-1"
+                            >
+                              <Phone className="w-3 h-3" />
+                              {ord.clientPhone}
+                            </a>
+                            <div className="text-xs text-stone-400 flex items-center gap-1.5 pt-0.5">
+                              <MapPin className="w-3 h-3 text-stone-400" />
+                              <span>{ord.clientQuarter}</span>
+                            </div>
+                            <div className="text-[9px] font-mono text-stone-400 flex items-center gap-1 mt-1">
+                              <Calendar className="w-2.5 h-2.5" />
+                              <span>{new Date(ord.date).toLocaleDateString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* List of ordered products inside this order */}
+                        <td className="px-6 py-4 align-top">
+                          <div className="space-y-3 max-w-xs">
+                            {ord.items.map((it, idx) => (
+                              <div key={`${it.productId}-${idx}`} className="flex gap-2.5 items-center">
+                                <div className="w-10 h-10 rounded-lg overflow-hidden bg-stone-100 border border-stone-200 flex-shrink-0">
+                                  {it.image ? (
+                                    <img src={it.image} alt={it.productName} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full bg-stone-200 flex items-center justify-center font-bold text-[10px] text-stone-400">HT</div>
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="text-xs font-heading font-extrabold text-brand-black line-clamp-1">{it.productName}</p>
+                                  <div className="text-[10px] text-stone-400 flex items-center gap-1.5">
+                                    <span className="bg-stone-100 px-1 py-0.5 rounded text-stone-600 font-mono font-semibold">Taille: {it.size}</span>
+                                    <span>•</span>
+                                    <span className="text-stone-500">Coloris: {it.color}</span>
+                                    <span>•</span>
+                                    <span className="font-semibold text-brand-black">x{it.quantity}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+
+                        {/* Deliveries & methods chosen */}
+                        <td className="px-6 py-4 align-top text-xs">
+                          <div className="space-y-1.5 pt-1">
+                            <span className="px-2 py-1 rounded bg-stone-100 text-[10px] font-bold uppercase text-stone-600 inline-block">
+                              🚚 {ord.deliveryMethod}
+                            </span>
+                            <br />
+                            <span className="px-2 py-1 rounded bg-brand-orange-dark/5 text-[10px] font-bold uppercase text-brand-orange-dark inline-block">
+                              💳 Paiement : {ord.paymentMethod}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Order total amount badge */}
+                        <td className="px-6 py-4 align-top">
+                          <p className="text-sm font-heading font-extrabold text-brand-black pt-1">
+                            {ord.total.toLocaleString()} FCFA
+                          </p>
+                        </td>
+
+                        {/* Interactive order status modifier */}
+                        <td className="px-6 py-4 align-top">
+                          <div className="pt-0.5">
+                            <select
+                              value={ord.status}
+                              onChange={(e) => updateOrderStatus(ord.id, e.target.value as 'en cours' | 'livré' | 'annulé')}
+                              className={`p-1.5 pl-2.5 pr-8 rounded-xl text-xs font-bold uppercase tracking-wider border outline-none cursor-pointer focus:ring-1 focus:ring-brand-black transition-all ${
+                                ord.status === 'livré'
+                                  ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                                  : ord.status === 'annulé'
+                                  ? 'bg-red-50 border-red-300 text-red-700'
+                                  : 'bg-amber-50 border-amber-300 text-amber-700'
+                              }`}
+                            >
+                              <option value="en cours">En Cours</option>
+                              <option value="livré">Livré</option>
+                              <option value="annulé">Annulé</option>
+                            </select>
+                          </div>
+                        </td>
+
+                        {/* Delete action */}
+                        <td className="px-6 py-4 align-top text-right">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm('Voulez-vous vraiment supprimer cette commande ?')) {
+                                deleteOrder(ord.id);
+                              }
+                            }}
+                            className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all pt-1 inline-block"
+                            title="Supprimer la commande"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+
+                    {orders.length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="py-24 text-center">
+                          <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4 border border-stone-200">
+                            <ShoppingBag className="w-6 h-6 text-stone-300" />
+                          </div>
+                          <p className="text-sm text-stone-400 font-medium">Aucune commande n'a encore été enregistrée.</p>
+                          <p className="text-xs text-stone-400 mt-1 max-w-sm mx-auto leading-relaxed">
+                            Les commandes passées par vos clients apparaîtront automatiquement ici en temps réel pour faciliter la gestion et le suivi.
+                          </p>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="space-y-8 text-left">
             {/* Metrics Row */}
@@ -595,6 +824,118 @@ const Admin: React.FC = () => {
                     {categories.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </label>
+
+                {/* Colors Picker and Multi-Tags Generator */}
+                <div className="space-y-3.5 text-left bg-stone-50 p-4 rounded-xl border border-stone-100">
+                  <span className="text-[10px] uppercase font-bold text-stone-500 block tracking-widest">Couleurs Disponibles</span>
+                  
+                  {/* Selected Colors list */}
+                  <div className="flex flex-wrap gap-2">
+                    {(!formData.colors || formData.colors.length === 0) ? (
+                      <span className="text-[11px] text-stone-400 italic">Aucune restriction de couleur (toutes les couleurs seront possibles par défaut lors de la commande)</span>
+                    ) : (
+                      formData.colors.map(col => (
+                        <span 
+                          key={col} 
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-stone-900 text-white rounded-full text-xs font-heading font-medium tracking-wide shadow-sm"
+                        >
+                          {col}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData({
+                                ...formData,
+                                colors: (formData.colors || []).filter(c => c !== col)
+                              });
+                            }}
+                            className="bg-white/20 hover:bg-white/40 text-white p-0.5 rounded-full text-[10px] transition-all"
+                          >
+                            ✕
+                          </button>
+                        </span>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Add Custom Color input */}
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Palette className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                      <input
+                        type="text"
+                        placeholder="Ajouter une couleur personnalisée..."
+                        className="w-full bg-white border border-stone-200 rounded-xl py-2 pl-10 pr-4 text-xs focus:ring-2 focus:ring-brand-black/5 focus:border-brand-black outline-none transition-all placeholder-stone-400"
+                        value={customColorInput}
+                        onChange={e => setCustomColorInput(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const val = customColorInput.trim();
+                            if (val && !(formData.colors || []).includes(val)) {
+                              setFormData({
+                                ...formData,
+                                colors: [...(formData.colors || []), val]
+                              });
+                              setCustomColorInput('');
+                            }
+                          }
+                        }}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = customColorInput.trim();
+                        if (val && !(formData.colors || []).includes(val)) {
+                          setFormData({
+                            ...formData,
+                            colors: [...(formData.colors || []), val]
+                          });
+                          setCustomColorInput('');
+                        }
+                      }}
+                      className="bg-brand-black hover:bg-stone-800 text-white px-4 py-2 rounded-xl text-xs font-heading font-bold transition-all active:scale-95 flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      Ajouter
+                    </button>
+                  </div>
+
+                  {/* Suggest presets */}
+                  <div className="space-y-1.5 pt-2 border-t border-stone-200/50">
+                    <span className="text-[9px] uppercase font-bold text-stone-400 tracking-wider">Couleurs suggérées (cliquez pour ajouter)</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {['Bleu Royal', 'Blanc Pur', 'Doré Traditionnel', 'Noir Intense', 'Vert Émeraude', 'Moutarde', 'Bazin Indigo', 'Bordeaux', 'Beige', 'Marron', 'Gris'].map((preset) => {
+                        const isAdded = (formData.colors || []).includes(preset);
+                        return (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => {
+                              if (isAdded) {
+                                setFormData({
+                                  ...formData,
+                                  colors: (formData.colors || []).filter(c => c !== preset)
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  colors: [...(formData.colors || []), preset]
+                                });
+                              }
+                            }}
+                            className={`px-2 py-1 rounded text-[10px] font-heading font-semibold transition-all border cursor-pointer ${
+                              isAdded 
+                                ? 'bg-indigo-50 border-indigo-200 text-indigo-600 font-bold' 
+                                : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50'
+                            }`}
+                          >
+                            {isAdded ? '✓ ' : ''}{preset}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
 
                 {/* Media - Three Google Drive link inputs */}
                 <div className="space-y-4">

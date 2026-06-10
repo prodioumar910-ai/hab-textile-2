@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Product, Target, Category, GarmentType, FabricType, PretProduct } from '../types';
+import { Product, Target, Category, GarmentType, FabricType, PretProduct, Order } from '../types';
 import { supabase } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
 
@@ -32,6 +32,10 @@ interface StoreContextType {
   setIsTrendingOpen: (open: boolean) => void;
   isPretAPorterOpen: boolean;
   setIsPretAPorterOpen: (open: boolean) => void;
+  orders: Order[];
+  addOrder: (order: Order) => void;
+  updateOrderStatus: (orderId: string, status: 'en cours' | 'livré' | 'annulé') => void;
+  deleteOrder: (orderId: string) => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -199,6 +203,25 @@ const INITIAL_PRODUCTS: Product[] = [
   { id: 'sh-7', name: 'Babouche Elite Bazin', price: 115000, image: 'https://lh3.googleusercontent.com/d/1hNgA3g8mENTRQw6eXNTx7ToUxmGVoAjc', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
   { id: 'sh-8', name: 'Mocassin Brodé Habé', price: 135000, image: 'https://lh3.googleusercontent.com/d/1dXQxTFvJHf2kssiq1nPwqdtQMWT2YtdT', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
   { id: 'sh-9', name: "Sandales d'Apparat Cuir", price: 100000, image: 'https://lh3.googleusercontent.com/d/1o5VAiDC5CS-xOta1ALsEPLDuMZ6jC9Nf', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-10', name: "Babouche Impériale Bazin", price: 115000, image: 'https://lh3.googleusercontent.com/d/1KXW45l4ySmOs9-ZlT4y71_RQ84CEzBQ3', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-11', name: "Mocassin Souverain Cuir", price: 125000, image: 'https://lh3.googleusercontent.com/d/1wddCajNzLEZ-Nu-90c1ZJGuFRF7S85R_', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-12', name: "Sandales Noblesse Royale", price: 95000, image: 'https://lh3.googleusercontent.com/d/1n80jzrFUXAUAjAmcHaQ0UoakeUesPjYb', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-13', name: "Babouche d'Apparat Prestige", price: 120000, image: 'https://lh3.googleusercontent.com/d/1PpUYyhNenfTBGdW5UNM0vK7HItKCqsYL', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-14', name: "Mocassin Tradition Moderne", price: 130000, image: 'https://lh3.googleusercontent.com/d/1PKeirxxh8NFXVUYOUBa6TNXPenCQhjLe', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-15', name: "Babouche Prince Héritier", price: 110000, image: 'https://lh3.googleusercontent.com/d/1WYQxq1_-RSj52XdpTV5gBLP_Vk1ZsxgQ', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-16', name: "Babouche Elite Coton", price: 105000, image: 'https://lh3.googleusercontent.com/d/18t9h_XOloOOfdRcFA1adZri7_0esKlfk', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-17', name: "Mocassin Dynastie Habé", price: 135000, image: 'https://lh3.googleusercontent.com/d/1En8FQmSl-MoCOEwQ4KtUS3XVv0gs3-AQ', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-18', name: "Sandales Sagesse Cuir", price: 100000, image: 'https://lh3.googleusercontent.com/d/14qox4pquZ-0wGpN2z5X3TwD-Jqx6OWE0', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-19', name: "Babouche Majesté Cuir", price: 125000, image: 'https://lh3.googleusercontent.com/d/1MjouupsUQw4-G-1GkBGw6CDuNuEsQof4', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-20', name: "Mocassin Ambassadeur", price: 140000, image: 'https://lh3.googleusercontent.com/d/1N1oRgUrVOFO956L3H-_xvMzHKVlV6J7L', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-21', name: "Babouche Signature Or", price: 135000, image: 'https://lh3.googleusercontent.com/d/1k2kBcsZQ6U8YKr7JIuNdDqg9kbat7aww', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-22', name: "Mocassin Prestige Noir", price: 125000, image: 'https://lh3.googleusercontent.com/d/1H9MjnZL59E-pDtrj0zJzQacbElhLvOfp', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-23', name: "Sandales Monarque", price: 110000, image: 'https://lh3.googleusercontent.com/d/1zJF8H2z41VIhgzNQgXfEBDix5Ih-0Imx', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-24', name: "Babouche Excellence", price: 130000, image: 'https://lh3.googleusercontent.com/d/1iQRZ8AZYq2LcuYvKrPecKWEtuQKBOxgk', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-25', name: "Mocassin Premier", price: 145000, image: 'https://lh3.googleusercontent.com/d/1eCJVsFiXA4v1YucLPLnKVOSnClfKpZgV', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-26', name: "Babouche Cérémonie", price: 120000, image: 'https://lh3.googleusercontent.com/d/1AECR3KRzAv8imArhQDAi98iQSKEr3gLU', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-27', name: "Mocassin Héritage", price: 130000, image: 'https://lh3.googleusercontent.com/d/1eTgWDxAIIH_F4K--CY2xwt9HXbmLz6fg', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'sh-28', name: "Babouche Elégance Pure", price: 115000, image: 'https://lh3.googleusercontent.com/d/1cApILoqUCFl3fd4YcL36kKa0SO-sa_U7', category: 'Chaussures', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
 
   // Accessoires / Parfums / Chapeaux
   { id: '11', name: 'Accessoire Kid Styl', price: 25000, image: '', category: 'Accessoires', target: 'Enfant', garmentType: 'accessoire', fabricType: 'wax' },
@@ -212,13 +235,26 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [favorites, setFavorites] = useState<string[]>([]);
   const [products, setProducts] = useState<Product[]>(() => {
     const saved = localStorage.getItem('habe_products');
+    
+    // Retrieve deleted products list so deletions are preserved forever and not restored on reload
+    const savedDeleted = localStorage.getItem('habe_deleted_products');
+    let deletedIds = new Set<string>();
+    if (savedDeleted) {
+      try {
+        deletedIds = new Set(JSON.parse(savedDeleted) as string[]);
+      } catch (e) {}
+    }
+
     if (saved) {
       try {
         const parsed = JSON.parse(saved) as Product[];
-        const defaultIds = new Set(INITIAL_PRODUCTS.map(p => p.id));
+        const defaultIds = new Set(INITIAL_PRODUCTS.map(p => p.id).filter(id => !deletedIds.has(id)));
         
         // Filter out obsolete or deleted default products, preserving custom items added by users
         const filteredParsed = parsed.filter(savedProd => {
+          if (deletedIds.has(savedProd.id)) {
+            return false;
+          }
           const isDefaultPattern = /^(e\d+|t-\d+|c-\d+|kd-\d+|sh-\d+|hm-\d+|6|7|8|11)$/.test(savedProd.id);
           if (isDefaultPattern) {
             return defaultIds.has(savedProd.id);
@@ -248,23 +284,56 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           return savedProd;
         });
 
-        // Add any brand new default products not yet in the stored list
+        // Add any brand new default products not yet in the stored list, excluding deleted ones
         const savedIds = new Set(filteredParsed.map(p => p.id));
-        const newDefaults = INITIAL_PRODUCTS.filter(p => !savedIds.has(p.id));
+        const newDefaults = INITIAL_PRODUCTS.filter(p => !savedIds.has(p.id) && !deletedIds.has(p.id));
         
         const finalProducts = [...merged, ...newDefaults];
         localStorage.setItem('habe_products', JSON.stringify(finalProducts));
         return finalProducts;
       } catch (e) {
-        return INITIAL_PRODUCTS;
+        return INITIAL_PRODUCTS.filter(p => !deletedIds.has(p.id));
       }
     }
-    localStorage.setItem('habe_products', JSON.stringify(INITIAL_PRODUCTS));
-    return INITIAL_PRODUCTS;
+    const filteredInitial = INITIAL_PRODUCTS.filter(p => !deletedIds.has(p.id));
+    localStorage.setItem('habe_products', JSON.stringify(filteredInitial));
+    return filteredInitial;
   });
-  const [activeTarget, setActiveTargetState] = useState<Target>('Homme');
+  const [activeTarget, setActiveTargetState] = useState<Target>('Enfant');
   const [user, setUser] = useState<User | null>(null);
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
+  const [orders, setOrders] = useState<Order[]>(() => {
+    try {
+      const stored = localStorage.getItem('habe_orders');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const addOrder = (order: Order) => {
+    setOrders(prev => {
+      const updated = [order, ...prev];
+      localStorage.setItem('habe_orders', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const updateOrderStatus = (orderId: string, status: 'en cours' | 'livré' | 'annulé') => {
+    setOrders(prev => {
+      const updated = prev.map(o => o.id === orderId ? { ...o, status } : o);
+      localStorage.setItem('habe_orders', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const deleteOrder = (orderId: string) => {
+    setOrders(prev => {
+      const updated = prev.filter(o => o.id !== orderId);
+      localStorage.setItem('habe_orders', JSON.stringify(updated));
+      return updated;
+    });
+  };
   const [filters, setFilters] = useState<{ garmentType: GarmentType | null, fabricType: FabricType | null }>({
     garmentType: null,
     fabricType: null,
@@ -351,7 +420,22 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const addProduct = (product: Product) => setProducts(prev => [product, ...prev]);
-  const removeProduct = (productId: string) => setProducts(prev => prev.filter(p => p.id !== productId));
+  const removeProduct = (productId: string) => {
+    setProducts(prev => prev.filter(p => p.id !== productId));
+    
+    // Store in deleted IDs list so it is never re-added during automatic codebase syncs
+    const savedDeleted = localStorage.getItem('habe_deleted_products');
+    let deletedList: string[] = [];
+    if (savedDeleted) {
+      try {
+        deletedList = JSON.parse(savedDeleted);
+      } catch (e) {}
+    }
+    if (!deletedList.includes(productId)) {
+      deletedList.push(productId);
+      localStorage.setItem('habe_deleted_products', JSON.stringify(deletedList));
+    }
+  };
   const updateProduct = (updatedProduct: Product) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? { ...updatedProduct, isEdited: true } : p));
 
   return (
@@ -364,7 +448,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       selectedProduct, setSelectedProduct,
       selectedPretProduct, setSelectedPretProduct,
       isTrendingOpen, setIsTrendingOpen,
-      isPretAPorterOpen, setIsPretAPorterOpen
+      isPretAPorterOpen, setIsPretAPorterOpen,
+      orders, addOrder, updateOrderStatus, deleteOrder
     }}>
       {children}
     </StoreContext.Provider>

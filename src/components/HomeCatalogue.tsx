@@ -33,7 +33,7 @@ const HomeCatalogue: React.FC = () => {
     <div className="px-4 pb-32">
       <div className="flex items-center justify-between mb-8 px-2">
         <div className="flex gap-4">
-          {(['Homme', 'Enfant'] as const).map((t) => (
+          {(['Enfant', 'Homme'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setActiveTarget(t)}

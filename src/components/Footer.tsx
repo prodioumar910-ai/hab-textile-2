@@ -1,5 +1,5 @@
 import React from 'react';
-import { Instagram, Facebook, Phone, MapPin, Mail, Clock } from 'lucide-react';
+import { Instagram, Facebook, Phone, MapPin, Clock } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -24,19 +24,13 @@ const Footer: React.FC = () => {
           <ul className="flex flex-col gap-3">
             <li className="flex items-center gap-3 text-xs text-white/70 font-body">
               <Phone className="w-4 h-4 text-brand-orange-light shrink-0" />
-              <a href="tel:+221770000000" className="hover:text-white transition-colors">
-                +221 77 756 89 90
-              </a>
-            </li>
-            <li className="flex items-center gap-3 text-xs text-white/70 font-body">
-              <Mail className="w-4 h-4 text-brand-orange-light shrink-0" />
-              <a href="mailto:contact@maisonhabe.com" className="hover:text-white transition-colors">
-                contact@maisonhabe.com
+              <a href="tel:+22394077011" className="hover:text-white transition-colors">
+                +223 94 07 70 11
               </a>
             </li>
             <li className="flex items-center gap-3 text-xs text-white/70 font-body">
               <MapPin className="w-4 h-4 text-brand-orange-light shrink-0" />
-              <span>Dakar, Avenue Cheikh Anta Diop, Sénégal</span>
+              <span>Torokorobougou, non loin du Dibisso</span>
             </li>
             <li className="flex items-center gap-3 text-xs text-white/70 font-body">
               <Clock className="w-4 h-4 text-brand-orange-light shrink-0" />

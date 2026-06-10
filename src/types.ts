@@ -16,6 +16,7 @@ export interface Product {
   fabricType: FabricType;
   description?: string;
   isEdited?: boolean;
+  colors?: string[];
 }
 
 export interface User {
@@ -23,11 +24,27 @@ export interface User {
   avatar: string;
 }
 
+export interface OrderItem {
+  productId: string;
+  productName: string;
+  price: number;
+  quantity: number;
+  size: string;
+  color: string;
+  image?: string;
+}
+
 export interface Order {
   id: string;
   date: string;
-  status: 'en cours' | 'livré' | 'annulé';
+  clientName: string;
+  clientPhone: string;
+  clientQuarter: string;
+  items: OrderItem[];
+  paymentMethod: string;
+  deliveryMethod: string;
   total: number;
+  status: 'en cours' | 'livré' | 'annulé';
 }
 
 export interface PretProduct {
