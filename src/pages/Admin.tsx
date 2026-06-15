@@ -808,7 +808,7 @@ const Admin: React.FC = () => {
                       type="number"
                       className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-black/5 focus:border-brand-black outline-none transition-all"
                       value={formData.price}
-                      onChange={e => setFormData({ ...formData, price: parseInt(e.target.value) })}
+                      onChange={e => setFormData({ ...formData, price: parseInt(e.target.value) || 0 })}
                     />
                   </label>
 

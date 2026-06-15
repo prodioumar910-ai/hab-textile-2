@@ -434,9 +434,19 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setFavorites((prev) => prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]);
   };
 
-  const addProduct = (product: Product) => setProducts(prev => [product, ...prev]);
+  const addProduct = (product: Product) => {
+    setProducts(prev => {
+      const updated = [product, ...prev];
+      localStorage.setItem('habe_products', JSON.stringify(updated));
+      return updated;
+    });
+  };
   const removeProduct = (productId: string) => {
-    setProducts(prev => prev.filter(p => p.id !== productId));
+    setProducts(prev => {
+      const updated = prev.filter(p => p.id !== productId);
+      localStorage.setItem('habe_products', JSON.stringify(updated));
+      return updated;
+    });
     
     // Store in deleted IDs list so it is never re-added during automatic codebase syncs
     const savedDeleted = localStorage.getItem('habe_deleted_products');
@@ -451,7 +461,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       localStorage.setItem('habe_deleted_products', JSON.stringify(deletedList));
     }
   };
-  const updateProduct = (updatedProduct: Product) => setProducts(prev => prev.map(p => p.id === updatedProduct.id ? { ...updatedProduct, isEdited: true } : p));
+  const updateProduct = (updatedProduct: Product) => {
+    setProducts(prev => {
+      const updated = prev.map(p => p.id === updatedProduct.id ? { ...updatedProduct, isEdited: true } : p);
+      localStorage.setItem('habe_products', JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   return (
     <StoreContext.Provider value={{

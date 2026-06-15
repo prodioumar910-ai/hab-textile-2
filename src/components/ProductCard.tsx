@@ -112,16 +112,21 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false, sho
               />
             ) : (
               <div className="flex flex-col items-center justify-center p-4 text-center select-none w-full h-full bg-stone-100/85">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsEditing(true);
-                  }}
-                  className="px-4 py-2.5 bg-brand-black text-white hover:bg-stone-800 rounded-full font-heading font-extrabold text-[11px] uppercase tracking-wider shadow-md transition-all active:scale-95 duration-200 border border-brand-black"
-                >
-                  À venir bientôt
-                </button>
+                <span className="font-heading font-black text-lg tracking-widest text-brand-black/20 uppercase">
+                  HABÉ
+                </span>
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsEditing(true);
+                    }}
+                    className="mt-3 px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-full font-heading font-extrabold text-[10px] uppercase tracking-wider shadow-md transition-all active:scale-95 duration-200 border border-amber-400"
+                  >
+                    Ajouter une image
+                  </button>
+                )}
               </div>
             )}
 
@@ -173,7 +178,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false, sho
                 </p>
               </div>
               
-              {!product.image ? (
+              {!product.image && isAdmin ? (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -253,7 +258,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false, sho
                     required
                     type="number"
                     value={editForm.price}
-                    onChange={e => setEditForm({ ...editForm, price: Number(e.target.value) })}
+                    onChange={e => setEditForm({ ...editForm, price: Number(e.target.value) || 0 })}
                     className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand-black/5 focus:border-brand-black outline-none transition-all"
                     placeholder="Ex: 85000"
                   />
