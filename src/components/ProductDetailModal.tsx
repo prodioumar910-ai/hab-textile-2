@@ -297,12 +297,12 @@ _Merci de confirmer ma commande ainsi que les délais de confection. À bientôt
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
                 {/* Left side: Images */}
                 <div className="flex flex-col gap-4">
-                  <div className="aspect-[3/4] rounded-2xl bg-black flex items-center justify-center overflow-hidden border border-white/5 relative">
+                  <div className={`aspect-[3/4] rounded-2xl ${selectedProduct.category === 'Chapeau' ? 'bg-white' : 'bg-black'} flex items-center justify-center overflow-hidden border border-white/5 relative`}>
                     {selectedImg ? (
                       <img
                         src={getOptimizedImage(selectedImg, 600)}
                         alt={selectedProduct.name}
-                        className="w-full h-full object-cover"
+                        className={`w-full h-full ${selectedProduct.category === 'Chapeau' ? 'object-contain p-6 bg-transparent' : 'object-cover'}`}
                       />
                     ) : (
                       <div className="text-center font-mono text-xs text-stone-500">
@@ -320,7 +320,7 @@ _Merci de confirmer ma commande ainsi que les délais de confection. À bientôt
                           selectedImg === selectedProduct.image ? 'border-brand-orange-light animate-pulse' : 'border-white/10 opacity-60 hover:opacity-100'
                         }`}
                       >
-                        <img src={getOptimizedImage(selectedProduct.image, 150)} alt="image 1" className="w-full h-full object-cover pointer-events-none" />
+                        <img src={getOptimizedImage(selectedProduct.image, 150)} alt="image 1" className={`w-full h-full ${selectedProduct.category === 'Chapeau' ? 'object-contain p-1.5' : 'object-cover'} pointer-events-none`} />
                       </button>
                       {selectedProduct.image2 && (
                         <button
@@ -329,7 +329,7 @@ _Merci de confirmer ma commande ainsi que les délais de confection. À bientôt
                             selectedImg === selectedProduct.image2 ? 'border-brand-orange-light animate-pulse' : 'border-white/10 opacity-60 hover:opacity-100'
                           }`}
                         >
-                          <img src={getOptimizedImage(selectedProduct.image2, 150)} alt="image 2" className="w-full h-full object-cover pointer-events-none" />
+                          <img src={getOptimizedImage(selectedProduct.image2, 150)} alt="image 2" className={`w-full h-full ${selectedProduct.category === 'Chapeau' ? 'object-contain p-1.5' : 'object-cover'} pointer-events-none`} />
                         </button>
                       )}
                       {selectedProduct.image3 && (
@@ -339,7 +339,7 @@ _Merci de confirmer ma commande ainsi que les délais de confection. À bientôt
                             selectedImg === selectedProduct.image3 ? 'border-brand-orange-light animate-pulse' : 'border-white/10 opacity-60 hover:opacity-100'
                           }`}
                         >
-                          <img src={getOptimizedImage(selectedProduct.image3, 150)} alt="image 3" className="w-full h-full object-cover pointer-events-none" />
+                          <img src={getOptimizedImage(selectedProduct.image3, 150)} alt="image 3" className={`w-full h-full ${selectedProduct.category === 'Chapeau' ? 'object-contain p-1.5' : 'object-cover'} pointer-events-none`} />
                         </button>
                       )}
                     </div>

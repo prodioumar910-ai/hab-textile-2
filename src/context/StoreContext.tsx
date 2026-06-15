@@ -228,6 +228,21 @@ const INITIAL_PRODUCTS: Product[] = [
   { id: '6', name: 'Montre Luxe Habé', price: 210000, image: '', category: 'Accessoires', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
   { id: '7', name: 'Parfum Signature', price: 80000, image: '', category: 'Parfum', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
   { id: '8', name: 'Chapeau Tradition', price: 45000, image: '', category: 'Chapeau', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'hp-1', name: 'Chapeau Habé Impérial', price: 55000, image: 'https://lh3.googleusercontent.com/d/1zOJf1l4bYbh2JZXWwumivAEQOMKisJnR', category: 'Chapeau', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'hp-2', name: 'Chapeau Habé Prestige d’Or', price: 65000, image: 'https://lh3.googleusercontent.com/d/1125-FzuJeY4PDLcmH6gSdD5RIUUfVUVu', category: 'Chapeau', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'hp-3', name: 'Chapeau Habé Gountien Premium', price: 45000, image: 'https://lh3.googleusercontent.com/d/10cXwTeFub_Gf8B7-By4e0cPHYkdVA848', category: 'Chapeau', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'hp-4', name: 'Chapeau Habé Royal Noblesse', price: 70000, image: 'https://lh3.googleusercontent.com/d/1t3OMWaVG-WbagPPAgIDGY2L5tu-pZsIu', category: 'Chapeau', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'hp-5', name: 'Chapeau Habé Souverain Ébène', price: 48000, image: 'https://lh3.googleusercontent.com/d/1iAqAiPBA1cgUEzrqwaxruYBU23oqKOvP', category: 'Chapeau', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'hp-6', name: 'Chapeau Habé Altesse Royal', price: 75000, image: 'https://lh3.googleusercontent.com/d/1T6J9_IIOXI__7_MgeUnTJesUScMcprWk', category: 'Chapeau', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'hp-7', name: 'Chapeau Habé Couronne Brodé', price: 50000, image: 'https://lh3.googleusercontent.com/d/1ngyZ96cJ1p4kCg2HNzlOYCeIa0TgLIla', category: 'Chapeau', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'hp-8', name: 'Chapeau Habé Monarque Prestige', price: 68000, image: 'https://lh3.googleusercontent.com/d/1zc19oHA3Hszhxtw3BxP1UA_3Hogrs4xL', category: 'Chapeau', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'hp-9', name: 'Chapeau Habé Dynastie Indigo', price: 52000, image: 'https://lh3.googleusercontent.com/d/1QYVXWRCoOa35MkF7BZJwyWC5wlvq8o46', category: 'Chapeau', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'hp-10', name: 'Chapeau Habé Élite Tradition', price: 46000, image: 'https://lh3.googleusercontent.com/d/1N-Bp3lzXGXJ23GfxST1o0nkElrenpYIt', category: 'Chapeau', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'hp-11', name: 'Chapeau Habé Majesté Céleste', price: 72000, image: 'https://lh3.googleusercontent.com/d/1qvQWQH50bkXv5DqqmzuTACl7DFLCUyMa', category: 'Chapeau', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'hp-12', name: 'Chapeau Habé Excellence d’Ébène', price: 58000, image: 'https://lh3.googleusercontent.com/d/14CkGFXEfJu3ilqQqwI0Cx1BHQWn8Ih5G', category: 'Chapeau', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'hp-13', name: 'Chapeau Habé Sultan du Sahel', price: 62000, image: 'https://lh3.googleusercontent.com/d/1MrPhbf6znP0XbvouPC6GCkFCKxGiuG3t', category: 'Chapeau', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'hp-14', name: 'Chapeau Habé Prince Héritier', price: 47000, image: 'https://lh3.googleusercontent.com/d/1Eco2qjrKSoIRl1xs9T1Xi8a2tJD0NoE1', category: 'Chapeau', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
+  { id: 'hp-15', name: 'Chapeau Habé Prestige Tradition', price: 54000, image: 'https://lh3.googleusercontent.com/d/1uerBgJCJE8pfZyo6qvDs1kBpMIZXoKeG', category: 'Chapeau', target: 'Homme', garmentType: 'accessoire', fabricType: 'coton' },
 ];
 
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -255,7 +270,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           if (deletedIds.has(savedProd.id)) {
             return false;
           }
-          const isDefaultPattern = /^(e\d+|t-\d+|c-\d+|kd-\d+|sh-\d+|hm-\d+|6|7|8|11)$/.test(savedProd.id);
+          const isDefaultPattern = /^(e\d+|t-\d+|c-\d+|kd-\d+|sh-\d+|hm-\d+|hp-\d+|6|7|8|11)$/.test(savedProd.id);
           if (isDefaultPattern) {
             return defaultIds.has(savedProd.id);
           }
@@ -301,7 +316,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   });
   const [activeTarget, setActiveTargetState] = useState<Target>('Enfant');
   const [user, setUser] = useState<User | null>(null);
-  const [activeCategory, setActiveCategory] = useState<Category | null>(null);
+  const [activeCategory, setActiveCategory] = useState<Category | null>('Ensemble Royal');
   const [orders, setOrders] = useState<Order[]>(() => {
     try {
       const stored = localStorage.getItem('habe_orders');

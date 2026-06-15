@@ -7,11 +7,11 @@ import { TransparentIcon } from '../components/TransparentIcon';
 import { getOptimizedImage } from '../utils/image';
 
 const categories: { name: Category; src?: string; icon: string; directImg?: boolean }[] = [
-  { name: 'Accessoires', src: 'https://lh3.googleusercontent.com/d/12huYtS1oArRGqVW5C3DyqkYEN4bXDOSN', icon: '⌚' },
-  { name: 'Chaussures', src: 'https://lh3.googleusercontent.com/d/1ASOzctlG7h-ApAd5zx_1oaaVoWkHAE8c', icon: '👟' },
   { name: 'Ensemble Royal', src: 'https://lh3.googleusercontent.com/d/1V4Iz_hYaXGR3nr4cdZ71wJlxoW-8Bl9w', icon: '👑' },
   { name: 'Tendance', icon: '🔥' },
   { name: 'Classique', icon: '👔' },
+  { name: 'Accessoires', src: 'https://lh3.googleusercontent.com/d/12huYtS1oArRGqVW5C3DyqkYEN4bXDOSN', icon: '⌚' },
+  { name: 'Chaussures', src: 'https://lh3.googleusercontent.com/d/1ASOzctlG7h-ApAd5zx_1oaaVoWkHAE8c', icon: '👟' },
   { name: 'Chapeau', icon: '🎩' },
   { name: 'Parfum', src: 'https://lh3.googleusercontent.com/d/1_KAX3Wtr_yMgxDH4O89rpxBgAybLul5U', icon: '🧴' },
 ];
@@ -21,7 +21,7 @@ const Boutique: React.FC = () => {
 
   const filteredProducts = activeCategory 
     ? products.filter(p => p.category === activeCategory && p.target !== 'Enfant')
-    : products.filter(p => p.garmentType === 'accessoire' && p.target !== 'Enfant');
+    : products.filter(p => p.category === 'Ensemble Royal' && p.target !== 'Enfant');
 
   return (
     <motion.div

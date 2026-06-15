@@ -176,7 +176,7 @@ const Admin: React.FC = () => {
     setIsAddingMode(true);
   };
 
-  const categories: Category[] = ['Accessoires', 'Chaussures', 'Ensemble Royal', 'Tendance', 'Classique', 'Chapeau', 'Parfum'];
+  const categories: Category[] = ['Ensemble Royal', 'Tendance', 'Classique', 'Accessoires', 'Chaussures', 'Chapeau', 'Parfum'];
   const targets: Target[] = ['Homme', 'Enfant'];
   const garmentTypes: GarmentType[] = ['chemise', 'pantalon', 'boubou', 'accessoire', 'autre'];
   const fabricTypes: FabricType[] = ['wax', 'bazin', 'coton', 'soie'];

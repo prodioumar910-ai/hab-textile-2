@@ -188,7 +188,7 @@ const TrendingSection: React.FC = () => {
               <div className="group cursor-pointer relative">
                 <div className="aspect-[9/16] overflow-hidden rounded-2xl bg-transparent relative">
                   <img 
-                    src={getOptimizedImage(product.image, 300)} 
+                    src={getOptimizedImage(product.image, 600)} 
                     alt={product.name} 
                     className="w-full h-full object-contain pointer-events-none transition-transform duration-700 group-hover:scale-105"
                     referrerPolicy="no-referrer"
@@ -216,7 +216,7 @@ const TrendingSection: React.FC = () => {
               <div className="group cursor-pointer relative">
                 <div className="aspect-[9/16] overflow-hidden rounded-2xl bg-transparent relative">
                   <img 
-                    src={getOptimizedImage(product.image, 300)} 
+                    src={getOptimizedImage(product.image, 600)} 
                     alt={product.name} 
                     className="w-full h-full object-contain pointer-events-none transition-transform duration-700 group-hover:scale-105"
                     referrerPolicy="no-referrer"
@@ -244,7 +244,7 @@ const TrendingSection: React.FC = () => {
               <div className="group cursor-pointer relative">
                 <div className="aspect-[9/16] overflow-hidden rounded-2xl bg-transparent relative">
                   <img 
-                    src={getOptimizedImage(product.image, 300)} 
+                    src={getOptimizedImage(product.image, 600)} 
                     alt={product.name} 
                     className="w-full h-full object-contain pointer-events-none transition-transform duration-700 group-hover:scale-105"
                     referrerPolicy="no-referrer"
