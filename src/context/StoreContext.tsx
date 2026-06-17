@@ -267,12 +267,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         
         // Filter out obsolete or deleted default products, preserving custom items added by users
         const filteredParsed = parsed.filter(savedProd => {
-          if (deletedIds.has(savedProd.id)) {
+          if (deletedIds.has(String(savedProd.id))) {
             return false;
           }
-          const isDefaultPattern = /^(e\d+|t-\d+|c-\d+|kd-\d+|sh-\d+|hm-\d+|hp-\d+|6|7|8|11)$/.test(savedProd.id);
+          const isDefaultPattern = /^(e\d+|t-\d+|c-\d+|kd-\d+|sh-\d+|hm-\d+|hp-\d+|6|7|8|11)$/.test(String(savedProd.id));
           if (isDefaultPattern) {
-            return defaultIds.has(savedProd.id);
+            return defaultIds.has(String(savedProd.id));
           }
           return true;
         });
@@ -282,7 +282,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           if (savedProd.isEdited) {
             return savedProd;
           }
-          const defaultProd = INITIAL_PRODUCTS.find(p => p.id === savedProd.id);
+          const defaultProd = INITIAL_PRODUCTS.find(p => String(p.id) === String(savedProd.id));
           if (defaultProd) {
             // Restore latest codebase definition for core products to reflect moved categories/targets/renamings
             return {
@@ -300,8 +300,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         });
 
         // Add any brand new default products not yet in the stored list, excluding deleted ones
-        const savedIds = new Set(filteredParsed.map(p => p.id));
-        const newDefaults = INITIAL_PRODUCTS.filter(p => !savedIds.has(p.id) && !deletedIds.has(p.id));
+        const savedIds = new Set(filteredParsed.map(p => String(p.id)));
+        const newDefaults = INITIAL_PRODUCTS.filter(p => !savedIds.has(String(p.id)) && !deletedIds.has(String(p.id)));
         
         const finalProducts = [...merged, ...newDefaults];
         localStorage.setItem('habe_products', JSON.stringify(finalProducts));
@@ -435,15 +435,16 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const addProduct = (product: Product) => {
+    const productWithFlag = { ...product, isEdited: true };
     setProducts(prev => {
-      const updated = [product, ...prev];
+      const updated = [productWithFlag, ...prev];
       localStorage.setItem('habe_products', JSON.stringify(updated));
       return updated;
     });
   };
   const removeProduct = (productId: string) => {
     setProducts(prev => {
-      const updated = prev.filter(p => p.id !== productId);
+      const updated = prev.filter(p => String(p.id) !== String(productId));
       localStorage.setItem('habe_products', JSON.stringify(updated));
       return updated;
     });
@@ -456,14 +457,16 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         deletedList = JSON.parse(savedDeleted);
       } catch (e) {}
     }
-    if (!deletedList.includes(productId)) {
-      deletedList.push(productId);
+    const targetIdStr = String(productId);
+    if (!deletedList.includes(targetIdStr)) {
+      deletedList.push(targetIdStr);
       localStorage.setItem('habe_deleted_products', JSON.stringify(deletedList));
     }
   };
   const updateProduct = (updatedProduct: Product) => {
+    const productWithFlag = { ...updatedProduct, isEdited: true };
     setProducts(prev => {
-      const updated = prev.map(p => p.id === updatedProduct.id ? { ...updatedProduct, isEdited: true } : p);
+      const updated = prev.map(p => String(p.id) === String(productWithFlag.id) ? productWithFlag : p);
       localStorage.setItem('habe_products', JSON.stringify(updated));
       return updated;
     });
