@@ -13,6 +13,8 @@ import Profile from './pages/Profile';
 import About from './pages/About';
 import Auth from './pages/Auth';
 import Admin from './pages/Admin';
+import { ExperienceChoicePage } from './pages/ExperienceChoicePage';
+import { MeasurePage } from './pages/MeasurePage';
 import { AnimatePresence, motion } from 'motion/react';
 import { ArrowLeft } from 'lucide-react';
 import { ProductDetailModal } from './components/ProductDetailModal';
@@ -24,13 +26,30 @@ function AppContent() {
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showBottomNav, setShowBottomNav] = useState(false);
-  const [hasSkipped, setHasSkipped] = useState(() => {
-    return localStorage.getItem('habe_skip_auth') === 'true';
+  const [selectedExperience, setSelectedExperience] = useState<'choice' | 'boutique' | 'measure'>(() => {
+    return (localStorage.getItem('habe_selected_experience') as 'choice' | 'boutique' | 'measure') || 'choice';
   });
+  const [hasSkipped, setHasSkipped] = useState(false);
 
   const handleSkip = () => {
-    localStorage.setItem('habe_skip_auth', 'true');
+    localStorage.setItem('habe_selected_experience', 'choice');
+    setSelectedExperience('choice');
     setHasSkipped(true);
+  };
+
+  const handleSelectBoutique = () => {
+    localStorage.setItem('habe_selected_experience', 'boutique');
+    setSelectedExperience('boutique');
+  };
+
+  const handleSelectMeasure = () => {
+    localStorage.setItem('habe_selected_experience', 'measure');
+    setSelectedExperience('measure');
+  };
+
+  const handleResetExperience = () => {
+    localStorage.setItem('habe_selected_experience', 'choice');
+    setSelectedExperience('choice');
   };
 
   useEffect(() => {
@@ -66,7 +85,7 @@ function AppContent() {
     switch (activePage) {
       case 0: return <Home />;
       case 1: return <Boutique />;
-      case 2: return <Profile onOpenAdmin={() => setIsAdminMode(true)} />;
+      case 2: return <Profile onOpenAdmin={() => setIsAdminMode(true)} onOpenMeasure={handleSelectMeasure} />;
       case 3: return <About />;
       default: return <Home />;
     }
@@ -75,13 +94,33 @@ function AppContent() {
   // If user is not authenticated and has not skipped, display registration onboarding page first
   if (!user && !hasSkipped) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-stone-900 to-stone-950 px-4 relative overflow-hidden select-none">
+      <div className="min-h-screen w-full flex items-center justify-center px-4 relative overflow-hidden select-none" style={{ background: "radial-gradient(circle, #FFAA5E 0%, #C1541A 100%)" }}>
         {/* Ambient background gold lighting */}
         <div className="absolute top-[20%] left-[10%] w-[45vw] h-[45vw] rounded-full bg-amber-500/5 blur-[120px] pointer-events-none" />
         <div className="absolute bottom-[20%] right-[10%] w-[35vw] h-[35vw] rounded-full bg-orange-600/5 blur-[100px] pointer-events-none" />
         
         <Auth showSkip={true} onSkip={handleSkip} />
       </div>
+    );
+  }
+
+  // Experience Choices landing view
+  if (selectedExperience === 'choice') {
+    return (
+      <ExperienceChoicePage
+        onSelectBoutique={handleSelectBoutique}
+        onSelectMeasure={handleSelectMeasure}
+      />
+    );
+  }
+
+  // Interactive Virtual Tailor measure view
+  if (selectedExperience === 'measure') {
+    return (
+      <MeasurePage
+        onBackToChoice={handleResetExperience}
+        onGoToBoutique={handleSelectBoutique}
+      />
     );
   }
 
@@ -101,7 +140,12 @@ function AppContent() {
       {/* Header positioning */}
       {!isAdminMode && !selectedProduct && !isTrendingOpen && !isPretAPorterOpen && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-transparent border-transparent shadow-none border-b-0 transition-all duration-300 transform-gpu">
-          <Header activePage={activePage} setActivePage={setActivePage} isTransparent={activePage === 0 && !isScrolled} />
+          <Header 
+            activePage={activePage} 
+            setActivePage={setActivePage} 
+            isTransparent={activePage === 0 && !isScrolled} 
+            onOpenMeasure={handleSelectMeasure}
+          />
         </div>
       )}
 

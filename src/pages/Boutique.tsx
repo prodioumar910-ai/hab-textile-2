@@ -41,44 +41,51 @@ const Boutique: React.FC = () => {
         </h2>
 
         <div className="flex overflow-x-auto no-scrollbar gap-4 pb-4 -mx-6 px-6">
-          {categories.map((cat) => (
-            <button
-              key={cat.name}
-              onClick={() => setActiveCategory(activeCategory === cat.name ? null : cat.name)}
-              className={`flex-shrink-0 flex flex-col items-center justify-between w-[100px] h-[110px] py-2 transition-all duration-300 select-none ${
-                activeCategory === cat.name 
-                  ? 'scale-110 opacity-100' 
-                  : 'opacity-50 hover:opacity-90 hover:scale-105'
-              }`}
-            >
-              <div className="flex-1 flex items-center justify-center w-full min-h-[55px]">
-                {cat.src ? (
-                  cat.directImg ? (
-                    <img
-                      src={cat.src}
-                      alt={cat.name}
-                      referrerPolicy="no-referrer"
-                      className="w-14 h-14 object-cover rounded-full select-none shadow-md border-2 border-brand-black/10 transition-transform duration-300"
-                    />
+          {categories.map((cat) => {
+            const isSelected = activeCategory === cat.name;
+            const isAnySelected = activeCategory !== null;
+
+            return (
+              <button
+                key={cat.name}
+                onClick={() => setActiveCategory(activeCategory === cat.name ? null : cat.name)}
+                className={`flex-shrink-0 flex flex-col items-center justify-between w-[100px] h-[110px] py-2 transition-all duration-300 select-none cursor-pointer ${
+                  isSelected 
+                    ? 'scale-110 opacity-100 ring-2 ring-brand-orange-dark/20 bg-white/40 rounded-2xl shadow-sm' 
+                    : isAnySelected 
+                      ? 'scale-85 opacity-30 filter blur-[0.5px]'
+                      : 'opacity-70 hover:opacity-100 hover:scale-105'
+                }`}
+              >
+                <div className="flex-1 flex items-center justify-center w-full min-h-[55px]">
+                  {cat.src ? (
+                    cat.directImg ? (
+                      <img
+                        src={cat.src}
+                        alt={cat.name}
+                        referrerPolicy="no-referrer"
+                        className="w-14 h-14 object-cover rounded-full select-none shadow-md border-2 border-brand-black/10 transition-transform duration-300"
+                      />
+                    ) : (
+                      <TransparentIcon
+                        src={getOptimizedImage(cat.src, 120)}
+                        alt={cat.name}
+                        fallbackIcon={<span className="text-4xl">{cat.icon}</span>}
+                        className="w-20 h-20 object-contain drop-shadow-md select-none transition-transform duration-300"
+                      />
+                    )
                   ) : (
-                    <TransparentIcon
-                      src={getOptimizedImage(cat.src, 120)}
-                      alt={cat.name}
-                      fallbackIcon={<span className="text-4xl">{cat.icon}</span>}
-                      className="w-20 h-20 object-contain drop-shadow-md select-none transition-transform duration-300"
-                    />
-                  )
-                ) : (
-                  <span className="text-[48px] select-none leading-none drop-shadow-sm transition-transform duration-300">
-                    {cat.icon}
-                  </span>
-                )}
-              </div>
-              <span className="text-[13px] font-body font-black text-center leading-tight tracking-tight uppercase text-brand-black mt-2 select-none transition-all">
-                {cat.name}
-              </span>
-            </button>
-          ))}
+                    <span className="text-[48px] select-none leading-none drop-shadow-sm transition-transform duration-300">
+                      {cat.icon}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[13px] font-body font-black text-center leading-tight tracking-tight uppercase text-brand-black mt-2 select-none transition-all">
+                  {cat.name}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </motion.section>
 

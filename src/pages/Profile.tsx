@@ -1,15 +1,16 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Package, Heart, Settings, LogOut, ChevronRight, Bell, Globe, ShieldCheck } from 'lucide-react';
+import { Package, Heart, Settings, LogOut, ChevronRight, Bell, Globe, ShieldCheck, Ruler, Sparkles, Camera } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import ProductCard from '../components/ProductCard';
 import Auth from './Auth';
 
 interface ProfileProps {
   onOpenAdmin?: () => void;
+  onOpenMeasure?: () => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ onOpenAdmin }) => {
+const Profile: React.FC<ProfileProps> = ({ onOpenAdmin, onOpenMeasure }) => {
   const { favorites, user, signOut, products } = useStore();
   
   if (!user) {
@@ -17,6 +18,15 @@ const Profile: React.FC<ProfileProps> = ({ onOpenAdmin }) => {
   }
 
   const favoriteProducts = products.filter(p => favorites.includes(p.id));
+
+  const savedMeasurements = (() => {
+    try {
+      const data = localStorage.getItem("habe_ai_measurements");
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
+  })();
 
   const orders = [
     { id: '#HB-1029', date: '12 Mai 2024', status: 'en cours', total: 150 },
@@ -53,6 +63,94 @@ const Profile: React.FC<ProfileProps> = ({ onOpenAdmin }) => {
         <button className="mt-2 px-4 py-1.5 bg-white/30 backdrop-blur-md rounded-full text-xs font-body font-medium text-brand-black border border-white/20">
           Modifier le profil
         </button>
+      </motion.section>
+
+      {/* AI Measurements Section */}
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ delay: 0.1 }}
+        className="mb-8"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Ruler className="w-5 h-5 text-brand-black" />
+            <h3 className="font-heading font-bold text-lg text-brand-black">Mes Mesures IA</h3>
+          </div>
+          {savedMeasurements && (
+            <span className="text-[9px] font-heading font-extrabold uppercase bg-brand-orange-dark/15 text-brand-orange-dark border border-brand-orange-dark/25 px-2 py-0.5 rounded-full shadow-sm">
+              Analysé le {savedMeasurements.date}
+            </span>
+          )}
+        </div>
+
+        {savedMeasurements ? (
+          <div className="bg-white/40 backdrop-blur-md border border-white/30 rounded-3xl p-5 sm:p-6 shadow-sm">
+            <div className="grid grid-cols-3 gap-2.5 mb-4">
+              {[
+                { label: "Poitrine", value: savedMeasurements.poitrine },
+                { label: "Taille", value: savedMeasurements.taille },
+                { label: "Hanches", value: savedMeasurements.hanche },
+                { label: "Manche", value: savedMeasurements.manche },
+                { label: "Coude", value: savedMeasurements.coude },
+                { label: "Pantalon", value: savedMeasurements.pantalon }
+              ].map((m, i) => (
+                <div key={i} className="bg-white/30 border border-white/20 rounded-2xl p-3 text-center shadow-xs">
+                  <span className="text-brand-black/50 text-[9px] font-body font-extrabold block truncate uppercase tracking-wider">
+                    {m.label}
+                  </span>
+                  <div className="flex items-baseline justify-center gap-0.5 mt-0.5">
+                    <span className="font-heading font-extrabold text-brand-black text-lg">
+                      {m.value}
+                    </span>
+                    <span className="text-[8px] text-brand-orange-dark font-heading font-bold">cm</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-4 mb-4 relative overflow-hidden">
+              <span className="text-[9px] font-heading font-extrabold uppercase text-brand-orange-dark tracking-widest flex items-center gap-1.5 mb-1.5">
+                <Sparkles className="w-3.5 h-3.5" /> Avis Maître Tailleur
+              </span>
+              <p className="text-xs text-brand-black/80 font-body italic leading-relaxed">
+                "{savedMeasurements.comment}"
+              </p>
+            </div>
+
+            {onOpenMeasure && (
+              <button
+                onClick={onOpenMeasure}
+                className="w-full py-3 bg-brand-orange-dark/10 hover:bg-brand-orange-dark/15 border border-brand-orange-dark/20 text-brand-orange-dark rounded-xl text-xs font-heading font-extrabold uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-[0.99]"
+              >
+                <Camera className="w-4 h-4" />
+                Mettre à jour mes mesures par IA
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="bg-white/20 backdrop-blur-md rounded-3xl p-6 text-center border border-white/20 shadow-sm flex flex-col items-center">
+            <div className="w-12 h-12 bg-white/40 rounded-full flex items-center justify-center mb-3 text-brand-orange-dark border border-white/40 shadow-inner">
+              <Ruler className="w-5 h-5 animate-pulse" />
+            </div>
+            <p className="text-xs font-body font-bold text-brand-black/85">
+              Aucune mesure enregistrée
+            </p>
+            <p className="text-[10px] font-body text-brand-black/60 mt-1 max-w-[250px] mb-4 leading-relaxed">
+              Prenez une photo pour que notre IA estime gratuitement vos mensurations couturières de haute précision.
+            </p>
+            {onOpenMeasure && (
+              <button
+                onClick={onOpenMeasure}
+                className="px-6 py-2.5 bg-brand-orange-dark hover:bg-brand-orange-dark/95 active:scale-95 text-white rounded-xl text-xs font-heading font-extrabold uppercase tracking-widest transition-all shadow-md shadow-brand-orange-dark/15 border border-brand-orange-light/25 flex items-center gap-1.5"
+              >
+                <Camera className="w-4 h-4" />
+                Lancer l'Analyse IA Gratuite
+              </button>
+            )}
+          </div>
+        )}
       </motion.section>
 
       <motion.section 

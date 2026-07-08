@@ -1,7 +1,9 @@
 {
   "name": "Maison Habé",
   "description": "Application web de mode haut de gamme pour l'artiste styliste Habé Textile, proposant des collections Homme et Enfant, des accessoires et un catalogue interactif.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": [
+    "camera"
+  ],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
   ]

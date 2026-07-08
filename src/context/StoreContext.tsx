@@ -415,6 +415,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     localStorage.removeItem('habe_local_admin');
     localStorage.removeItem('habe_local_admin_email');
     localStorage.removeItem('habe_local_user');
+    localStorage.removeItem('habe_skip_auth');
+    localStorage.removeItem('habe_selected_experience');
     try {
       await supabase.auth.signOut();
     } catch (e) {

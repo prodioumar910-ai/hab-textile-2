@@ -1,15 +1,16 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShoppingCart, User as UserIcon } from 'lucide-react';
+import { ShoppingCart, User as UserIcon, Camera } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
 interface HeaderProps {
   activePage?: number;
   setActivePage?: (page: number) => void;
   isTransparent?: boolean;
+  onOpenMeasure?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, isTransparent }) => {
+const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, isTransparent, onOpenMeasure }) => {
   const { cart, user } = useStore();
 
   return (
@@ -70,6 +71,24 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, isTransparen
             </div>
           )}
         </button>
+
+        {/* AI Measurement Button */}
+        {onOpenMeasure && (
+          <button
+            onClick={onOpenMeasure}
+            className={`flex items-center gap-1 cursor-pointer p-1 rounded-full transition-all duration-200 outline-none hover:scale-105 ${
+              isTransparent 
+                ? 'text-white hover:bg-white/10' 
+                : 'text-brand-black hover:bg-black/5'
+            }`}
+            title="Cabine de Mesure IA"
+          >
+            <Camera className="w-5 h-5" />
+            <span className="text-[8px] font-heading font-extrabold uppercase bg-brand-orange-dark text-white px-1.5 py-0.5 rounded-full scale-90 sm:inline-block hidden shadow-sm">
+              IA
+            </span>
+          </button>
+        )}
 
         {/* Shopping Cart Button */}
         <div 

@@ -16,35 +16,45 @@ const BottomNav: React.FC<BottomNavProps> = ({ activePage, setActivePage }) => {
   ];
 
   return (
-    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[85%] max-w-[320px] h-10 bg-white/95 backdrop-blur-xl flex items-center justify-around px-2 z-[9999] rounded-full shadow-[0_10px_25px_rgba(0,0,0,0.15)] border border-white/40">
+    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[340px] h-12 bg-white/95 backdrop-blur-xl flex items-center justify-around px-3 z-[9999] rounded-full shadow-[0_12px_30px_rgba(0,0,0,0.18)] border border-white/40">
       {navItems.map((item) => {
         const isActive = activePage === item.index;
         const Icon = item.icon;
 
         return (
-          <button
+          <motion.button
             key={item.index}
             onClick={() => setActivePage(item.index)}
-            className="relative flex flex-col items-center justify-center w-9 h-9 group"
+            layout
+            initial={false}
+            animate={{
+              width: isActive ? "105px" : "40px",
+              backgroundColor: isActive ? "rgba(193, 84, 26, 0.12)" : "rgba(255, 255, 255, 0)"
+            }}
+            transition={{ type: "spring", stiffness: 380, damping: 28 }}
+            className={`relative flex items-center justify-center h-9 rounded-full overflow-hidden select-none cursor-pointer transition-colors ${
+              isActive ? 'text-brand-orange-dark font-extrabold' : 'text-brand-black/40 hover:text-brand-black/75'
+            }`}
             aria-label={item.label}
           >
-            {isActive && (
-              <motion.div
-                layoutId="nav-glow"
-                className="absolute inset-0 bg-brand-orange-dark/5 rounded-full"
-                initial={false}
-                transition={{ type: "spring", stiffness: 400, damping: 35 }}
+            <div className="flex items-center justify-center gap-1.5 px-2">
+              <Icon
+                className={`w-4 h-4 transition-transform duration-200 shrink-0 ${
+                  isActive ? 'scale-110 text-brand-orange-dark' : 'scale-100'
+                }`}
               />
-            )}
-            <Icon
-              className={`w-3.5 h-3.5 transition-transform duration-200 transform-gpu ${
-                isActive ? 'text-brand-orange-dark scale-110' : 'text-brand-black/40 group-hover:text-brand-black/70'
-              }`}
-            />
-            <span className={`text-[6.5px] mt-0.5 font-extrabold tracking-tight ${isActive ? 'text-brand-orange-dark' : 'text-brand-black/40'}`}>
-              {item.label}
-            </span>
-          </button>
+              {isActive && (
+                <motion.span
+                  initial={{ opacity: 0, x: -5 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05, duration: 0.15 }}
+                  className="text-[9px] font-heading font-extrabold tracking-wider uppercase whitespace-nowrap text-brand-orange-dark"
+                >
+                  {item.label}
+                </motion.span>
+              )}
+            </div>
+          </motion.button>
         );
       })}
     </nav>

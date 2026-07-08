@@ -65,6 +65,7 @@ const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
         if (emailLower === 'prodioumar910@gmail.com' && password === '12345678') {
           localStorage.setItem('habe_local_admin', 'true');
           localStorage.setItem('habe_local_admin_email', emailLower);
+          localStorage.setItem('habe_selected_experience', 'choice');
           window.location.reload();
           return;
         }
@@ -91,6 +92,7 @@ const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
             console.error(e);
           }
 
+          localStorage.setItem('habe_selected_experience', 'choice');
           window.location.reload();
         } catch (supaErr: any) {
           console.warn('Supabase login failed, trying local fallback:', supaErr);
@@ -109,6 +111,7 @@ const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
           if (foundAccount) {
             if (foundAccount.password === password) {
               localStorage.setItem('habe_local_user', JSON.stringify({ email: emailLower, fullName: foundAccount.fullName }));
+              localStorage.setItem('habe_selected_experience', 'choice');
               window.location.reload();
               return;
             } else {
@@ -171,6 +174,7 @@ const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
           // Create local session immediately for smooth fallback and store member credentials
           storeNewMember();
           localStorage.setItem('habe_local_user', JSON.stringify({ email: emailLower, fullName: fullName.trim() }));
+          localStorage.setItem('habe_selected_experience', 'choice');
           setSuccess('Votre compte a été configuré avec succès ! Connexion automatique...');
           
           setFullName('');
