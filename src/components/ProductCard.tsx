@@ -101,14 +101,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false, sho
         className="overflow-hidden group transform-gpu h-full flex flex-col justify-between cursor-pointer"
       >
         <div className="flex flex-col h-full">
-          <div className={`relative aspect-[3/4] ${isSharp ? '' : 'rounded-lg'} overflow-hidden ${
-            product.category === 'Chapeau' ? 'bg-white' : 'bg-gradient-to-b from-stone-900 to-stone-950'
-          } flex items-center justify-center border border-black/10`}>
+          <div className={`relative aspect-[1/1.4] ${isSharp ? '' : 'rounded-xl'} overflow-hidden bg-gradient-to-b from-stone-900 to-stone-950 flex items-center justify-center border border-black/10 shadow-sm`}>
             {product.image ? (
               <img
-                src={getOptimizedImage(product.image, 800)}
+                src={getOptimizedImage(product.image, 400)}
                 alt={product.name}
-                className={`w-full h-full ${product.category === 'Chapeau' ? 'object-contain p-4' : 'object-cover'} group-hover:scale-110 transition-transform duration-500`}
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
             ) : (
               <div className="flex flex-col items-center justify-center p-4 text-center select-none w-full h-full bg-stone-100/85">

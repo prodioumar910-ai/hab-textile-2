@@ -190,6 +190,7 @@ const TrendingSection: React.FC = () => {
                   <img 
                     src={getOptimizedImage(product.image, 600)} 
                     alt={product.name} 
+                    loading="lazy"
                     className="w-full h-full object-contain pointer-events-none transition-transform duration-700 group-hover:scale-105"
                     referrerPolicy="no-referrer"
                   />
@@ -218,6 +219,7 @@ const TrendingSection: React.FC = () => {
                   <img 
                     src={getOptimizedImage(product.image, 600)} 
                     alt={product.name} 
+                    loading="lazy"
                     className="w-full h-full object-contain pointer-events-none transition-transform duration-700 group-hover:scale-105"
                     referrerPolicy="no-referrer"
                   />
@@ -246,6 +248,7 @@ const TrendingSection: React.FC = () => {
                   <img 
                     src={getOptimizedImage(product.image, 600)} 
                     alt={product.name} 
+                    loading="lazy"
                     className="w-full h-full object-contain pointer-events-none transition-transform duration-700 group-hover:scale-105"
                     referrerPolicy="no-referrer"
                   />

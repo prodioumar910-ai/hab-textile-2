@@ -11,53 +11,55 @@ const BottomNav: React.FC<BottomNavProps> = ({ activePage, setActivePage }) => {
   const navItems = [
     { icon: Home, label: 'Accueil', index: 0 },
     { icon: ShoppingBag, label: 'Boutique', index: 1 },
-    { icon: User, label: 'Profil', index: 2 },
     { icon: Info, label: 'À propos', index: 3 },
+    { icon: User, label: 'Profil', index: 2 },
   ];
 
   return (
-    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[340px] h-12 bg-white/95 backdrop-blur-xl flex items-center justify-around px-3 z-[9999] rounded-full shadow-[0_12px_30px_rgba(0,0,0,0.18)] border border-white/40">
-      {navItems.map((item) => {
-        const isActive = activePage === item.index;
-        const Icon = item.icon;
+    <div className="fixed bottom-[14px] sm:bottom-[18px] left-1/2 -translate-x-1/2 z-[9999] select-none font-sans">
+      {/* Centered Transparent Bar with Packed Icons */}
+      <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 px-3 py-2 bg-transparent">
+        {navItems.map((item) => {
+          const isActive = activePage === item.index;
+          const Icon = item.icon;
 
-        return (
-          <motion.button
-            key={item.index}
-            onClick={() => setActivePage(item.index)}
-            layout
-            initial={false}
-            animate={{
-              width: isActive ? "105px" : "40px",
-              backgroundColor: isActive ? "rgba(193, 84, 26, 0.12)" : "rgba(255, 255, 255, 0)"
-            }}
-            transition={{ type: "spring", stiffness: 380, damping: 28 }}
-            className={`relative flex items-center justify-center h-9 rounded-full overflow-hidden select-none cursor-pointer transition-colors ${
-              isActive ? 'text-brand-orange-dark font-extrabold' : 'text-brand-black/40 hover:text-brand-black/75'
-            }`}
-            aria-label={item.label}
-          >
-            <div className="flex items-center justify-center gap-1.5 px-2">
-              <Icon
-                className={`w-4 h-4 transition-transform duration-200 shrink-0 ${
-                  isActive ? 'scale-110 text-brand-orange-dark' : 'scale-100'
+          return (
+            <button
+              key={item.index}
+              onClick={() => setActivePage(item.index)}
+              className="flex flex-col items-center justify-center cursor-pointer group focus:outline-none w-[50px] sm:w-[58px]"
+            >
+              {/* Circular Button Wrapper */}
+              <div className={`w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] rounded-full flex items-center justify-center relative transition-all duration-300 ${
+                isActive
+                  ? 'bg-[#F97316] text-white shadow-[0_4px_12px_rgba(249,115,22,0.3)] scale-105'
+                  : 'text-stone-400 hover:text-white hover:bg-white/10'
+              }`}>
+                {/* Highlight Overlay for active */}
+                {isActive && (
+                  <div className="absolute inset-[1px] rounded-full bg-gradient-to-tr from-white/0 via-white/5 to-white/30 pointer-events-none" />
+                )}
+                
+                <Icon
+                  className={`w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] transition-transform duration-300 ${
+                    isActive ? 'scale-110' : 'group-hover:scale-110'
+                  }`}
+                />
+              </div>
+
+              {/* Label */}
+              <span
+                className={`text-[9px] sm:text-[10px] font-semibold mt-1 tracking-wide select-none transition-all duration-300 ${
+                  isActive ? 'text-[#F97316] font-bold opacity-100' : 'text-stone-400 opacity-80 group-hover:opacity-100 group-hover:text-white'
                 }`}
-              />
-              {isActive && (
-                <motion.span
-                  initial={{ opacity: 0, x: -5 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.05, duration: 0.15 }}
-                  className="text-[9px] font-heading font-extrabold tracking-wider uppercase whitespace-nowrap text-brand-orange-dark"
-                >
-                  {item.label}
-                </motion.span>
-              )}
-            </div>
-          </motion.button>
-        );
-      })}
-    </nav>
+              >
+                {item.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 };
 

@@ -297,12 +297,12 @@ _Merci de confirmer ma commande ainsi que les délais de confection. À bientôt
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
                 {/* Left side: Images */}
                 <div className="flex flex-col gap-4">
-                  <div className={`aspect-[3/4] rounded-2xl ${selectedProduct.category === 'Chapeau' ? 'bg-white' : 'bg-black'} flex items-center justify-center overflow-hidden border border-white/5 relative`}>
+                  <div className="aspect-[3/4] rounded-2xl bg-black flex items-center justify-center overflow-hidden border border-white/5 relative">
                     {selectedImg ? (
                       <img
                         src={getOptimizedImage(selectedImg, 600)}
                         alt={selectedProduct.name}
-                        className={`w-full h-full ${selectedProduct.category === 'Chapeau' ? 'object-contain p-6 bg-transparent' : 'object-cover'}`}
+                        className="w-full h-full object-cover"
                       />
                     ) : (
                       <div className="text-center font-mono text-xs text-stone-500">

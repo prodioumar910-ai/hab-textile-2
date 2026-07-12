@@ -58,7 +58,7 @@ const INITIAL_PRODUCTS: Product[] = [
     name: 'Kaftan Bleu Nuit Brodé',
     price: 165000,
     image: 'https://lh3.googleusercontent.com/d/1G3sC5y1cwyJd3Ml2pX7yXS0NbH_pVtoY',
-    category: 'Ensemble Royal',
+    category: 'Tendance',
     target: 'Homme',
     garmentType: 'boubou',
     fabricType: 'coton'
@@ -78,7 +78,7 @@ const INITIAL_PRODUCTS: Product[] = [
     name: 'Boubou Prestige Moutarde',
     price: 175000,
     image: 'https://lh3.googleusercontent.com/d/1w9n95-LCG8z6oSKgrY4pz78VlSMJ7gR2',
-    category: 'Tendance',
+    category: 'Ensemble Royal',
     target: 'Homme',
     garmentType: 'boubou',
     fabricType: 'bazin'
@@ -98,7 +98,7 @@ const INITIAL_PRODUCTS: Product[] = [
     name: 'Kaftan Impérial Brodé',
     price: 195000,
     image: 'https://lh3.googleusercontent.com/d/1eZ48hX3O_tlrBe1iDSTCIBlmlBsjX6Ma',
-    category: 'Ensemble Royal',
+    category: 'Tendance',
     target: 'Homme',
     garmentType: 'boubou',
     fabricType: 'bazin'
@@ -118,14 +118,14 @@ const INITIAL_PRODUCTS: Product[] = [
     name: 'Boubou Royal Excellence',
     price: 220000,
     image: 'https://lh3.googleusercontent.com/d/1CSU6vDruqukQpvS5FV8_pWFIZdITPRZj',
-    category: 'Ensemble Royal',
+    category: 'Tendance',
     target: 'Homme',
     garmentType: 'boubou',
     fabricType: 'bazin'
   },
 
   // Boutique Collection: Ensemble Royal
-  { id: 'e1', name: "Boubou Royal Bazin d'Or", price: 185000, image: 'https://lh3.googleusercontent.com/d/19EDo6smyP73MPiQhqt9eyqUGgAN5Igic', category: 'Ensemble Royal', target: 'Homme', garmentType: 'boubou', fabricType: 'bazin' },
+  { id: 'e1', name: "Boubou Royal Bazin d'Or", price: 185000, image: 'https://lh3.googleusercontent.com/d/19EDo6smyP73MPiQhqt9eyqUGgAN5Igic', category: 'Classique', target: 'Homme', garmentType: 'boubou', fabricType: 'bazin' },
   { id: 'e2', name: 'Habit Impérial Brodé', price: 195000, image: 'https://lh3.googleusercontent.com/d/15tR0qCfDHh5TikDGFfXT-V4whDvtL7lp', category: 'Ensemble Royal', target: 'Homme', garmentType: 'boubou', fabricType: 'coton' },
   { id: 'e3', name: 'Kaftan Prestige Royal', price: 160000, image: 'https://lh3.googleusercontent.com/d/1XXH7d1Wu9QSnMZHu4lKpGgDY9DVm8kt8', category: 'Ensemble Royal', target: 'Homme', garmentType: 'boubou', fabricType: 'soie' },
   { id: 'e4', name: 'Ensemble Dynastie Wax', price: 155000, image: 'https://lh3.googleusercontent.com/d/1eYC25DoyZgd-gX29cZmRbBa0W0go8JKP', category: 'Ensemble Royal', target: 'Homme', garmentType: 'boubou', fabricType: 'wax' },

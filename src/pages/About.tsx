@@ -9,6 +9,19 @@ const About: React.FC = () => {
   const instagramUrl = "https://www.instagram.com/habe_textile";
   const tiktokUrl = "https://www.tiktok.com/@habe_textile";
 
+  const [imgSrc, setImgSrc] = React.useState('https://drive.google.com/thumbnail?id=1CoA_6G1815Rkxit3aHaXmUhakZO3NuMi&sz=w1000');
+  const [errCount, setErrCount] = React.useState(0);
+
+  const handleImgError = () => {
+    if (errCount === 0) {
+      setImgSrc('https://drive.google.com/uc?export=view&id=1CoA_6G1815Rkxit3aHaXmUhakZO3NuMi');
+      setErrCount(1);
+    } else if (errCount === 1) {
+      setImgSrc('https://drive.google.com/thumbnail?id=1CoA_6G1815Rkxit3aHaXmUhakZO3NuMi&sz=w1000');
+      setErrCount(2);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -19,22 +32,8 @@ const About: React.FC = () => {
     >
       {/* SECTION 1: PRESENTATION IMAGE & WORLDWIDE DELIVERY CAPTION */}
       <section className="mb-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="relative h-64 rounded-3xl overflow-hidden shadow-xl bg-stone-900 border border-white/10 group"
-        >
-          <img
-            src={getOptimizedImage('https://lh3.googleusercontent.com/d/1CoA_6G1815Rkxit3aHaXmUhakZO3NuMi', 600)}
-            alt="Habé Textile"
-            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
-            referrerPolicy="no-referrer"
-          />
-        </motion.div>
-        
         {/* Caption below the video */}
-        <div className="mt-4 flex items-center justify-center gap-2 p-3 bg-white/30 backdrop-blur-md rounded-2xl border border-white/20 shadow-sm">
+        <div className="flex items-center justify-center gap-2 p-3 bg-white/30 backdrop-blur-md rounded-2xl border border-white/20 shadow-sm">
           <Truck className="w-4 h-4 text-brand-orange-dark shrink-0 animate-bounce" />
           <p className="font-heading font-medium text-xs text-brand-black tracking-wide">
             Habé Textile livre partout dans le monde

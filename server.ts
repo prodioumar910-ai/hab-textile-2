@@ -25,7 +25,7 @@ async function startServer() {
   // API endpoints FIRST
   app.post("/api/measure", async (req, res) => {
     try {
-      const { image, gender, height } = req.body;
+      const { image, gender } = req.body;
       if (!image) {
         return res.status(400).json({ error: "L'image est requise." });
       }
@@ -35,28 +35,54 @@ async function startServer() {
         return res.status(500).json({ error: "Le service d'IA n'est pas encore configuré. Veuillez définir GEMINI_API_KEY dans vos secrets de construction." });
       }
 
-      const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
-      
+      // Support any kind of image formats and extract base64 cleanly
+      let base64Data = image;
+      let mimeType = "image/jpeg";
+
+      const matches = image.match(/^data:([^;]+);base64,(.*)$/);
+      if (matches) {
+        mimeType = matches[1];
+        base64Data = matches[2];
+      } else {
+        base64Data = image.replace(/^data:image\/\w+;base64,/, "");
+      }
+
+      // Sanitize whitespaces
+      base64Data = base64Data.replace(/\s/g, "");
+
+      // Ensure mimeType is supported by Gemini (jpeg, png, webp, heic, heif)
+      const allowedMimes = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
+      if (!allowedMimes.includes(mimeType)) {
+        if (mimeType.includes("png")) {
+          mimeType = "image/png";
+        } else if (mimeType.includes("webp")) {
+          mimeType = "image/webp";
+        } else {
+          mimeType = "image/jpeg";
+        }
+      }
+
       const imagePart = {
         inlineData: {
-          mimeType: "image/jpeg",
+          mimeType: mimeType,
           data: base64Data,
         },
       };
 
       const systemInstruction = `Tu es un tailleur couturier professionnel virtuel d'exception pour Maison Habé.
-Analyse la photo de l'utilisateur (un être humain debout) pour estimer précisément ses mensurations corporelles en centimètres (cm).
-L'utilisateur s'identifie comme ${gender || "non spécifié"} et déclare mesurer environ ${height ? `${height} cm` : "sa taille moyenne"}.
+Analyse la photo de l'utilisateur (un être humain debout) pour estimer précisément sa hauteur (taille totale) ainsi que ses mensurations corporelles en centimètres (cm).
+L'utilisateur s'identifie comme de sexe ${gender || "non spécifié"}.
 
 Estime et retourne de façon réaliste et logique les mensurations clés de couture :
-1. Taille (Waist) - "taille" en cm
-2. Hanche (Hips) - "hanche" en cm
-3. Poitrine (Chest/Bust) - "poitrine" en cm
-4. Manche (Sleeve) - "manche" en cm
-5. Coude (Elbow) - "coude" en cm
-6. Pantalon (Leg/Inseam) - "pantalon" en cm
+1. Hauteur totale (Height) - "hauteur" en cm (généralement entre 150 et 200 cm pour un adulte)
+2. Taille (Waist) - "taille" en cm
+3. Hanche (Hips) - "hanche" en cm
+4. Poitrine (Chest/Bust) - "poitrine" en cm
+5. Manche (Sleeve) - "manche" en cm
+6. Coude (Elbow) - "coude" en cm
+7. Pantalon (Leg/Inseam) - "pantalon" en cm
 
-Veille à ce que les valeurs soient logiques d'après le sexe et la taille de l'utilisateur, sans absurdités.
+Veille à ce que toutes ces valeurs soient logiques et cohérentes entre elles d'après la silhouette et le sexe de l'utilisateur, sans absurdités.
 Rédige également un commentaire de couturier bienveillant de 2 ou 3 phrases en français avec des conseils adaptés à sa morphologie d'après la photo.
 Format requis : JSON strict selon le schéma fourni.`;
 
@@ -64,7 +90,7 @@ Format requis : JSON strict selon le schéma fourni.`;
         model: "gemini-3.5-flash",
         contents: [
           imagePart,
-          { text: `Analyse cette personne de sexe ${gender} et de taille ${height || "inconnue"} cm.` }
+          { text: `Analyse cette personne de sexe ${gender || "non spécifié"}.` }
         ],
         config: {
           systemInstruction,
@@ -72,6 +98,7 @@ Format requis : JSON strict selon le schéma fourni.`;
           responseSchema: {
             type: Type.OBJECT,
             properties: {
+              hauteur: { type: Type.INTEGER, description: "Hauteur totale estimée en cm" },
               taille: { type: Type.INTEGER, description: "Mensuration taille estimée en cm" },
               hanche: { type: Type.INTEGER, description: "Mensuration hanche estimée en cm" },
               poitrine: { type: Type.INTEGER, description: "Mensuration poitrine estimée en cm" },
@@ -80,7 +107,7 @@ Format requis : JSON strict selon le schéma fourni.`;
               pantalon: { type: Type.INTEGER, description: "Mensuration pantalon estimée en cm" },
               comment: { type: Type.STRING, description: "Commentaire stylistique et de couture chaleureux en français (max 3 phrases)" }
             },
-            required: ["taille", "hanche", "poitrine", "manche", "coude", "pantalon", "comment"]
+            required: ["hauteur", "taille", "hanche", "poitrine", "manche", "coude", "pantalon", "comment"]
           }
         }
       });

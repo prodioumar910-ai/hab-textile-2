@@ -12,7 +12,7 @@ const categories: { name: Category; src?: string; icon: string; directImg?: bool
   { name: 'Classique', icon: '👔' },
   { name: 'Accessoires', src: 'https://lh3.googleusercontent.com/d/12huYtS1oArRGqVW5C3DyqkYEN4bXDOSN', icon: '⌚' },
   { name: 'Chaussures', src: 'https://lh3.googleusercontent.com/d/1ASOzctlG7h-ApAd5zx_1oaaVoWkHAE8c', icon: '👟' },
-  { name: 'Chapeau', icon: '🎩' },
+  { name: 'Chapeau', src: 'https://lh3.googleusercontent.com/d/1zOJf1l4bYbh2JZXWwumivAEQOMKisJnR', icon: '🎩' },
   { name: 'Parfum', src: 'https://lh3.googleusercontent.com/d/1_KAX3Wtr_yMgxDH4O89rpxBgAybLul5U', icon: '🧴' },
 ];
 
@@ -93,7 +93,7 @@ const Boutique: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.2 }}
-        className="grid grid-cols-2 gap-3"
+        className="grid grid-cols-2 gap-1.5"
       >
         <AnimatePresence mode="wait">
           {filteredProducts.map((p) => (

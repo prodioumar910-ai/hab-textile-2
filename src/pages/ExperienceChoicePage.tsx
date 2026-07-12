@@ -1,6 +1,5 @@
 import React from "react";
 import { motion } from "motion/react";
-import { ShoppingBag, Camera, Sparkles, ChevronRight } from "lucide-react";
 
 interface ExperienceChoicePageProps {
   onSelectBoutique: () => void;
@@ -11,6 +10,32 @@ export const ExperienceChoicePage: React.FC<ExperienceChoicePageProps> = ({
   onSelectBoutique,
   onSelectMeasure,
 }) => {
+  const [boutiqueSrc, setBoutiqueSrc] = React.useState('https://lh3.googleusercontent.com/d/1vXWUkn_u2vcKnHTiBvW0dLsUTsLSbI13');
+  const [boutiqueErrCount, setBoutiqueErrCount] = React.useState(0);
+  
+  const [measureSrc, setMeasureSrc] = React.useState('https://lh3.googleusercontent.com/d/1jXQCZWaKK7cm4QhBg0o2HYmnEIAvgtIQ');
+  const [measureErrCount, setMeasureErrCount] = React.useState(0);
+
+  const handleBoutiqueError = () => {
+    if (boutiqueErrCount === 0) {
+      setBoutiqueSrc('https://drive.google.com/uc?export=view&id=1vXWUkn_u2vcKnHTiBvW0dLsUTsLSbI13');
+      setBoutiqueErrCount(1);
+    } else if (boutiqueErrCount === 1) {
+      setBoutiqueSrc('https://drive.google.com/thumbnail?id=1vXWUkn_u2vcKnHTiBvW0dLsUTsLSbI13&sz=w1000');
+      setBoutiqueErrCount(2);
+    }
+  };
+
+  const handleMeasureError = () => {
+    if (measureErrCount === 0) {
+      setMeasureSrc('https://drive.google.com/uc?export=view&id=1jXQCZWaKK7cm4QhBg0o2HYmnEIAvgtIQ');
+      setMeasureErrCount(1);
+    } else if (measureErrCount === 1) {
+      setMeasureSrc('https://drive.google.com/thumbnail?id=1jXQCZWaKK7cm4QhBg0o2HYmnEIAvgtIQ&sz=w1000');
+      setMeasureErrCount(2);
+    }
+  };
+
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center px-4 relative overflow-hidden select-none py-12" style={{ background: "radial-gradient(circle, #FFAA5E 0%, #C1541A 100%)" }}>
       {/* Background Ambience consistent with existing theme */}
@@ -61,27 +86,15 @@ export const ExperienceChoicePage: React.FC<ExperienceChoicePageProps> = ({
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.3, type: "spring", stiffness: 100 }}
           onClick={onSelectBoutique}
-          className="group cursor-pointer bg-[#FFEAD8]/95 hover:bg-[#FFE3CD] backdrop-blur-md border border-stone-200/80 hover:border-brand-orange-dark/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex flex-col justify-between h-[180px] sm:h-[240px] shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden"
+          className="group cursor-pointer bg-[#FFEAD8]/95 hover:bg-[#FFE3CD] backdrop-blur-md border border-stone-200/80 hover:border-brand-orange-dark/40 rounded-2xl sm:rounded-3xl h-[180px] sm:h-[240px] shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden"
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-stone-500/5 pointer-events-none" />
-          <div className="flex justify-between items-start">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-stone-100 group-hover:bg-brand-orange-dark/15 border border-stone-200 group-hover:border-brand-orange-light/30 flex items-center justify-center text-stone-700 group-hover:text-brand-orange-dark transition-all duration-300 shadow-inner">
-              <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-            <span className="text-[7px] sm:text-[9px] font-heading font-extrabold uppercase tracking-widest bg-stone-100 border border-stone-200 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-stone-600">
-              Boutique
-            </span>
-          </div>
-
-          <div>
-            <h2 className="font-heading font-extrabold text-base sm:text-xl md:text-2xl lg:text-3xl text-stone-950 uppercase tracking-wider leading-tight">
-              Découvrir la Boutique
-            </h2>
-          </div>
-
-          <div className="flex items-center gap-1 text-[9px] sm:text-xs font-heading font-extrabold uppercase tracking-widest text-stone-500 group-hover:text-brand-orange-dark transition-colors duration-300">
-            Explorer <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
-          </div>
+          <img
+            src={boutiqueSrc}
+            alt="Boutique"
+            className="absolute inset-0 w-full h-full object-cover drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
+            onError={handleBoutiqueError}
+            referrerPolicy="no-referrer"
+          />
         </motion.div>
 
         {/* Choice 2: Virtual AI Tailor Cabin */}
@@ -90,29 +103,15 @@ export const ExperienceChoicePage: React.FC<ExperienceChoicePageProps> = ({
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.4, type: "spring", stiffness: 100 }}
           onClick={onSelectMeasure}
-          className="group cursor-pointer bg-[#FFEAD8]/95 hover:bg-[#FFE3CD] backdrop-blur-md border border-stone-200/80 hover:border-brand-orange-dark/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex flex-col justify-between h-[180px] sm:h-[240px] shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden"
+          className="group cursor-pointer bg-[#FFEAD8]/95 hover:bg-[#FFE3CD] backdrop-blur-md border border-stone-200/80 hover:border-brand-orange-dark/40 rounded-2xl sm:rounded-3xl h-[180px] sm:h-[240px] shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden"
         >
-          {/* Subtle neon glow on hover */}
-          <div className="absolute top-0 right-0 w-24 h-24 bg-brand-orange-dark/10 rounded-full blur-2xl group-hover:scale-150 transition-all duration-500 pointer-events-none" />
-          
-          <div className="flex justify-between items-start">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-stone-100 group-hover:bg-brand-orange-dark/15 border border-stone-200 group-hover:border-brand-orange-light/30 flex items-center justify-center text-stone-700 group-hover:text-brand-orange-dark transition-all duration-300 shadow-inner">
-              <Camera className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-            <span className="text-[7px] sm:text-[9px] font-heading font-extrabold uppercase tracking-widest bg-brand-orange-dark/15 border border-brand-orange-dark/25 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-brand-orange-dark flex items-center gap-0.5 sm:gap-1 shadow-sm shadow-brand-orange-dark/5">
-              <Sparkles className="w-2.5 h-2.5 animate-pulse" /> Offert
-            </span>
-          </div>
-
-          <div>
-            <h2 className="font-heading font-extrabold text-base sm:text-xl md:text-2xl lg:text-3xl text-stone-950 uppercase tracking-wider leading-tight">
-              Mesure IA
-            </h2>
-          </div>
-
-          <div className="flex items-center gap-1 text-[9px] sm:text-xs font-heading font-extrabold uppercase tracking-widest text-stone-500 group-hover:text-brand-orange-dark transition-colors duration-300">
-            Mesurer <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
-          </div>
+          <img
+            src={measureSrc}
+            alt="Mesure IA"
+            className="absolute inset-0 w-full h-full object-cover drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
+            onError={handleMeasureError}
+            referrerPolicy="no-referrer"
+          />
         </motion.div>
 
       </div>

@@ -113,7 +113,7 @@ const HomeCatalogue: React.FC = () => {
 
       <motion.div 
         layout
-        className="grid grid-cols-2 gap-3"
+        className="grid grid-cols-2 gap-1.5"
       >
         <AnimatePresence mode="wait">
           {displayProducts.map((p) => (

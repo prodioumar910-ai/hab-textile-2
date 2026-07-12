@@ -93,6 +93,7 @@ const PretAPorterSection: React.FC = () => {
                 <img 
                   src={getOptimizedImage(prod.images[0], 600)} 
                   alt={prod.name} 
+                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   referrerPolicy="no-referrer"
                 />

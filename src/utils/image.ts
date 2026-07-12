@@ -5,18 +5,36 @@
  */
 export const getOptimizedImage = (url: string | undefined, width: number = 400): string => {
   if (!url) return '';
-  if (url.includes('lh3.googleusercontent.com')) {
-    // Strip existing trailing modifiers like =wXX or =sXX or =s0
-    const baseUrl = url.split('=')[0];
-    
-    // For products, slider, and detailed views (width >= 200), we request "=s0"
-    // which instructs Google's server to serve the original, uncompressed, crystal-sharp image.
-    if (width >= 200) {
-      return `${baseUrl}=s0`;
+  
+  // Extract file ID if it is a Google Drive or googleusercontent URL
+  let id = '';
+  if (url.includes('lh3.googleusercontent.com/d/')) {
+    const parts = url.split('/d/');
+    if (parts[1]) {
+      id = parts[1].split('=')[0];
     }
-    
-    // For smaller layouts or avatars, we request double the size for high-DPI (Retina) support
-    return `${baseUrl}=s${width * 2}`;
+  } else if (url.includes('drive.google.com')) {
+    const match = url.match(/id=([^&]+)/) || url.match(/\/file\/d\/([^/]+)/);
+    if (match && match[1]) {
+      id = match[1];
+    }
   }
+
+  if (id) {
+    // Using the direct Google User Content CDN endpoint (lh3.googleusercontent.com/d/{id}) is far faster
+    // than the drive.google.com/thumbnail endpoint, because it completely avoids HTTP 302 redirects
+    // and authentication cookie verification round-trips.
+    // Specifying `=w${targetSz}-rw` instructs Google's edge CDN server to scale on-the-fly and transcode
+    // to WebP, reducing the weight of the images up to 95% while keeping them crisp and with full CORS support.
+    const targetSz = width > 0 ? width : 400;
+    return `https://lh3.googleusercontent.com/d/${id}=w${targetSz}-rw`;
+  }
+
+  if (url.includes('lh3.googleusercontent.com')) {
+    const baseUrl = url.split('=')[0];
+    const targetWidth = width > 0 ? width : 400;
+    return `${baseUrl}=w${targetWidth}-rw`;
+  }
+
   return url;
 };
