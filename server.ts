@@ -86,37 +86,54 @@ Veille à ce que toutes ces valeurs soient logiques et cohérentes entre elles d
 Rédige également un commentaire de couturier bienveillant de 2 ou 3 phrases en français avec des conseils adaptés à sa morphologie d'après la photo.
 Format requis : JSON strict selon le schéma fourni.`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
-        contents: {
-          parts: [
-            imagePart,
-            { text: `Analyse cette personne de sexe ${gender || "non spécifié"}.` }
-          ]
-        },
-        config: {
-          systemInstruction,
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              hauteur: { type: Type.INTEGER, description: "Hauteur totale estimée en cm" },
-              taille: { type: Type.INTEGER, description: "Mensuration taille estimée en cm" },
-              hanche: { type: Type.INTEGER, description: "Mensuration hanche estimée en cm" },
-              poitrine: { type: Type.INTEGER, description: "Mensuration poitrine estimée en cm" },
-              manche: { type: Type.INTEGER, description: "Mensuration manche estimée en cm" },
-              coude: { type: Type.INTEGER, description: "Mensuration coude estimée en cm" },
-              pantalon: { type: Type.INTEGER, description: "Mensuration pantalon estimée en cm" },
-              comment: { type: Type.STRING, description: "Commentaire stylistique et de couture chaleureux en français (max 3 phrases)" }
-            },
-            required: ["hauteur", "taille", "hanche", "poitrine", "manche", "coude", "pantalon", "comment"]
-          }
-        }
-      });
+      const modelsToTry = ["gemini-3.5-flash", "gemini-3.1-flash-lite"];
+      let lastError: any = null;
+      let responseText = "";
 
-      const responseText = response.text;
+      for (const modelName of modelsToTry) {
+        try {
+          console.log(`Attempting measure API with model: ${modelName}`);
+          const response = await ai.models.generateContent({
+            model: modelName,
+            contents: {
+              parts: [
+                imagePart,
+                { text: `Analyse cette personne de sexe ${gender || "non spécifié"}.` }
+              ]
+            },
+            config: {
+              systemInstruction,
+              responseMimeType: "application/json",
+              responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                  hauteur: { type: Type.INTEGER, description: "Hauteur totale estimée en cm" },
+                  taille: { type: Type.INTEGER, description: "Mensuration taille estimée en cm" },
+                  hanche: { type: Type.INTEGER, description: "Mensuration hanche estimée en cm" },
+                  poitrine: { type: Type.INTEGER, description: "Mensuration poitrine estimée en cm" },
+                  manche: { type: Type.INTEGER, description: "Mensuration manche estimée en cm" },
+                  coude: { type: Type.INTEGER, description: "Mensuration coude estimée en cm" },
+                  pantalon: { type: Type.INTEGER, description: "Mensuration pantalon estimée en cm" },
+                  comment: { type: Type.STRING, description: "Commentaire stylistique et de couture chaleureux en français (max 3 phrases)" }
+                },
+                required: ["hauteur", "taille", "hanche", "poitrine", "manche", "coude", "pantalon", "comment"]
+              }
+            }
+          });
+
+          if (response.text) {
+            responseText = response.text;
+            console.log(`Successfully generated content using model ${modelName}`);
+            break;
+          }
+        } catch (err: any) {
+          console.warn(`Model ${modelName} failed or unavailable:`, err.message || err);
+          lastError = err;
+        }
+      }
+
       if (!responseText) {
-        throw new Error("L'IA n'a pas retourné de réponse valide.");
+        throw lastError || new Error("Aucun modèle d'IA n'a pu répondre à la demande.");
       }
 
       const results = JSON.parse(responseText.trim());
