@@ -88,10 +88,12 @@ Format requis : JSON strict selon le schéma fourni.`;
 
       const response = await ai.models.generateContent({
         model: "gemini-3.5-flash",
-        contents: [
-          imagePart,
-          { text: `Analyse cette personne de sexe ${gender || "non spécifié"}.` }
-        ],
+        contents: {
+          parts: [
+            imagePart,
+            { text: `Analyse cette personne de sexe ${gender || "non spécifié"}.` }
+          ]
+        },
         config: {
           systemInstruction,
           responseMimeType: "application/json",
