@@ -3,6 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import fs from "fs";
 
 dotenv.config();
 
@@ -172,8 +173,11 @@ Format requis : JSON strict selon le schéma fourni.`;
     }
   });
 
-  // Vite middleware in development
-  if (process.env.NODE_ENV !== "production") {
+  // Detect production: either NODE_ENV is set to production OR the "dist" directory exists.
+  // In production, we always serve built assets and avoid spawning the Vite dev middleware.
+  const isProd = process.env.NODE_ENV === "production" || fs.existsSync(path.join(process.cwd(), "dist"));
+
+  if (!isProd) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",

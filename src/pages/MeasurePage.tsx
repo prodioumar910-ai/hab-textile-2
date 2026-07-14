@@ -373,9 +373,9 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
     try {
       if (!response) {
         throw new Error(
-          `Impossible de contacter le serveur de mesure IA sur aucun point d'accès (${
+          `Impossible de contacter le serveur de mesure IA (${
             lastFetchError?.message || "Erreur réseau"
-          }).`
+          }). Assurez-vous de déployer et de lancer le serveur backend complet (en exécutant le serveur Node 'node dist/server.cjs') et non pas uniquement les fichiers statiques.`
         );
       }
 
