@@ -214,9 +214,15 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
     }
   };
 
-  // Helper to downscale and compress images for faster uploads and safety in mobile webviews
-  const resizeImage = (dataUrl: string, maxWidth = 1600, maxHeight = 1600): Promise<string> => {
+  // Helper to downscale and compress images for faster uploads and safety in mobile webviews without losing quality
+  const resizeImage = (dataUrl: string, maxWidth = 2560, maxHeight = 2560): Promise<string> => {
     return new Promise((resolve) => {
+      // If the image is already small enough (under 2M characters, approx 1.5MB), keep it untouched to preserve 100% original quality
+      if (dataUrl.length < 2000000) {
+        resolve(dataUrl);
+        return;
+      }
+
       const img = new Image();
       img.src = dataUrl;
       img.onload = () => {
@@ -239,7 +245,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
         const ctx = canvas.getContext("2d");
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL("image/jpeg", 0.92));
+          resolve(canvas.toDataURL("image/jpeg", 0.95)); // Very high quality factor for visual accuracy
         } else {
           resolve(dataUrl);
         }
@@ -263,7 +269,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
           setError(null);
           
           try {
-            // Compress the uploaded file to under 200KB before display and API send
+            // High-fidelity processing preserving maximum detail for precise tailorship
             const resized = await resizeImage(base64);
             setImageSrc(resized);
             calculateMeasurements(resized);
@@ -292,65 +298,85 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
     setLoadingStep(0);
     setError(null);
 
-    // Absolute fallback URL for the deployed production server
-    const fallbackUrl = "https://ais-pre-upzhp3kqwztocsgkzoovce-115539072125.europe-west2.run.app/api/measure";
+    // Absolute fallback URLs for dev and prod
+    const devUrl = "https://ais-dev-upzhp3kqwztocsgkzoovce-115539072125.europe-west2.run.app/api/measure";
+    const sharedUrl = "https://ais-pre-upzhp3kqwztocsgkzoovce-115539072125.europe-west2.run.app/api/measure";
 
-    // Determine initial API URL.
-    // If protocol is capacitor:, file:, or we are running on localhost with a custom/non-standard port,
-    // we bypass the local endpoint directly to save time and prevent local failures.
-    const isMobileApp = 
-      window.location.protocol === "capacitor:" ||
-      window.location.protocol === "file:" ||
-      (window.location.hostname === "localhost" && window.location.port !== "3000" && window.location.port !== "5173");
+    const endpoints: string[] = [];
 
-    let apiUrl = isMobileApp ? fallbackUrl : "/api/measure";
+    // 1. Current origin relative endpoint (works on standard web browsers and inside dev previews)
+    if (window.location.protocol !== "capacitor:" && window.location.protocol !== "file:") {
+      endpoints.push("/api/measure");
+    }
+
+    // 2. Local network IP / Localhost port 3000 mapping (if accessed via frontend port like 5173 on computer or phone)
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname.startsWith("192.168.") ||
+      window.location.hostname.startsWith("10.") ||
+      window.location.hostname.startsWith("172.")
+    ) {
+      if (window.location.port !== "3000") {
+        endpoints.push(`http://${window.location.hostname}:3000/api/measure`);
+      }
+    }
+
+    // 3. Absolute Dev URL (works from anywhere, but may trigger redirect if not authenticated)
+    endpoints.push(devUrl);
+
+    // 4. Absolute Shared URL (publicly accessible, guaranteed server-side handling)
+    endpoints.push(sharedUrl);
+
+    let response: Response | null = null;
+    let lastFetchError: any = null;
+    let successfulUrl = "";
+
+    for (const url of endpoints) {
+      try {
+        console.log("Tentative de connexion à l'API de mesure:", url);
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image: activeImage,
+            gender
+          })
+        });
+
+        if (!res) continue;
+
+        // If returned 404, the route does not exist on this endpoint, we continue to next
+        if (res.status === 404) {
+          console.warn(`Endpoint ${url} a retourné une erreur 404. Essai du point d'accès suivant...`);
+          lastFetchError = new Error(`404 non trouvé à ${url}`);
+          continue;
+        }
+
+        // If we got redirected (such as AI Studio Google SSO login page) or received HTML instead of JSON
+        const contentType = res.headers.get("content-type") || "";
+        if (res.redirected || contentType.includes("text/html")) {
+          console.warn(`Endpoint ${url} a redirigé ou retourné du HTML. Essai du point d'accès suivant...`);
+          lastFetchError = new Error(`Redirection ou réponse HTML reçue de ${url}`);
+          continue;
+        }
+
+        response = res;
+        successfulUrl = url;
+        break; // Found a working endpoint!
+      } catch (err: any) {
+        console.warn(`Échec de connexion au point d'accès ${url}:`, err.message || err);
+        lastFetchError = err;
+      }
+    }
 
     try {
-      let response;
-      let usedFallback = isMobileApp;
-
-      try {
-        response = await fetch(apiUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            image: activeImage,
-            gender
-          })
-        });
-      } catch (e) {
-        // If the first fetch fails completely (e.g. CORS or network error on relative path), try fallback
-        if (apiUrl === "/api/measure" && !usedFallback) {
-          console.warn("Network error on local endpoint, trying absolute fallback:", fallbackUrl, e);
-          response = await fetch(fallbackUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              image: activeImage,
-              gender
-            })
-          });
-          usedFallback = true;
-          apiUrl = fallbackUrl;
-        } else {
-          throw e;
-        }
-      }
-
-      // If the response is a 404, we must have hit a static site or a server without the route.
-      // Gracefully retry with the absolute fallback URL.
-      if (response && response.status === 404 && apiUrl === "/api/measure" && !usedFallback) {
-        console.warn("Relative endpoint returned 404, retrying with absolute fallback:", fallbackUrl);
-        response = await fetch(fallbackUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            image: activeImage,
-            gender
-          })
-        });
-        usedFallback = true;
-        apiUrl = fallbackUrl;
+      if (!response) {
+        throw new Error(
+          `Impossible de contacter le serveur de mesure IA sur aucun point d'accès (${
+            lastFetchError?.message || "Erreur réseau"
+          }).`
+        );
       }
 
       if (!response.ok) {
@@ -375,8 +401,8 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
       try {
         data = JSON.parse(rawText.trim());
       } catch (parseErr: any) {
-        console.error("Failed to parse response JSON:", rawText);
-        throw new Error(`Erreur de formatage des données reçues (${parseErr.message || "JSON non valide"}).`);
+        console.error(`Impossible d'analyser la réponse JSON depuis ${successfulUrl}:`, rawText);
+        throw new Error(`Erreur de formatage des données de mesure (${parseErr.message || "JSON non valide"}).`);
       }
 
       setResult(data);
