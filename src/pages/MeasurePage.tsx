@@ -215,7 +215,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
   };
 
   // Helper to downscale and compress images for faster uploads and safety in mobile webviews
-  const resizeImage = (dataUrl: string, maxWidth = 1024, maxHeight = 1024): Promise<string> => {
+  const resizeImage = (dataUrl: string, maxWidth = 1600, maxHeight = 1600): Promise<string> => {
     return new Promise((resolve) => {
       const img = new Image();
       img.src = dataUrl;
@@ -239,7 +239,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
         const ctx = canvas.getContext("2d");
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL("image/jpeg", 0.82));
+          resolve(canvas.toDataURL("image/jpeg", 0.92));
         } else {
           resolve(dataUrl);
         }
@@ -292,15 +292,66 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
     setLoadingStep(0);
     setError(null);
 
+    // Absolute fallback URL for the deployed production server
+    const fallbackUrl = "https://ais-pre-upzhp3kqwztocsgkzoovce-115539072125.europe-west2.run.app/api/measure";
+
+    // Determine initial API URL.
+    // If protocol is capacitor:, file:, or we are running on localhost with a custom/non-standard port,
+    // we bypass the local endpoint directly to save time and prevent local failures.
+    const isMobileApp = 
+      window.location.protocol === "capacitor:" ||
+      window.location.protocol === "file:" ||
+      (window.location.hostname === "localhost" && window.location.port !== "3000" && window.location.port !== "5173");
+
+    let apiUrl = isMobileApp ? fallbackUrl : "/api/measure";
+
     try {
-      const response = await fetch("/api/measure", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image: activeImage,
-          gender
-        })
-      });
+      let response;
+      let usedFallback = isMobileApp;
+
+      try {
+        response = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image: activeImage,
+            gender
+          })
+        });
+      } catch (e) {
+        // If the first fetch fails completely (e.g. CORS or network error on relative path), try fallback
+        if (apiUrl === "/api/measure" && !usedFallback) {
+          console.warn("Network error on local endpoint, trying absolute fallback:", fallbackUrl, e);
+          response = await fetch(fallbackUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              image: activeImage,
+              gender
+            })
+          });
+          usedFallback = true;
+          apiUrl = fallbackUrl;
+        } else {
+          throw e;
+        }
+      }
+
+      // If the response is a 404, we must have hit a static site or a server without the route.
+      // Gracefully retry with the absolute fallback URL.
+      if (response && response.status === 404 && apiUrl === "/api/measure" && !usedFallback) {
+        console.warn("Relative endpoint returned 404, retrying with absolute fallback:", fallbackUrl);
+        response = await fetch(fallbackUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image: activeImage,
+            gender
+          })
+        });
+        usedFallback = true;
+        apiUrl = fallbackUrl;
+      }
 
       if (!response.ok) {
         let errorMsg = "Une erreur est survenue lors du traitement.";
