@@ -505,7 +505,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
       let data: MeasureResult;
       try {
         data = JSON.parse(rawText.trim());
-        setIsLocalFallback(false);
+        setIsLocalFallback(data.isLocal === true);
       } catch (parseErr: any) {
         console.warn("Échec d'analyse de la réponse IA. Utilisation de l'Atelier de couture local...");
         setIsLocalFallback(true);

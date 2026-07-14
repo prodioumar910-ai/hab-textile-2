@@ -8,12 +8,7 @@ import fs from "fs";
 dotenv.config();
 
 const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
-    }
-  }
+  apiKey: process.env.GEMINI_API_KEY
 });
 
 async function startServer() {
@@ -91,13 +86,6 @@ async function startServer() {
         }
       }
 
-      const imagePart = {
-        inlineData: {
-          mimeType: mimeType,
-          data: base64Data,
-        },
-      };
-
       const systemInstruction = `Tu es un tailleur couturier professionnel virtuel d'exception pour Maison Habé.
 Analyse la photo de l'utilisateur (un être humain debout) pour estimer précisément sa hauteur (taille totale) ainsi que ses mensurations corporelles en centimètres (cm).
 L'utilisateur s'identifie comme de sexe ${gender || "non spécifié"}.
@@ -115,45 +103,54 @@ Veille à ce que toutes ces valeurs soient logiques et cohérentes entre elles d
 Rédige également un commentaire de couturier bienveillant de 2 ou 3 phrases en français avec des conseils adaptés à sa morphologie d'après la photo.
 Format requis : JSON strict selon le schéma fourni.`;
 
-      const modelsToTry = ["gemini-3.5-flash", "gemini-3.1-flash-lite"];
+      const modelsToTry = ["gemini-3.5-flash", "gemini-3.1-pro-preview", "gemini-flash-latest"];
       let lastError: any = null;
       let responseText = "";
+      let usedModel = "";
 
       for (const modelName of modelsToTry) {
         try {
           console.log(`Attempting measure API with model: ${modelName}`);
-          const response = await ai.models.generateContent({
+          const interaction = await ai.interactions.create({
             model: modelName,
-            contents: {
-              parts: [
-                imagePart,
-                { text: `Analyse cette personne de sexe ${gender || "non spécifié"}.` }
-              ]
-            },
-            config: {
-              systemInstruction,
-              responseMimeType: "application/json",
-              responseSchema: {
-                type: Type.OBJECT,
-                properties: {
-                  hauteur: { type: Type.INTEGER, description: "Hauteur totale estimée en cm" },
-                  taille: { type: Type.INTEGER, description: "Mensuration taille estimée en cm" },
-                  hanche: { type: Type.INTEGER, description: "Mensuration hanche estimée en cm" },
-                  poitrine: { type: Type.INTEGER, description: "Mensuration poitrine estimée en cm" },
-                  manche: { type: Type.INTEGER, description: "Mensuration manche estimée en cm" },
-                  coude: { type: Type.INTEGER, description: "Mensuration coude estimée en cm" },
-                  pantalon: { type: Type.INTEGER, description: "Mensuration pantalon estimée en cm" },
-                  comment: { type: Type.STRING, description: "Commentaire stylistique et de couture chaleureux en français (max 3 phrases)" }
-                },
-                required: ["hauteur", "taille", "hanche", "poitrine", "manche", "coude", "pantalon", "comment"]
+            system_instruction: systemInstruction,
+            input: [
+              {
+                type: "image",
+                data: base64Data,
+                mime_type: mimeType
+              },
+              {
+                type: "text",
+                text: `Analyse cette personne de sexe ${gender || "non spécifié"} et donne ses mensurations.`
               }
+            ],
+            response_format: {
+              type: Type.OBJECT,
+              properties: {
+                hauteur: { type: Type.INTEGER, description: "Hauteur totale estimée en cm" },
+                taille: { type: Type.INTEGER, description: "Mensuration taille estimée en cm" },
+                hanche: { type: Type.INTEGER, description: "Mensuration hanche estimée en cm" },
+                poitrine: { type: Type.INTEGER, description: "Mensuration poitrine estimée en cm" },
+                manche: { type: Type.INTEGER, description: "Mensuration manche estimée en cm" },
+                coude: { type: Type.INTEGER, description: "Mensuration coude estimée en cm" },
+                pantalon: { type: Type.INTEGER, description: "Mensuration pantalon estimée en cm" },
+                comment: { type: Type.STRING, description: "Commentaire stylistique et de couture chaleureux en français (max 3 phrases)" }
+              },
+              required: ["hauteur", "taille", "hanche", "poitrine", "manche", "coude", "pantalon", "comment"]
             }
           });
 
-          if (response.text) {
-            responseText = response.text;
-            console.log(`Successfully generated content using model ${modelName}`);
-            break;
+          // Extract text from the last step which should contain the JSON
+          const lastStep = interaction.steps.at(-1);
+          if (lastStep && lastStep.type === 'model_output') {
+            const textContent = lastStep.content?.find(c => c.type === 'text');
+            if (textContent) {
+              responseText = textContent.text.trim();
+              usedModel = modelName;
+              console.log(`Successfully generated content using model ${modelName}`);
+              break;
+            }
           }
         } catch (err: any) {
           console.warn(`Model ${modelName} failed or unavailable:`, err.message || err);
@@ -162,11 +159,29 @@ Format requis : JSON strict selon le schéma fourni.`;
       }
 
       if (!responseText) {
-        throw lastError || new Error("Aucun modèle d'IA n'a pu répondre à la demande.");
+        console.warn("All AI models failed. Using server-side fallback measurements.");
+        // Server-side fallback logic (similar to frontend)
+        const isHomme = gender === "homme";
+        const h = isHomme ? 175 : 125;
+        
+        const fallbackResults = {
+          hauteur: h,
+          taille: Math.round(h * 0.48),
+          hanche: Math.round(h * 0.54),
+          poitrine: Math.round(h * 0.52),
+          manche: Math.round(h * 0.35),
+          coude: Math.round(h * 0.15),
+          pantalon: Math.round(h * 0.45),
+          comment: "Note: Nos services d'IA sont temporairement surchargés. Ces mesures sont des estimations standards basées sur votre profil. Pour une précision optimale, nous vous invitons à les ajuster manuellement ou à réessayer dans quelques instants.",
+          isLocal: true
+        };
+        return res.json(fallbackResults);
       }
 
-      const results = JSON.parse(responseText.trim());
-      res.json(results);
+      // Safe JSON extraction in case of surrounding text
+      const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/) || responseText.match(/([\{\[][\s\S]*[\}\]])/);
+      const results = JSON.parse(jsonMatch ? jsonMatch[1] : responseText);
+      res.json({ ...results, model: usedModel });
     } catch (error: any) {
       console.error("Error in /api/measure:", error);
       res.status(500).json({ error: error?.message || "Erreur d'analyse par l'IA. Veuillez vous assurer que la photo est claire." });
