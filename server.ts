@@ -36,19 +36,36 @@ async function startServer() {
       }
 
       // Support any kind of image formats and extract base64 cleanly
-      let base64Data = image;
+      let base64Data = "";
       let mimeType = "image/jpeg";
 
-      const matches = image.match(/^data:([^;]+);base64,(.*)$/);
-      if (matches) {
-        mimeType = matches[1];
-        base64Data = matches[2];
-      } else {
-        base64Data = image.replace(/^data:image\/\w+;base64,/, "");
-      }
+      if (typeof image === "string") {
+        const matches = image.match(/^data:([^;]+);base64,(.*)$/);
+        if (matches) {
+          mimeType = matches[1];
+          base64Data = matches[2];
+        } else {
+          base64Data = image.replace(/^data:image\/\w+;base64,/, "");
+        }
 
-      // Sanitize whitespaces
-      base64Data = base64Data.replace(/\s/g, "");
+        // Support base64url format by translating it to standard base64 format
+        base64Data = base64Data
+          .replace(/-/g, "+")
+          .replace(/_/g, "/");
+
+        // Strip any whitespace, carriage returns, or invalid characters not in the base64 alphabet
+        base64Data = base64Data.replace(/[^A-Za-z0-9+/=]/g, "");
+
+        // Pad base64 data to ensure it's a multiple of 4 (required by native atob/btoa implementations)
+        const remainder = base64Data.length % 4;
+        if (remainder === 2) {
+          base64Data += "==";
+        } else if (remainder === 3) {
+          base64Data += "=";
+        }
+      } else {
+        return res.status(400).json({ error: "Format d'image non valide." });
+      }
 
       // Ensure mimeType is supported by Gemini (jpeg, png, webp, heic, heif)
       const allowedMimes = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
