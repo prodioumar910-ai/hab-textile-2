@@ -214,16 +214,63 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
     }
   };
 
+  // Helper to downscale and compress images for faster uploads and safety in mobile webviews
+  const resizeImage = (dataUrl: string, maxWidth = 1024, maxHeight = 1024): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = dataUrl;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.naturalWidth || img.width || 1024;
+        let height = img.naturalHeight || img.height || 1024;
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", 0.82));
+        } else {
+          resolve(dataUrl);
+        }
+      };
+      img.onerror = () => {
+        resolve(dataUrl);
+      };
+    });
+  };
+
   // Process manual/mobile file upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         if (event.target?.result) {
           const base64 = event.target.result as string;
-          setImageSrc(base64);
-          calculateMeasurements(base64);
+          setLoading(true);
+          setLoadingStep(0);
+          setError(null);
+          
+          try {
+            // Compress the uploaded file to under 200KB before display and API send
+            const resized = await resizeImage(base64);
+            setImageSrc(resized);
+            calculateMeasurements(resized);
+          } catch (err) {
+            setImageSrc(base64);
+            calculateMeasurements(base64);
+          }
         }
       };
       reader.readAsDataURL(file);
@@ -256,11 +303,31 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Une erreur est survenue lors du traitement.");
+        let errorMsg = "Une erreur est survenue lors du traitement.";
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (e) {
+          try {
+            const txt = await response.text();
+            errorMsg = `Erreur serveur (${response.status}): ${txt.substring(0, 100)}`;
+          } catch (e2) {
+            errorMsg = `Erreur serveur (${response.status})`;
+          }
+        }
+        throw new Error(errorMsg);
       }
 
-      const data: MeasureResult = await response.json();
+      // Safe text-first reading to prevent Safari's native response.json() exception triggers
+      const rawText = await response.text();
+      let data: MeasureResult;
+      try {
+        data = JSON.parse(rawText.trim());
+      } catch (parseErr: any) {
+        console.error("Failed to parse response JSON:", rawText);
+        throw new Error(`Erreur de formatage des données reçues (${parseErr.message || "JSON non valide"}).`);
+      }
+
       setResult(data);
       setAdjustedResult(data);
       
