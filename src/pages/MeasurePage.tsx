@@ -23,17 +23,8 @@ import {
 } from "lucide-react";
 import { useStore } from "../context/StoreContext";
 import { getOptimizedImage } from "../utils/image";
-
-interface MeasureResult {
-  taille: number;
-  hanche: number;
-  poitrine: number;
-  manche: number;
-  coude: number;
-  pantalon: number;
-  hauteur?: number;
-  comment: string;
-}
+import { Bodygee3DScanner } from "../components/Bodygee3DScanner";
+import { MeasureResult } from "../types";
 
 interface MeasurePageProps {
   onBackToChoice: () => void;
@@ -51,52 +42,88 @@ export const computeLocalMeasurements = (gender: string, inputHeight: number): M
     return ((hash + seed) % 5) - 2; // -2 to +2 cm
   };
 
+  let fesse = 0;
   let poitrine = 0;
-  let taille = 0;
-  let hanche = 0;
-  let coude = 0;
+  let ceinture = 0;
+  let epaule = 0;
+  let cou = 0;
   let manche = 0;
-  let pantalon = 0;
+  let tour_manche = 0;
+  let longueur_boubou = 0;
+  let longueur_pantalon = 0;
+  let cuisse = 0;
 
   if (isHomme) {
-    poitrine = Math.round(h * 0.54 + fluctuation("poitrine"));
-    taille = Math.round(h * 0.48 + fluctuation("taille"));
-    hanche = Math.round(h * 0.55 + fluctuation("hanche"));
-    coude = Math.round(h * 0.16 + fluctuation("coude"));
-    manche = Math.round(h * 0.36 + fluctuation("manche"));
-    pantalon = Math.round(h * 0.46 + fluctuation("pantalon"));
-  } else {
-    poitrine = Math.round(h * 0.48 + fluctuation("poitrine_enf"));
-    taille = Math.round(h * 0.46 + fluctuation("taille_enf"));
-    hanche = Math.round(h * 0.50 + fluctuation("hanche_enf"));
-    coude = Math.round(h * 0.14 + fluctuation("coude_enf"));
-    manche = Math.round(h * 0.32 + fluctuation("manche_enf"));
-    pantalon = Math.round(h * 0.42 + fluctuation("pantalon_enf"));
-  }
+    // Fesse: 85cm à 120cm
+    fesse = Math.round(h * 0.54 + fluctuation("fesse"));
+    fesse = Math.min(120, Math.max(85, fesse));
 
-  // Ensure logical ranges
-  poitrine = Math.max(40, poitrine);
-  taille = Math.max(35, taille);
-  hanche = Math.max(45, hanche);
-  coude = Math.max(12, coude);
-  manche = Math.max(25, manche);
-  pantalon = Math.max(30, pantalon);
+    // Poitrine: fesse + 5cm
+    poitrine = fesse + 5;
+
+    // Ceinture: = fesse
+    ceinture = fesse;
+
+    // Épaule: 43cm ou plus
+    epaule = Math.round(h * 0.26 + fluctuation("epaule"));
+    epaule = Math.max(43, epaule);
+
+    // Cou: 36cm à 44cm
+    cou = Math.round(h * 0.22 + fluctuation("cou"));
+    cou = Math.min(44, Math.max(36, cou));
+
+    // Manche: e.g. 55 to 75
+    manche = Math.round(h * 0.35 + fluctuation("manche"));
+    manche = Math.min(75, Math.max(55, manche));
+
+    // Tour de Manche: 30cm à 44cm
+    tour_manche = Math.round(h * 0.20 + fluctuation("tour_manche"));
+    tour_manche = Math.min(44, Math.max(30, tour_manche));
+
+    // Longueur boubou: 84cm à 100cm
+    longueur_boubou = Math.round(h * 0.52 + fluctuation("longueur_boubou"));
+    longueur_boubou = Math.min(100, Math.max(84, longueur_boubou));
+
+    // Longueur pantalon: 95cm à 115cm
+    longueur_pantalon = Math.round(h * 0.58 + fluctuation("longueur_pantalon"));
+    longueur_pantalon = Math.min(115, Math.max(95, longueur_pantalon));
+
+    // Cuisse: 48 à 75 cm
+    cuisse = Math.round(h * 0.32 + fluctuation("cuisse"));
+    cuisse = Math.min(75, Math.max(48, cuisse));
+  } else {
+    // Enfant
+    fesse = Math.round(h * 0.48 + fluctuation("fesse_enf"));
+    poitrine = fesse + 3;
+    ceinture = fesse;
+    epaule = Math.round(h * 0.24 + fluctuation("epaule_enf"));
+    cou = Math.round(h * 0.20 + fluctuation("cou_enf"));
+    manche = Math.round(h * 0.32 + fluctuation("manche_enf"));
+    tour_manche = Math.round(h * 0.16 + fluctuation("tour_manche_enf"));
+    longueur_boubou = Math.round(h * 0.46 + fluctuation("longueur_boubou_enf"));
+    longueur_pantalon = Math.round(h * 0.50 + fluctuation("longueur_pantalon_enf"));
+    cuisse = Math.round(h * 0.28 + fluctuation("cuisse_enf"));
+  }
 
   let comment = "";
   if (isHomme) {
-    comment = `Votre morphologie présente une excellente proportion athlétique avec un rapport poitrine/taille idéal pour la couture sur mesure. Votre silhouette s'adaptera magnifiquement à nos coupes de vestes ajustées et de grands boubous majestueux. Nous vous recommandons une longueur de manche soignée pour affirmer toute votre prestance.`;
+    comment = `Votre morphologie présente une excellente proportion athlétique pour un homme avec une poitrine de ${poitrine}cm et un tour de fesse/bassin de ${fesse}cm. Votre stature est idéale pour nos grands boubous majestueux Habé (longueur de ${longueur_boubou}cm préconisée) et nos coupes de pantalons ajustées (longueur de ${longueur_pantalon}cm).`;
   } else {
     comment = `Un profil de jeune couturier en pleine croissance, dynamique et très prometteur. Ses proportions sont régulières, ce qui facilite un seyant impeccable pour tous nos ensembles pour enfants et tenues de fête traditionnelles. Optez pour une aisance confortable de 2 cm supplémentaires lors de la coupe de ses vêtements.`;
   }
 
   return {
     hauteur: h,
-    taille,
-    hanche,
-    poitrine,
+    epaule,
+    cou,
     manche,
-    coude,
-    pantalon,
+    tour_manche,
+    longueur_boubou,
+    longueur_pantalon,
+    fesse,
+    poitrine,
+    cuisse,
+    ceinture,
     comment
   };
 };
@@ -107,35 +134,26 @@ export const getRecommendations = (gender: string, m: MeasureResult) => {
   let shapeDesc = "";
   
   if (gender === "homme") {
-    const diffPT = m.poitrine - m.taille;
+    const diffPT = m.poitrine - m.ceinture;
     if (diffPT >= 10) {
       shape = "Morphologie Athlétique (V-Shape)";
-      shapeDesc = "Vos épaules et votre poitrine sont bien développées par rapport à votre taille. Les coupes ajustées (Slim Fit) pour les chemises et les vestes cintrées mettront particulièrement en valeur votre carrure.";
-    } else if (diffPT <= 2 && m.taille >= m.poitrine) {
+      shapeDesc = "Vos épaules et votre poitrine sont bien développées par rapport à votre ceinture. Les coupes ajustées (Slim Fit) pour les chemises et les vestes cintrées mettront particulièrement en valeur votre carrure.";
+    } else if (diffPT <= 2 && m.ceinture >= m.poitrine) {
       shape = "Morphologie Ovale / Solide";
       shapeDesc = "Votre corps est harmonieux avec du volume au niveau du buste. Privilégiez des vêtements structurés mais confortables (Regular Fit), des vestes droites à deux boutons pour allonger votre silhouette.";
     } else {
       shape = "Morphologie Rectangulaire / Classique";
-      shapeDesc = "Vos épaules, votre taille et vos hanches sont alignées de façon équilibrée. C'est un profil idéal pour jouer sur les superpositions. Les vestes structurées aux épaules marquées vous iront à merveille.";
+      shapeDesc = "Vos épaules, votre taille/ceinture et vos hanches/fesses sont alignées de façon équilibrée. C'est un profil idéal pour jouer sur les superpositions. Les vestes structurées aux épaules marquées vous iront à merveille.";
     }
   } else {
-    // Femme
-    const diffHP = m.hanche - m.poitrine;
-    const diffPH = m.poitrine - m.hanche;
-    const isHourglass = m.taille <= 0.76 * m.poitrine && Math.abs(m.poitrine - m.hanche) <= 6;
-    
-    if (isHourglass) {
-      shape = "Morphologie Sablier (X / Sablier)";
-      shapeDesc = "Vos hanches et votre poitrine sont alignées avec une taille très marquée. C'est l'allure classique de la haute couture. Sublimez votre taille avec des ceintures, des coupes ajustées, des robes portefeuilles et des vestes cintrées.";
-    } else if (diffHP >= 7) {
-      shape = "Morphologie Pyramide (A / Poire)";
-      shapeDesc = "Vos hanches sont plus larges que vos épaules et votre poitrine. L'objectif est d'attirer l'attention sur le haut du corps. Misez sur des vestes avec des épaulettes légères, des cols bateau ou généreux, et des coupes droites pour le bas.";
-    } else if (diffPH >= 7) {
-      shape = "Morphologie Pyramide Inversée (V-Shape)";
-      shapeDesc = "Vos épaules et votre poitrine sont plus larges que vos hanches. Équilibrez votre allure en apportant du volume sur le bas avec des pantalons larges (Wide Leg), des jupes évasées, et des hauts fluides à cols en V.";
+    // Enfant
+    const diffPH = m.poitrine - m.fesse;
+    if (diffPH >= 4) {
+      shape = "Morphologie Conique / Grandissant";
+      shapeDesc = "Un profil élancé en pleine croissance. Parfait pour les ensembles boubou avec épaules dégagées.";
     } else {
-      shape = "Morphologie Rectangulaire (H-Shape)";
-      shapeDesc = "Votre corps est fin et élancé, avec peu de différence entre la taille, le buste et les hanches. Créez des illusions de courbes en choisissant des coupes légèrement amples, des détails plissés, et des manteaux ceinturés.";
+      shape = "Morphologie Régulière";
+      shapeDesc = "Proportions standards idéales pour toutes nos collections d'enfants.";
     }
   }
 
@@ -149,12 +167,10 @@ export const getRecommendations = (gender: string, m: MeasureResult) => {
     else if (m.poitrine < 114) shirtSize = "43/44 (XL)";
     else shirtSize = "45/46 (XXL)";
   } else {
-    if (m.poitrine < 82) shirtSize = "34 (XS)";
-    else if (m.poitrine < 88) shirtSize = "36 (S)";
-    else if (m.poitrine < 94) shirtSize = "38 (M)";
-    else if (m.poitrine < 100) shirtSize = "40 (L)";
-    else if (m.poitrine < 106) shirtSize = "42 (XL)";
-    else shirtSize = "44 (XXL)";
+    if (m.poitrine < 62) shirtSize = "6/8 ans";
+    else if (m.poitrine < 72) shirtSize = "8/10 ans";
+    else if (m.poitrine < 82) shirtSize = "10/12 ans";
+    else shirtSize = "12/14 ans";
   }
 
   // Blazer / Veste (FR size)
@@ -164,16 +180,16 @@ export const getRecommendations = (gender: string, m: MeasureResult) => {
   } else {
     blazerSize = Math.round(m.poitrine / 2) - 6;
   }
-  blazerSize = Math.max(34, Math.min(62, blazerSize - (blazerSize % 2)));
+  blazerSize = Math.max(24, Math.min(62, blazerSize - (blazerSize % 2)));
 
   // Trouser (FR size)
   let trouserSize = 0;
   if (gender === "homme") {
-    trouserSize = Math.round(m.taille / 2);
+    trouserSize = Math.round(m.ceinture / 2);
   } else {
-    trouserSize = Math.round(m.taille / 2) - 4;
+    trouserSize = Math.round(m.ceinture / 2) - 4;
   }
-  trouserSize = Math.max(34, Math.min(58, trouserSize - (trouserSize % 2)));
+  trouserSize = Math.max(22, Math.min(58, trouserSize - (trouserSize % 2)));
 
   return {
     shape,
@@ -283,11 +299,11 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
     }
   };
 
-  // Helper to downscale and compress images for ultra-fast uploads and mobile network safety
-  const resizeImage = (dataUrl: string, maxWidth = 1200, maxHeight = 1200): Promise<string> => {
+  // Helper to downscale and compress images for ultra-fast uploads and AI processing
+  const resizeImage = (dataUrl: string, maxWidth = 800, maxHeight = 800): Promise<string> => {
     return new Promise((resolve) => {
-      // If the image is already extremely small (under 120KB), keep it untouched
-      if (dataUrl.length < 120000) {
+      // If the image is already small (under 80KB), keep it untouched
+      if (dataUrl.length < 80000) {
         resolve(dataUrl);
         return;
       }
@@ -296,8 +312,8 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
       img.src = dataUrl;
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        let width = img.naturalWidth || img.width || 1024;
-        let height = img.naturalHeight || img.height || 1024;
+        let width = img.naturalWidth || img.width || 800;
+        let height = img.naturalHeight || img.height || 800;
 
         if (width > maxWidth || height > maxHeight) {
           if (width > height) {
@@ -314,7 +330,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
         const ctx = canvas.getContext("2d");
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL("image/jpeg", 0.85)); // Optimized compression factor for super-fast uploads
+          resolve(canvas.toDataURL("image/jpeg", 0.75)); // Optimized JPEG compression for lightning-fast AI analysis
         } else {
           resolve(dataUrl);
         }
@@ -338,8 +354,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
           setError(null);
           
           try {
-            // High-fidelity processing preserving maximum detail for precise tailorship
-            const resized = await resizeImage(base64);
+            const resized = await resizeImage(base64, 800, 800);
             setImageSrc(resized);
             calculateMeasurements(resized);
           } catch (err) {
@@ -361,11 +376,14 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
 
   // Submit image to Gemini measurement backend
   const calculateMeasurements = async (overrideImage?: string) => {
-    const activeImage = overrideImage || imageSrc;
-    if (!activeImage) return;
+    let rawActiveImage = overrideImage || imageSrc;
+    if (!rawActiveImage) return;
     setLoading(true);
     setLoadingStep(0);
     setError(null);
+
+    // Fast image downscaling before network transfer
+    const activeImage = await resizeImage(rawActiveImage, 800, 800);
 
     // Absolute fallback URLs for dev and prod
     const devUrl = "https://ais-dev-upzhp3kqwztocsgkzoovce-115539072125.europe-west2.run.app/api/measure";
@@ -483,6 +501,22 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
       }
 
       if (!response.ok) {
+        const errText = await response.text();
+        let errMsg = "Erreur de traitement de l'image.";
+        try {
+          const parsed = JSON.parse(errText);
+          if (parsed.error) errMsg = parsed.error;
+        } catch (_) {}
+
+        if (response.status === 400 || errMsg.toLowerCase().includes("rejet") || errMsg.toLowerCase().includes("personne") || errMsg.toLowerCase().includes("incomplet")) {
+          console.warn("Photo rejetée par l'analyseur IA :", errMsg);
+          setError(errMsg);
+          setLoading(false);
+          setResult(null);
+          setAdjustedResult(null);
+          return;
+        }
+
         console.warn("Erreur de réponse du serveur. Utilisation de l'Atelier local Maison Habé...");
         setIsLocalFallback(true);
         const localData = computeLocalMeasurements(gender, parseInt(height));
@@ -646,143 +680,31 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
             animate={{ opacity: 1, scale: 1 }}
             className="grid grid-cols-1 md:grid-cols-12 gap-8"
           >
-            {/* Mannequin / Silhouette Visual Column */}
-            <div className="md:col-span-5 bg-[#FFEAD8]/95 backdrop-blur-xl border border-white/40 rounded-3xl p-4 sm:p-6 flex flex-col items-center justify-center min-h-[360px] sm:min-h-[450px] shadow-2xl relative overflow-hidden w-full max-w-sm md:max-w-none mx-auto">
+            {/* 3D Bodygee Animated Scanner Column */}
+            <div className="md:col-span-5 bg-[#FFEAD8]/95 backdrop-blur-xl border border-white/40 rounded-3xl p-4 sm:p-5 flex flex-col items-center justify-center min-h-[360px] sm:min-h-[450px] shadow-2xl relative overflow-hidden w-full max-w-sm md:max-w-none mx-auto">
               <div className="absolute top-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
-              <h3 className="text-xs font-heading font-bold uppercase tracking-widest text-brand-orange-dark mb-6">
-                Visualisation Anatomique
-              </h3>
-
-              <div className="relative w-full max-w-[190px] sm:max-w-[240px] aspect-[1/2] flex items-center justify-center">
-                {/* SVG Silhouette template representing points of interest */}
-                <svg viewBox="0 0 100 200" className="w-full h-full text-stone-300 stroke-current fill-none">
-                  {/* Chic Abstract Mannequin Silhouette */}
-                  <path d="M 50 15 C 47 15, 45 17, 45 20 C 45 23, 47 25, 50 25 C 53 25, 55 23, 55 20 C 55 17, 53 15, 50 15 Z" strokeWidth="1.2" className="stroke-stone-400" /> {/* Head */}
-                  <path d="M 45 25 L 55 25 L 53 32 L 47 32 Z" strokeWidth="1.2" className="stroke-stone-400" /> {/* Neck */}
-                  <path d="M 33 36 C 35 34, 42 32, 50 32 C 58 32, 65 34, 67 36 L 72 52 L 72 75 C 72 80, 68 85, 63 85 L 37 85 C 32 85, 28 80, 28 75 L 28 52 Z" strokeWidth="1.2" className="stroke-stone-400" /> {/* Torso */}
-                  <path d="M 37 85 L 40 145 L 43 190 L 46 190 L 44 145 L 50 110 L 56 145 L 54 190 L 57 190 L 60 145 L 63 85" strokeWidth="1.2" className="stroke-stone-400" /> {/* Legs */}
-                  <path d="M 30 36 L 24 55 L 20 75 L 18 90" strokeWidth="1.2" className="stroke-stone-400" /> {/* Left Arm */}
-                  <path d="M 70 36 L 76 55 L 80 75 L 82 90" strokeWidth="1.2" className="stroke-stone-400" /> {/* Right Arm */}
-
-                  {/* Horizontal measurement indicators */}
-                  {/* Head / Tête Trait (Visual indicator) */}
-                  <line 
-                    x1="35" y1="20" x2="65" y2="20" 
-                    className="stroke-stone-400/80"
-                    strokeWidth="1.5"
-                    strokeDasharray="3 2"
-                  />
-
-                  {/* Chest / Poitrine */}
-                  <motion.line 
-                    x1="31" y1="46" x2="69" y2="46" 
-                    className="cursor-pointer"
-                    stroke={hoveredMeasure === "poitrine" ? "#C1541A" : "#D97706"}
-                    strokeWidth={hoveredMeasure === "poitrine" ? "4" : "2"}
-                    strokeDasharray={hoveredMeasure === "poitrine" ? "none" : "3 2"}
-                    onMouseEnter={() => setHoveredMeasure("poitrine")}
-                    onMouseLeave={() => setHoveredMeasure(null)}
-                    animate={hoveredMeasure === "poitrine" ? { strokeWidth: [3, 5, 3] } : {}}
-                    transition={{ repeat: Infinity, duration: 1.5 }}
-                  />
-                  {/* Waist / Taille (Moved to the former place of Pantalon on the leg) */}
-                  <motion.path 
-                    d="M 58 85 L 55 145 L 52 190" 
-                    className="cursor-pointer"
-                    stroke={hoveredMeasure === "taille" ? "#C1541A" : "#EA580C"}
-                    strokeWidth={hoveredMeasure === "taille" ? "4" : "2"}
-                    fill="none"
-                    onMouseEnter={() => setHoveredMeasure("taille")}
-                    onMouseLeave={() => setHoveredMeasure(null)}
-                    animate={hoveredMeasure === "taille" ? { strokeWidth: [3, 5, 3] } : {}}
-                    transition={{ repeat: Infinity, duration: 1.5 }}
-                  />
-                  {/* Hip / Hanche */}
-                  <motion.line 
-                    x1="35" y1="80" x2="65" y2="80" 
-                    className="cursor-pointer"
-                    stroke={hoveredMeasure === "hanche" ? "#C1541A" : "#C1541A"}
-                    strokeWidth={hoveredMeasure === "hanche" ? "4" : "2"}
-                    strokeDasharray={hoveredMeasure === "hanche" ? "none" : "3 2"}
-                    onMouseEnter={() => setHoveredMeasure("hanche")}
-                    onMouseLeave={() => setHoveredMeasure(null)}
-                    animate={hoveredMeasure === "hanche" ? { strokeWidth: [3, 5, 3] } : {}}
-                    transition={{ repeat: Infinity, duration: 1.5 }}
-                  />
-                  {/* Sleeve / Manche */}
-                  <motion.path 
-                    d="M 70 36 L 76 55 L 80 75" 
-                    className="cursor-pointer"
-                    stroke={hoveredMeasure === "manche" ? "#C1541A" : "#F59E0B"}
-                    strokeWidth={hoveredMeasure === "manche" ? "4" : "2"}
-                    fill="none"
-                    onMouseEnter={() => setHoveredMeasure("manche")}
-                    onMouseLeave={() => setHoveredMeasure(null)}
-                    animate={hoveredMeasure === "manche" ? { strokeWidth: [3, 5, 3] } : {}}
-                    transition={{ repeat: Infinity, duration: 1.5 }}
-                  />
-                  {/* Elbow / Coude (highlights left arm upper half) */}
-                  <motion.path 
-                    d="M 30 36 L 24 55" 
-                    className="cursor-pointer"
-                    stroke={hoveredMeasure === "coude" ? "#C1541A" : "#EA580C"}
-                    strokeWidth={hoveredMeasure === "coude" ? "4" : "2"}
-                    fill="none"
-                    onMouseEnter={() => setHoveredMeasure("coude")}
-                    onMouseLeave={() => setHoveredMeasure(null)}
-                    animate={hoveredMeasure === "coude" ? { strokeWidth: [3, 5, 3] } : {}}
-                    transition={{ repeat: Infinity, duration: 1.5 }}
-                  />
-                  {/* Interactive Nodes */}
-                  <circle cx="50" cy="46" r={hoveredMeasure === "poitrine" ? "5" : "3"} className="fill-amber-500 cursor-pointer transition-all" onMouseEnter={() => setHoveredMeasure("poitrine")} onMouseLeave={() => setHoveredMeasure(null)} />
-                  <circle cx="55" cy="145" r={hoveredMeasure === "taille" ? "5" : "3"} className="fill-orange-500 cursor-pointer transition-all" onMouseEnter={() => setHoveredMeasure("taille")} onMouseLeave={() => setHoveredMeasure(null)} />
-                  <circle cx="50" cy="80" r={hoveredMeasure === "hanche" ? "5" : "3"} className="fill-brand-orange-dark cursor-pointer transition-all" onMouseEnter={() => setHoveredMeasure("hanche")} onMouseLeave={() => setHoveredMeasure(null)} />
-                  <circle cx="76" cy="55" r={hoveredMeasure === "manche" ? "5" : "3"} className="fill-amber-400 cursor-pointer transition-all" onMouseEnter={() => setHoveredMeasure("manche")} onMouseLeave={() => setHoveredMeasure(null)} />
-                  <circle cx="24" cy="55" r={hoveredMeasure === "coude" ? "5" : "3"} className="fill-orange-400 cursor-pointer transition-all" onMouseEnter={() => setHoveredMeasure("coude")} onMouseLeave={() => setHoveredMeasure(null)} />
-                </svg>
-
-                {/* Badges pointing to measurements dynamically on svg */}
-                <div 
-                  onMouseEnter={() => setHoveredMeasure("poitrine")}
-                  onMouseLeave={() => setHoveredMeasure(null)}
-                  className={`absolute top-[23%] left-[-15px] sm:left-[-20px] bg-amber-500 text-black text-[9px] font-heading font-extrabold px-1.5 py-0.5 rounded shadow cursor-pointer transition-all duration-200 ${hoveredMeasure === "poitrine" ? "scale-110 ring-2 ring-amber-600" : ""}`}
-                >
-                  Poitrine: {adjustedResult.poitrine}cm
-                </div>
-                <div 
-                  onMouseEnter={() => setHoveredMeasure("taille")}
-                  onMouseLeave={() => setHoveredMeasure(null)}
-                  className={`absolute top-[72.5%] left-[-15px] sm:left-[-20px] bg-orange-500 text-white text-[9px] font-heading font-extrabold px-1.5 py-0.5 rounded shadow cursor-pointer transition-all duration-200 ${hoveredMeasure === "taille" ? "scale-110 ring-2 ring-orange-600" : ""}`}
-                >
-                  Taille: {adjustedResult.taille}cm
-                </div>
-                <div 
-                  onMouseEnter={() => setHoveredMeasure("hanche")}
-                  onMouseLeave={() => setHoveredMeasure(null)}
-                  className={`absolute top-[40%] right-[-10px] sm:right-[-15px] bg-brand-orange-light text-black text-[9px] font-heading font-extrabold px-1.5 py-0.5 rounded shadow cursor-pointer transition-all duration-200 ${hoveredMeasure === "hanche" ? "scale-110 ring-2 ring-orange-400" : ""}`}
-                >
-                  Hanches: {adjustedResult.hanche}cm
-                </div>
-                <div 
-                  onMouseEnter={() => setHoveredMeasure("coude")}
-                  onMouseLeave={() => setHoveredMeasure(null)}
-                  className={`absolute top-[12%] left-[-15px] sm:left-[-20px] bg-orange-400 text-black text-[9px] font-heading font-extrabold px-1.5 py-0.5 rounded shadow cursor-pointer transition-all duration-200 ${hoveredMeasure === "coude" ? "scale-110 ring-2 ring-orange-500" : ""}`}
-                >
-                  Coude: {adjustedResult.coude}cm
-                </div>
-                <div 
-                  onMouseEnter={() => setHoveredMeasure("manche")}
-                  onMouseLeave={() => setHoveredMeasure(null)}
-                  className={`absolute top-[31%] right-[-10px] sm:right-[-15px] bg-amber-400 text-black text-[9px] font-heading font-extrabold px-1.5 py-0.5 rounded shadow cursor-pointer transition-all duration-200 ${hoveredMeasure === "manche" ? "scale-110 ring-2 ring-amber-500" : ""}`}
-                >
-                  Manche: {adjustedResult.manche}cm
-                </div>
+              <div className="w-full flex items-center justify-between mb-3 border-b border-white/30 pb-2">
+                <h3 className="text-xs font-heading font-bold uppercase tracking-widest text-brand-orange-dark flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" /> Avatar 3D Bodygee
+                </h3>
+                <span className="text-[9px] font-mono text-stone-500 bg-white/50 px-2 py-0.5 rounded-full border border-stone-200">
+                  360° Scan
+                </span>
               </div>
 
-              <div className="mt-6 flex gap-3 text-stone-600 text-[10px] font-extrabold font-heading">
+              <Bodygee3DScanner
+                adjustedResult={adjustedResult}
+                imageSrc={imageSrc}
+                gender={gender}
+                height={height}
+                hoveredMeasure={hoveredMeasure}
+                setHoveredMeasure={setHoveredMeasure}
+              />
+
+              <div className="mt-4 flex gap-3 text-stone-600 text-[10px] font-extrabold font-heading">
                 <span className="flex items-center gap-1 bg-white/40 px-2 py-1 rounded-full border border-white/20">
                   <span className="w-2.5 h-2.5 rounded-full bg-brand-orange-dark" />
-                  Maison Habé IA
+                  Maison Habé 3D
                 </span>
                 <span className="flex items-center gap-1 bg-white/40 px-2 py-1 rounded-full border border-white/20">
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
@@ -852,11 +774,16 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                       {/* Measurements Grid */}
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {[
-                          { key: "poitrine", label: "Tour de Poitrine", value: adjustedResult.poitrine, color: "border-amber-500/30" },
-                          { key: "taille", label: "Tour de Taille", value: adjustedResult.taille, color: "border-orange-500/30" },
-                          { key: "hanche", label: "Tour de Hanche", value: adjustedResult.hanche, color: "border-brand-orange-light/30" },
-                          { key: "coude", label: "Tour de Coude", value: adjustedResult.coude, color: "border-orange-400/30" },
-                          { key: "manche", label: "Longueur Manche", value: adjustedResult.manche, color: "border-amber-400/30" }
+                          { key: "epaule", label: "Épaule", value: adjustedResult.epaule, color: "border-amber-500/30" },
+                          { key: "cou", label: "Tour de Cou", value: adjustedResult.cou, color: "border-amber-500/30" },
+                          { key: "manche", label: "Longueur Manche", value: adjustedResult.manche, color: "border-amber-400/30" },
+                          { key: "tour_manche", label: "Tour de Manche", value: adjustedResult.tour_manche, color: "border-amber-400/30" },
+                          { key: "longueur_boubou", label: "Longueur Boubou", value: adjustedResult.longueur_boubou, color: "border-orange-500/30" },
+                          { key: "longueur_pantalon", label: "Longueur Pantalon", value: adjustedResult.longueur_pantalon, color: "border-orange-500/30" },
+                          { key: "fesse", label: "Tour de Fesse", value: adjustedResult.fesse, color: "border-brand-orange-light/30" },
+                          { key: "poitrine", label: "Tour de Poitrine", value: adjustedResult.poitrine, color: "border-orange-400/30" },
+                          { key: "cuisse", label: "Tour de Cuisse", value: adjustedResult.cuisse, color: "border-orange-400/30" },
+                          { key: "ceinture", label: "Ceinture (Fesse)", value: adjustedResult.ceinture, color: "border-brand-orange-light/30" }
                         ].map((m, i) => (
                           <div 
                             key={i} 
@@ -921,11 +848,16 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                       <div className="space-y-2 bg-white/80 border border-stone-200/30 p-3 rounded-2xl shadow-sm max-h-[220px] overflow-y-auto">
                         {[
                           { key: "hauteur", label: "Hauteur de votre Corps", min: 100, max: 220 },
+                          { key: "epaule", label: "Épaule", min: 35, max: 65 },
+                          { key: "cou", label: "Tour de Cou", min: 25, max: 55 },
+                          { key: "manche", label: "Longueur de Manche", min: 40, max: 85 },
+                          { key: "tour_manche", label: "Tour de Manche", min: 20, max: 55 },
+                          { key: "longueur_boubou", label: "Longueur Boubou", min: 70, max: 120 },
+                          { key: "longueur_pantalon", label: "Longueur Pantalon", min: 80, max: 130 },
+                          { key: "fesse", label: "Tour de Fesse", min: 70, max: 130 },
                           { key: "poitrine", label: "Tour de Poitrine", min: 70, max: 130 },
-                          { key: "taille", label: "Tour de Taille", min: 60, max: 120 },
-                          { key: "hanche", label: "Tour de Hanche", min: 70, max: 130 },
-                          { key: "coude", label: "Tour de Coude", min: 15, max: 50 },
-                          { key: "manche", label: "Longueur de Manche", min: 40, max: 85 }
+                          { key: "cuisse", label: "Tour de Cuisse", min: 35, max: 85 },
+                          { key: "ceinture", label: "Ceinture (Fesse)", min: 70, max: 130 }
                         ].map((slider) => {
                           const val = (adjustedResult[slider.key as keyof MeasureResult] as number) || (slider.key === "hauteur" ? parseInt(height) : 0);
                           return (
@@ -951,9 +883,15 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                                 value={val}
                                 onChange={(e) => {
                                   const newVal = parseInt(e.target.value);
-                                  const updated = { ...adjustedResult, [slider.key]: newVal };
+                                  let updated = { ...adjustedResult, [slider.key]: newVal };
                                   if (slider.key === "hauteur") {
                                     setHeight(newVal.toString());
+                                  } else if (slider.key === "fesse") {
+                                    updated.ceinture = newVal;
+                                    updated.poitrine = newVal + 5;
+                                  } else if (slider.key === "ceinture") {
+                                    updated.fesse = newVal;
+                                    updated.poitrine = newVal + 5;
                                   }
                                   saveAdjustedResult(updated);
                                 }}
@@ -1348,24 +1286,25 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                     </div>
                   </div>
 
-                  {/* Big Measurements List */}
-                  <div className="space-y-2">
-                    <span className="text-stone-400 font-bold uppercase tracking-wider block text-[9px]">Mensurations Officielles</span>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      {[
-                        { label: "Tour de Poitrine", value: adjustedResult.poitrine },
-                        { label: "Tour de Taille", value: adjustedResult.taille },
-                        { label: "Tour de Hanche", value: adjustedResult.hanche },
-                        { label: "Tour de Coude", value: adjustedResult.coude },
-                        { label: "Longueur de Manche", value: adjustedResult.manche }
-                      ].map((m, i) => (
-                        <div key={i} className="flex justify-between items-center bg-stone-50 border border-stone-100 p-2.5 rounded-xl font-body">
-                          <span className="text-stone-500 font-medium">{m.label}</span>
-                          <span className="font-heading font-extrabold text-stone-900">{m.value} cm</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                   {/* Big Measurements List */}
+                   <div className="space-y-2">
+                     <span className="text-stone-400 font-bold uppercase tracking-wider block text-[9px]">Mensurations Officielles</span>
+                     <div className="grid grid-cols-2 gap-2 text-xs">
+                       {[
+                         { label: "Épaule", value: adjustedResult.epaule },
+                         { label: "Tour de Cou", value: adjustedResult.cou },
+                         { label: "Tour de Poitrine", value: adjustedResult.poitrine },
+                         { label: "Ceinture (Fesse)", value: adjustedResult.ceinture },
+                         { label: "Tour de Fesse", value: adjustedResult.fesse },
+                         { label: "Longueur Manche", value: adjustedResult.manche }
+                       ].map((m, i) => (
+                         <div key={i} className="flex justify-between items-center bg-stone-50 border border-stone-100 p-2.5 rounded-xl font-body">
+                           <span className="text-stone-500 font-medium">{m.label}</span>
+                           <span className="font-heading font-extrabold text-stone-900">{m.value} cm</span>
+                         </div>
+                       ))}
+                     </div>
+                   </div>
 
                   {/* Recommendations */}
                   <div className="space-y-2">
@@ -1419,25 +1358,30 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                 {/* Footer Controls */}
                 <div className="bg-stone-50 p-4 border-t border-stone-200/80 flex flex-col sm:flex-row gap-2.5 shrink-0">
                   <button
-                    onClick={() => {
-                      if (!adjustedResult) return;
-                      const text = `PASSEPORT DE COUTURE NUMÉRIQUE - MAISON HABÉ\n\n` +
-                        `Titulaire : ${user?.user_metadata?.full_name || user?.email || "Couturier Invité"}\n` +
-                        `Genre : ${gender === "homme" ? "Homme" : "Enfant"}\n` +
-                        `Hauteur : ${height} cm\n\n` +
-                        `MESURATIONS :\n` +
-                        `- Tour de Poitrine : ${adjustedResult.poitrine} cm\n` +
-                        `- Tour de Taille : ${adjustedResult.taille} cm\n` +
-                        `- Tour de Hanche : ${adjustedResult.hanche} cm\n` +
-                        `- Tour de Coude : ${adjustedResult.coude} cm\n` +
-                        `- Longueur de Manche : ${adjustedResult.manche} cm\n\n` +
-                        `Recommandations de tailles d'Atelier : Veste T${getRecommendations(gender, adjustedResult).blazerSize}, Chemise ${getRecommendations(gender, adjustedResult).shirtSize}\n` +
-                        `Délivré numériquement sur Maison Habé IA`;
+                     onClick={() => {
+                       if (!adjustedResult) return;
+                       const text = `PASSEPORT DE COUTURE NUMÉRIQUE - MAISON HABÉ\n\n` +
+                         `Titulaire : ${user?.user_metadata?.full_name || user?.email || "Couturier Invité"}\n` +
+                         `Genre : ${gender === "homme" ? "Homme" : "Enfant"}\n` +
+                         `Hauteur : ${height} cm\n\n` +
+                         `MESURATIONS :\n` +
+                         `- Épaule : ${adjustedResult.epaule} cm\n` +
+                         `- Tour de Cou : ${adjustedResult.cou} cm\n` +
+                         `- Longueur de Manche : ${adjustedResult.manche} cm\n` +
+                         `- Tour de Manche : ${adjustedResult.tour_manche} cm\n` +
+                         `- Longueur de Boubou : ${adjustedResult.longueur_boubou} cm\n` +
+                         `- Longueur de Pantalon : ${adjustedResult.longueur_pantalon} cm\n` +
+                         `- Tour de Fesse : ${adjustedResult.fesse} cm\n` +
+                         `- Tour de Poitrine : ${adjustedResult.poitrine} cm\n` +
+                         `- Tour de Cuisse : ${adjustedResult.cuisse} cm\n` +
+                         `- Ceinture (Fesse) : ${adjustedResult.ceinture} cm\n\n` +
+                         `Recommandations de tailles d'Atelier : Veste T${getRecommendations(gender, adjustedResult).blazerSize}, Chemise ${getRecommendations(gender, adjustedResult).shirtSize}\n` +
+                         `Délivré numériquement sur Maison Habé IA`;
 
-                      navigator.clipboard.writeText(text);
-                      setCopySuccess(true);
-                      setTimeout(() => setCopySuccess(false), 2500);
-                    }}
+                       navigator.clipboard.writeText(text);
+                       setCopySuccess(true);
+                       setTimeout(() => setCopySuccess(false), 2500);
+                     }}
                     className="flex-1 py-3 bg-white hover:bg-stone-100 active:scale-95 text-stone-700 border border-stone-300 rounded-xl font-heading font-extrabold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
                   >
                     <Clipboard className="w-3.5 h-3.5 text-brand-orange-dark" />

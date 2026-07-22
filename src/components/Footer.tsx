@@ -24,8 +24,8 @@ const Footer: React.FC = () => {
           <ul className="flex flex-col gap-3">
             <li className="flex items-center gap-3 text-xs text-white/70 font-body">
               <Phone className="w-4 h-4 text-brand-orange-light shrink-0" />
-              <a href="tel:+22394077011" className="hover:text-white transition-colors">
-                +223 94 07 70 11
+              <a href="tel:+22394020209" className="hover:text-white transition-colors">
+                +223 94 02 02 09
               </a>
             </li>
             <li className="flex items-center gap-3 text-xs text-white/70 font-body">

@@ -55,3 +55,19 @@ export interface PretProduct {
   description: string;
 }
 
+export interface MeasureResult {
+  hauteur?: number;
+  epaule: number;
+  cou: number;
+  manche: number;
+  tour_manche: number;
+  longueur_boubou: number;
+  longueur_pantalon: number;
+  fesse: number;
+  poitrine: number;
+  cuisse: number;
+  ceinture: number;
+  comment: string;
+  isLocal?: boolean;
+}
+

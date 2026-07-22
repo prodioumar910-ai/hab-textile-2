@@ -4,8 +4,7 @@ import { MapPin, Phone, MessageSquare, Instagram, Truck, ExternalLink } from 'lu
 import { getOptimizedImage } from '../utils/image';
 
 const About: React.FC = () => {
-  const whatsappUrl1 = "https://wa.me/22394077011?text=Bonjour%20Hab%C3%A9%20Textile%2C%20je%20souhaite%20finaliser%20ma%20commande.";
-  const whatsappUrl2 = "https://wa.me/22394020209?text=Bonjour%20Hab%C3%A9%20Textile%2C%20je%20souhaite%20finaliser%20ma%20commande.";
+  const whatsappUrl = "https://wa.me/22394020209?text=Bonjour%20Hab%C3%A9%20Textile%2C%20je%20souhaite%20finaliser%20ma%20commande.";
   const instagramUrl = "https://www.instagram.com/habe_textile";
   const tiktokUrl = "https://www.tiktok.com/@habe_textile";
 
@@ -58,12 +57,9 @@ const About: React.FC = () => {
 
           <div className="pt-3 border-t border-brand-black/10">
             <span className="font-heading font-bold text-[10px] tracking-widest uppercase text-brand-black/60 block mb-2">
-              CONTACTS DIRECTS & WHATSAPP
+              CONTACT DIRECT & WHATSAPP
             </span>
             <div className="space-y-2 font-mono text-[11px] text-brand-orange-dark font-semibold">
-              <a href="tel:+22394077011" className="flex items-center gap-1.5 hover:underline">
-                <Phone className="w-3.5 h-3.5" /> +223 94 07 70 11
-              </a>
               <a href="tel:+22394020209" className="flex items-center gap-1.5 hover:underline">
                 <Phone className="w-3.5 h-3.5" /> +223 94 02 02 09
               </a>
@@ -115,29 +111,17 @@ const About: React.FC = () => {
       <section className="mb-6 text-left">
         <h3 className="font-heading font-bold text-base text-brand-black mb-3">Votre Commande</h3>
         
-        <div className="space-y-3">
+        <div>
           <motion.a
             whileHover={{ y: -2, scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            href={whatsappUrl1}
+            href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-3 p-4 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-heading font-bold text-sm tracking-wide shadow-lg shadow-green-600/20 cursor-pointer select-none"
           >
             <MessageSquare className="w-5 h-5 shrink-0" />
-            <span>Finaliser votre commande (+223 94 07 70 11)</span>
-          </motion.a>
-
-          <motion.a
-            whileHover={{ y: -2, scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            href={whatsappUrl2}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-3 p-4 bg-green-600/90 hover:bg-green-700 text-white rounded-2xl font-heading font-semibold text-xs tracking-wide shadow-md cursor-pointer select-none"
-          >
-            <MessageSquare className="w-4 h-4 shrink-0" />
-            <span>Contact de secours (+223 94 02 02 09)</span>
+            <span>Finaliser votre commande (+223 94 02 02 09)</span>
           </motion.a>
         </div>
       </section>

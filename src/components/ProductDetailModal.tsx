@@ -239,7 +239,7 @@ ${itemsText}
 _Merci de confirmer ma commande ainsi que les délais de confection. À bientôt !_`;
 
     // 4. Redirect to WhatsApp API
-    const targetWhatsApp = "22394077011";
+    const targetWhatsApp = "22394020209";
     const waUrl = `https://wa.me/${targetWhatsApp}?text=${encodeURIComponent(waMessage)}`;
     
     window.open(waUrl, '_blank');
@@ -719,7 +719,7 @@ _Merci de confirmer ma commande ainsi que les délais de confection. À bientôt
                         required
                         value={clientPhone}
                         onChange={(e) => setClientPhone(e.target.value)}
-                        placeholder="Ex: 223 94 07 70 11"
+                        placeholder="Ex: 223 94 02 02 09"
                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-orange-light focus:ring-1 focus:ring-brand-orange-light transition-all"
                       />
                     </div>

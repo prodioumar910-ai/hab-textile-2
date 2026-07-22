@@ -87,23 +87,38 @@ async function startServer() {
       }
 
       const systemInstruction = `Tu es un tailleur couturier professionnel virtuel d'exception pour Maison Habé.
-Analyse la photo de l'utilisateur (un être humain debout) pour estimer précisément sa hauteur (taille totale) ainsi que ses mensurations corporelles en centimètres (cm).
-L'utilisateur s'identifie comme de sexe ${gender || "non spécifié"}.
+Analyse la photo transmise avec attention maximale.
 
-Estime et retourne de façon réaliste et logique les mensurations clés de couture :
-1. Hauteur totale (Height) - "hauteur" en cm (généralement entre 150 et 200 cm pour un adulte)
-2. Taille (Waist) - "taille" en cm
-3. Hanche (Hips) - "hanche" en cm
-4. Poitrine (Chest/Bust) - "poitrine" en cm
-5. Manche (Sleeve) - "manche" en cm
-6. Coude (Elbow) - "coude" en cm
-7. Pantalon (Leg/Inseam) - "pantalon" en cm
+RÈGLE ABSOLUE DE VALIDATION DE L'IMAGE (REJET REQUIS SI NON CONFORME) :
+1. Nombre de personnes : La photo doit contenir STRICTEMENT UNE SEULE PERSONNE. S'il y a 2 personnes ou plus sur la photo, tu DOIS REJETER l'image en définissant "is_valid_image": false.
+2. Intégrité du corps : La personne doit être visible EN ENTIER de la TÊTE aux PIEDS (corps complet debout). Si le corps est incomplet (selfie, mi-corps, visage uniquement, tête coupée, pieds coupés, buste uniquement), tu DOIS REJETER l'image en définissant "is_valid_image": false.
 
-Veille à ce que toutes ces valeurs soient logiques et cohérentes entre elles d'après la silhouette et le sexe de l'utilisateur, sans absurdités.
-Rédige également un commentaire de couturier bienveillant de 2 ou 3 phrases en français avec des conseils adaptés à sa morphologie d'après la photo.
-Format requis : JSON strict selon le schéma fourni.`;
+Si la photo N'EST PAS VALIDE :
+- Définis "is_valid_image": false
+- Rédige un message explicatif dans "rejection_reason" (ex: "Photo rejetée : plusieurs personnes détectées sur la photo. Veuillez importer une photo contenant une seule personne." ou "Photo rejetée : corps incomplet. Veuillez importer une photo montrant la personne entière de la tête aux pieds.")
+- Tu peux mettre des valeurs par défaut pour les mensurations.
 
-      const modelsToTry = ["gemini-3.5-flash", "gemini-3.1-pro-preview", "gemini-flash-latest"];
+Si la photo EST VALIDE ("is_valid_image": true) :
+- "rejection_reason": ""
+- Estime et retourne de façon très précise et réaliste les mensurations clés de couture d'après la silhouette (sexe: ${gender || "non spécifié"}) sous format JSON en respectant STRICTEMENT les règles suivantes :
+
+Pour un profil "homme" adulte (homme normal) :
+- epaule (Largeur d'épaule) : doit être de 43 cm ou plus (généralement entre 43 et 55 cm)
+- cou (Tour de cou) : doit être STRICTEMENT compris entre 36 cm et 44 cm
+- manche (Longueur de manche) : longueur de la manche de l'épaule au poignet (généralement entre 55 et 75 cm)
+- tour_manche (Tour de manche) : doit être STRICTEMENT compris entre 30 cm et 44 cm
+- longueur_boubou (Longueur du boubou) : doit être STRICTEMENT compris entre 84 cm et 100 cm
+- longueur_pantalon (Longueur du pantalon) : doit être STRICTEMENT compris entre 95 cm et 115 cm
+- fesse (Tour de fesse / Bassin) : doit être STRICTEMENT compris entre 85 cm et 120 cm
+- poitrine (Tour de poitrine) : doit être STRICTEMENT égal à fesse + 5 cm (poitrine = fesse + 5)
+- cuisse (Tour de cuisse) : doit être STRICTEMENT compris entre 48 cm et 75 cm
+- ceinture (Tour de ceinture) : doit être STRICTEMENT égal au tour de fesse (ceinture = fesse)
+
+Pour un profil "enfant", adapte proportionnellement les mensurations selon sa hauteur (hauteur entre 80 et 160 cm) mais conserve les mêmes clés JSON.
+
+Rédige également un commentaire de couturier bienveillant de 2 ou 3 phrases en français avec des conseils adaptés d'après la photo.`;
+
+      const modelsToTry = ["gemini-3.6-flash", "gemini-flash-latest", "gemini-3.1-pro-preview"];
       let lastError: any = null;
       let responseText = "";
       let usedModel = "";
@@ -111,46 +126,57 @@ Format requis : JSON strict selon le schéma fourni.`;
       for (const modelName of modelsToTry) {
         try {
           console.log(`Attempting measure API with model: ${modelName}`);
-          const interaction = await ai.interactions.create({
+          
+          const response = await ai.models.generateContent({
             model: modelName,
-            system_instruction: systemInstruction,
-            input: [
+            contents: [
               {
-                type: "image",
-                data: base64Data,
-                mime_type: mimeType
-              },
-              {
-                type: "text",
-                text: `Analyse cette personne de sexe ${gender || "non spécifié"} et donne ses mensurations.`
+                role: "user",
+                parts: [
+                  {
+                    inlineData: {
+                      mimeType: mimeType,
+                      data: base64Data
+                    }
+                  },
+                  {
+                    text: `Analyse cette image. Vérifie d'abord qu'il s'agit d'une seule personne entière (tête aux pieds). Si oui, estime les mensurations pour le profil ${gender || "non spécifié"}.`
+                  }
+                ]
               }
             ],
-            response_format: {
-              type: Type.OBJECT,
-              properties: {
-                hauteur: { type: Type.INTEGER, description: "Hauteur totale estimée en cm" },
-                taille: { type: Type.INTEGER, description: "Mensuration taille estimée en cm" },
-                hanche: { type: Type.INTEGER, description: "Mensuration hanche estimée en cm" },
-                poitrine: { type: Type.INTEGER, description: "Mensuration poitrine estimée en cm" },
-                manche: { type: Type.INTEGER, description: "Mensuration manche estimée en cm" },
-                coude: { type: Type.INTEGER, description: "Mensuration coude estimée en cm" },
-                pantalon: { type: Type.INTEGER, description: "Mensuration pantalon estimée en cm" },
-                comment: { type: Type.STRING, description: "Commentaire stylistique et de couture chaleureux en français (max 3 phrases)" }
+            config: {
+              systemInstruction: systemInstruction,
+              responseMimeType: "application/json",
+              responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                  is_valid_image: { type: Type.BOOLEAN, description: "True si une seule personne entière de la tête aux pieds est visible. False si 2+ personnes ou si le corps est coupé." },
+                  rejection_reason: { type: Type.STRING, description: "Raison explicite du rejet si is_valid_image est false, sinon chaîne vide." },
+                  hauteur: { type: Type.INTEGER, description: "Hauteur totale estimée en cm" },
+                  epaule: { type: Type.INTEGER, description: "Largeur d'épaule estimée en cm (min 43 pour un homme)" },
+                  cou: { type: Type.INTEGER, description: "Tour de cou estimé en cm (36 à 44 pour un homme)" },
+                  manche: { type: Type.INTEGER, description: "Longueur de manche en cm" },
+                  tour_manche: { type: Type.INTEGER, description: "Tour de manche estimé en cm (30 à 44 pour un homme)" },
+                  longueur_boubou: { type: Type.INTEGER, description: "Longueur du boubou estimée en cm (84 à 100 pour un homme)" },
+                  longueur_pantalon: { type: Type.INTEGER, description: "Longueur de pantalon estimée en cm (95 à 115 pour un homme)" },
+                  fesse: { type: Type.INTEGER, description: "Tour de fesse estimé en cm (85 à 120 pour un homme)" },
+                  poitrine: { type: Type.INTEGER, description: "Tour de poitrine estimé en cm (fesse + 5 pour un homme)" },
+                  cuisse: { type: Type.INTEGER, description: "Tour de cuisse estimé en cm (48 à 75 pour un homme)" },
+                  ceinture: { type: Type.INTEGER, description: "Tour de ceinture estimé en cm (égal à fesse pour un homme)" },
+                  comment: { type: Type.STRING, description: "Commentaire stylistique et de couture chaleureux en français (max 3 phrases)" }
+                },
+                required: ["is_valid_image", "rejection_reason", "hauteur", "epaule", "cou", "manche", "tour_manche", "longueur_boubou", "longueur_pantalon", "fesse", "poitrine", "cuisse", "ceinture", "comment"]
               },
-              required: ["hauteur", "taille", "hanche", "poitrine", "manche", "coude", "pantalon", "comment"]
+              temperature: 0.1
             }
           });
 
-          // Extract text from the last step which should contain the JSON
-          const lastStep = interaction.steps.at(-1);
-          if (lastStep && lastStep.type === 'model_output') {
-            const textContent = lastStep.content?.find(c => c.type === 'text');
-            if (textContent) {
-              responseText = textContent.text.trim();
-              usedModel = modelName;
-              console.log(`Successfully generated content using model ${modelName}`);
-              break;
-            }
+          if (response && response.text) {
+            responseText = response.text.trim();
+            usedModel = modelName;
+            console.log(`Successfully generated content using model ${modelName}`);
+            break;
           }
         } catch (err: any) {
           console.warn(`Model ${modelName} failed or unavailable:`, err.message || err);
@@ -164,23 +190,56 @@ Format requis : JSON strict selon le schéma fourni.`;
         const isHomme = gender === "homme";
         const h = isHomme ? 175 : 125;
         
-        const fallbackResults = {
-          hauteur: h,
-          taille: Math.round(h * 0.48),
-          hanche: Math.round(h * 0.54),
-          poitrine: Math.round(h * 0.52),
-          manche: Math.round(h * 0.35),
-          coude: Math.round(h * 0.15),
-          pantalon: Math.round(h * 0.45),
-          comment: "Note: Nos services d'IA sont temporairement surchargés. Ces mesures sont des estimations standards basées sur votre profil. Pour une précision optimale, nous vous invitons à les ajuster manuellement ou à réessayer dans quelques instants.",
-          isLocal: true
-        };
+        let fallbackResults;
+        if (isHomme) {
+          const fesse = 95;
+          fallbackResults = {
+            hauteur: h,
+            epaule: 45,
+            cou: 39,
+            manche: 62,
+            tour_manche: 34,
+            longueur_boubou: 90,
+            longueur_pantalon: 102,
+            fesse: fesse,
+            poitrine: fesse + 5,
+            cuisse: 56,
+            ceinture: fesse,
+            comment: "Note: Nos services d'IA sont temporairement surchargés. Ces mesures sont des estimations standards basées sur votre profil d'homme normal. Pour une précision optimale, nous vous invitons à les ajuster manuellement ou à réessayer dans quelques instants.",
+            isLocal: true
+          };
+        } else {
+          const fesse = 65;
+          fallbackResults = {
+            hauteur: h,
+            epaule: 32,
+            cou: 28,
+            manche: 42,
+            tour_manche: 22,
+            longueur_boubou: 68,
+            longueur_pantalon: 72,
+            fesse: fesse,
+            poitrine: fesse + 3,
+            cuisse: 36,
+            ceinture: fesse,
+            comment: "Note: Nos services d'IA sont temporairement surchargés. Ces mesures sont des estimations standards basées sur le profil de l'enfant. Pour une précision optimale, nous vous invitons à les ajuster manuellement ou à réessayer dans quelques instants.",
+            isLocal: true
+          };
+        }
         return res.json(fallbackResults);
       }
 
       // Safe JSON extraction in case of surrounding text
       const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/) || responseText.match(/([\{\[][\s\S]*[\}\]])/);
       const results = JSON.parse(jsonMatch ? jsonMatch[1] : responseText);
+
+      if (results.is_valid_image === false) {
+        console.warn("Image rejected by AI validation:", results.rejection_reason);
+        return res.status(400).json({
+          error: results.rejection_reason || "Photo non conforme : veuillez importer une photo d'une seule personne, vue en entier de la tête aux pieds (sans autres personnes et sans corps coupé)."
+        });
+      }
+
       res.json({ ...results, model: usedModel });
     } catch (error: any) {
       console.error("Error in /api/measure:", error);
