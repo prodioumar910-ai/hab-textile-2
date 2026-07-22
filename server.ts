@@ -116,25 +116,28 @@ Chaque personne est unique. Tu NE DOIS JAMAIS appliquer un gabarit standard, une
 
 ## FORMAT DE SORTIE (JSON uniquement)
 
-Tu dois fournir les mesures dans le format structuré suivant :
+Tu dois fournir les mesures dans le format plat suivant :
 {
   "is_valid_image": boolean,
   "rejection_reason": "string",
   "gender": "homme" | "femme",
-  "measurements": {
-    "epaule": number,
-    "cou": number,
-    "manche": number,
-    "tour_manche": number,
-    "longueur_boubou": number,
-    "longueur_pantalon": number,
-    "fesse": number,
-    "poitrine": number,
-    "cuisse": number,
-    "ceinture": number
-  },
+  "hauteur": number,
+  "epaule": number,
+  "cou": number,
+  "manche": number,
+  "tour_manche": number,
+  "longueur_boubou": number,
+  "longueur_pantalon": number,
+  "fesse": number,
+  "poitrine": number,
+  "cuisse": number,
+  "ceinture": number,
   "comment": "string"
 }
+
+## INSTRUCTIONS SPÉCIFIQUES POUR LA HAUTEUR
+- Estime la hauteur totale (stature) de la personne de la tête aux pieds en centimètres. 
+- Utilise les proportions du corps et tout élément de l'environnement pour cette estimation.
 
 ## CE QUE TU DOIS ÉVITER
 

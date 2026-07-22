@@ -1100,22 +1100,6 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                       ))}
                     </div>
                   </div>
-
-                  {/* Height selection */}
-                  <div className="space-y-2 mb-4">
-                    <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-600 flex justify-between">
-                      <span>Votre Hauteur Réelle</span>
-                      <span className="text-brand-orange-dark font-extrabold">{height} cm</span>
-                    </label>
-                    <input
-                      type="range"
-                      min={gender === "homme" ? "140" : "80"}
-                      max={gender === "homme" ? "220" : "160"}
-                      value={height}
-                      onChange={(e) => setHeight(e.target.value)}
-                      className="w-full accent-brand-orange-dark cursor-pointer h-1.5 bg-stone-200 rounded-lg appearance-none"
-                    />
-                  </div>
                 </div>
 
                 <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 text-[10px] text-stone-850 leading-relaxed space-y-2 font-medium">
