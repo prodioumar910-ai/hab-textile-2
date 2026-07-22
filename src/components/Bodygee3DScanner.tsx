@@ -85,19 +85,6 @@ export const Bodygee3DScanner: React.FC<Bodygee3DScannerProps> = ({
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/90 via-[#F7DAC1] to-[#E3B995] pointer-events-none" />
         <div className="absolute bottom-0 inset-x-0 h-1/3 bg-gradient-to-t from-[#D2A078]/60 via-[#F7DAC1]/50 to-transparent pointer-events-none" />
 
-        {/* Height Ruler Grid */}
-        <div className="absolute left-3 top-8 bottom-16 flex flex-col justify-between text-[8px] font-mono text-stone-800 select-none pointer-events-none z-10 border-l border-[#C89870]/60 pl-1.5">
-          {Array.from({ length: 9 }).map((_, idx) => {
-            const val = Math.round(parseInt(height || '175') * (1 - idx / 8));
-            return (
-              <div key={idx} className="flex items-center gap-1">
-                <span className="w-2 h-[1px] bg-[#B07E56]" />
-                <span className="font-bold">{val} cm</span>
-              </div>
-            );
-          })}
-        </div>
-
         {/* 3D Stage Arena */}
         <div className="relative w-full h-full flex flex-col items-center justify-center p-4">
           
