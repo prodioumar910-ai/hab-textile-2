@@ -4,11 +4,35 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import fs from "fs";
+import {
+  initDb,
+  pool,
+  findUserByEmail,
+  createUser,
+  getAllUsers,
+  deleteUser,
+  getAllProducts,
+  createOrUpdateProduct,
+  deleteProduct,
+  getAllOrders,
+  createOrder,
+  updateOrderStatus,
+  deleteOrder,
+  getAllMeasurements,
+  saveMeasurement,
+  getReviewsByProduct,
+  createReview
+} from "./server/db";
 
 dotenv.config();
 
 const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY
+  apiKey: process.env.GEMINI_API_KEY,
+  httpOptions: {
+    headers: {
+      'User-Agent': 'aistudio-build',
+    }
+  }
 });
 
 async function startServer() {
@@ -28,6 +52,261 @@ async function startServer() {
 
   // Allow larger payload sizes to process camera snaps
   app.use(express.json({ limit: "15mb" }));
+
+  // Initialize Neon PostgreSQL database
+  try {
+    await initDb();
+  } catch (dbErr) {
+    console.error("[Neon PostgreSQL] Warning: Database initialization had an issue:", dbErr);
+  }
+
+  // Health check endpoint
+  app.get("/api/health", async (req, res) => {
+    try {
+      const dbRes = await pool.query("SELECT NOW() as now, current_database() as db");
+      res.json({
+        status: "ok",
+        database: "Neon PostgreSQL",
+        connected: true,
+        currentDb: dbRes.rows[0].db,
+        serverTime: dbRes.rows[0].now
+      });
+    } catch (err: any) {
+      res.status(500).json({
+        status: "error",
+        database: "Neon PostgreSQL",
+        connected: false,
+        error: err.message
+      });
+    }
+  });
+
+  // ==================== AUTH ROUTES (NEON) ====================
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { email, password, fullName } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email et mot de passe requis." });
+      }
+      const existing = await findUserByEmail(email);
+      if (existing) {
+        return res.status(400).json({ error: "Cette adresse e-mail est déjà associée à un compte." });
+      }
+      // Store user (password hash in real app; stored cleanly)
+      const user = await createUser(email, password, fullName || email.split("@")[0], "client");
+      res.status(201).json({
+        message: "Compte créé avec succès.",
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: user.full_name,
+          role: user.role,
+          createdAt: user.created_at
+        }
+      });
+    } catch (err: any) {
+      console.error("Error in /api/auth/register:", err);
+      res.status(500).json({ error: err.message || "Erreur lors de la création du compte." });
+    }
+  });
+
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email et mot de passe requis." });
+      }
+
+      // Hardcoded Admin fast-path support for Habé
+      const emailLower = email.trim().toLowerCase();
+      if (emailLower === "prodioumar910@gmail.com" && password === "12345678") {
+        return res.json({
+          user: {
+            id: "admin-1",
+            email: "prodioumar910@gmail.com",
+            fullName: "Habé Administrateur",
+            role: "admin"
+          },
+          token: "neon-admin-token"
+        });
+      }
+
+      const user = await findUserByEmail(emailLower);
+      if (!user || user.password_hash !== password) {
+        return res.status(401).json({ error: "Adresse email ou mot de passe incorrect." });
+      }
+
+      res.json({
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: user.full_name,
+          role: user.role,
+          createdAt: user.created_at
+        },
+        token: `neon-session-${user.id}`
+      });
+    } catch (err: any) {
+      console.error("Error in /api/auth/login:", err);
+      res.status(500).json({ error: err.message || "Erreur lors de la connexion." });
+    }
+  });
+
+  app.get("/api/auth/users", async (req, res) => {
+    try {
+      const users = await getAllUsers();
+      res.json(users);
+    } catch (err: any) {
+      console.error("Error in /api/auth/users:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.delete("/api/auth/users/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      await deleteUser(id);
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("Error deleting user:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ==================== PRODUCTS ROUTES (NEON) ====================
+  app.get("/api/products", async (req, res) => {
+    try {
+      const products = await getAllProducts();
+      res.json(products);
+    } catch (err: any) {
+      console.error("Error in GET /api/products:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post("/api/products", async (req, res) => {
+    try {
+      const product = req.body;
+      if (!product || !product.id || !product.name) {
+        return res.status(400).json({ error: "Données de produit incomplètes." });
+      }
+      const saved = await createOrUpdateProduct(product);
+      res.json(saved);
+    } catch (err: any) {
+      console.error("Error in POST /api/products:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.delete("/api/products/:id", async (req, res) => {
+    try {
+      await deleteProduct(req.params.id);
+      res.json({ success: true, deletedId: req.params.id });
+    } catch (err: any) {
+      console.error("Error in DELETE /api/products:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ==================== ORDERS ROUTES (NEON) ====================
+  app.get("/api/orders", async (req, res) => {
+    try {
+      const orders = await getAllOrders();
+      res.json(orders);
+    } catch (err: any) {
+      console.error("Error in GET /api/orders:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post("/api/orders", async (req, res) => {
+    try {
+      const order = req.body;
+      if (!order || !order.id || !order.clientName) {
+        return res.status(400).json({ error: "Données de commande invalides." });
+      }
+      const saved = await createOrder(order);
+      res.status(201).json(saved);
+    } catch (err: any) {
+      console.error("Error in POST /api/orders:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.patch("/api/orders/:id/status", async (req, res) => {
+    try {
+      const { status } = req.body;
+      if (!status) {
+        return res.status(400).json({ error: "Statut manquant." });
+      }
+      const updated = await updateOrderStatus(req.params.id, status);
+      res.json(updated);
+    } catch (err: any) {
+      console.error("Error in PATCH /api/orders/:id/status:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.delete("/api/orders/:id", async (req, res) => {
+    try {
+      await deleteOrder(req.params.id);
+      res.json({ success: true, deletedId: req.params.id });
+    } catch (err: any) {
+      console.error("Error in DELETE /api/orders/:id:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ==================== MEASUREMENTS ROUTES (NEON) ====================
+  app.get("/api/measurements", async (req, res) => {
+    try {
+      const email = req.query.email as string | undefined;
+      const measurements = await getAllMeasurements(email);
+      res.json(measurements);
+    } catch (err: any) {
+      console.error("Error in GET /api/measurements:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post("/api/measurements", async (req, res) => {
+    try {
+      const measurement = req.body;
+      if (!measurement || !measurement.epaule) {
+        return res.status(400).json({ error: "Données de mesure invalides." });
+      }
+      const saved = await saveMeasurement(measurement);
+      res.status(201).json(saved);
+    } catch (err: any) {
+      console.error("Error in POST /api/measurements:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ==================== REVIEWS ROUTES (NEON) ====================
+  app.get("/api/reviews/:productId", async (req, res) => {
+    try {
+      const reviews = await getReviewsByProduct(req.params.productId);
+      res.json(reviews);
+    } catch (err: any) {
+      console.error("Error in GET /api/reviews:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post("/api/reviews", async (req, res) => {
+    try {
+      const { productId, authorName, rating, comment } = req.body;
+      if (!productId || !authorName || !comment) {
+        return res.status(400).json({ error: "Champs requis manquants." });
+      }
+      const saved = await createReview({ productId, authorName, rating: Number(rating) || 5, comment });
+      res.status(201).json(saved);
+    } catch (err: any) {
+      console.error("Error in POST /api/reviews:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
 
   // API endpoints FIRST
   app.post("/api/measure", async (req, res) => {
@@ -102,11 +381,46 @@ Chaque personne est unique. Tu NE DOIS JAMAIS appliquer un gabarit standard, une
 
 3. **Utilise les points de repère anatomiques visibles sur CETTE photo précise** (ligne des épaules, creux de la taille, point le plus large des hanches, longueur réelle des bras et jambes par rapport au tronc) plutôt que des positions théoriques standards, car ces repères se déplacent différemment selon la morphologie et la posture de chaque personne.
 
+## RÉFÉRENCES D'ÉTALONNAGE RÉELS (FEW-SHOT EXEMPLARS)
+
+Sers-toi de ces fiches de mesures réelles d'atelier comme étalons de précision pour calibrer tes estimations selon la silhouette :
+
+### ÉTALON 1 - Homme Mince / Élancé (Profil "BDZO" - Boubou blanc) :
+- **Hauteur estimée (Stature)** : 180 cm
+- **Épaule** (Largeur d'épaule à épaule) : 42 cm
+- **Cou** (Tour de cou) : 36 cm
+- **Manche** (Longueur de manche épaule-poignet) : 63 cm
+- **Tour de manche** (TM / Poignet-Biceps) : 30 cm
+- **Longueur Boubou** (LB) : 88 cm
+- **Longueur Pantalon** (LP) : 102 cm
+- **Cuisse** (Tour de cuisse) : 50 cm
+- **Fesse** (Tour de bassin/fesse) : 90 cm
+- **Poitrine** (Tour de poitrine) : 95 cm
+- **Ceinture** (Tour de taille/abdomen) : 77 cm
+
+### ÉTALON 2 - Homme Corpulent / Large Carrure (Profil "Patron Mala" - Tenue sombre / forte corpulence) :
+- **Hauteur estimée (Stature)** : 176 cm
+- **Épaule** (Largeur d'épaule) : 50 cm
+- **Cou** (Tour de cou) : 42 cm
+- **Manche** (Longueur de manche épaule-poignet) : 60 cm
+- **Tour de manche** (TM / Biceps) : 40 cm
+- **Longueur Boubou / Veste** (LB) : 95 cm
+- **Longueur Pantalon** (LP) : 104 cm
+- **Cuisse** (Tour de cuisse) : 74 cm
+- **Fesse** (Tour de bassin/fesse) : 123 cm
+- **Poitrine** (Tour de poitrine) : 128 cm
+- **Ceinture** (Tour de taille/abdomen) : 106 cm
+
+### RÈGLES D'ADAPTATION ET INTERPOLATION :
+1. **Silhouette Mince (Étalon 1) :** Épaules ~42 cm, Tour de poitrine ~95 cm, Ceinture ~77 cm (très marquée), Fesse ~90 cm, Cuisse ~50 cm.
+2. **Silhouette Corpulente / Forte Carrure (Étalon 2) :** Épaules ~50 cm, Tour de poitrine ~128 cm, Ceinture ~106 cm, Fesse ~123 cm, Cuisse ~74 cm, Tour de manche ~40 cm.
+3. **Interpolation selon l'image :** Compare la corpulence et la stature de la photo cliente entre l'Étalon 1 et l'Étalon 2 pour estimer des valeurs réalistes sans appliquer de moyennes arbitraires.
+
 ## MÉTHODE DE CALCUL
 
-- Si un objet de référence (carte, feuille, mètre ruban, taille déclarée) est présent ou fournie dans les données, calibre l'échelle sur cette référence en priorité.
-- En l'absence de référence, base ton estimation sur les proportions internes du corps (rapports entre segments corporels visibles sur l'image), jamais sur une taille moyenne présumée.
-- Prends en compte l'angle de prise de vue, la pose et les vêtements portés, et signale mentalement si ces facteurs réduisent la fiabilité d'une mesure — ajuste ton estimation en conséquence plutôt que de l'ignore.
+- Si un objet de référence (carte, feuille, mètre ruban) est présent dans les données, calibre l'échelle sur cette référence en priorité.
+- En l'absence de référence, base ton estimation sur les proportions internes du corps (rapports entre segments corporels visibles sur l'image), en comparant la silhouette à l'étalon réel de référence ci-dessus.
+- Prends en compte l'angle de prise de vue, la pose et les vêtements portés, et signale mentalement si ces facteurs réduisent la fiabilité d'une mesure — ajuste ton estimation en conséquence plutôt que de l'ignorer.
 - Vérifie la cohérence interne du résultat : les mesures d'une même personne doivent rester logiques entre elles (ex. un tour de hanches ne peut pas être incohérent avec la largeur d'épaules observée sur la même image).
 
 ## RÈGLE ABSOLUE DE VALIDATION DE L'IMAGE
@@ -148,7 +462,7 @@ Tu dois fournir les mesures dans le format plat suivant :
 Sexe cible pour l'analyse : ${gender || "non spécifié"}.
 Rédige un commentaire de couturier bienveillant de 2 ou 3 phrases en français avec des conseils adaptés d'après la morphologie spécifique détectée sur la photo.`;
 
-      const modelsToTry = ["gemini-3.6-flash", "gemini-flash-latest", "gemini-3.1-pro-preview"];
+      const modelsToTry = ["gemini-3.8-flash", "gemini-3.1-flash-lite", "gemini-flash-latest"];
       let lastError: any = null;
       let responseText = "";
       let usedModel = "";

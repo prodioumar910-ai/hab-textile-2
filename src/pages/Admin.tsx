@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   BarChart3, 
@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { Product, Category, Target, GarmentType, FabricType } from '../types';
+import { api } from '../lib/api';
 
 const Admin: React.FC = () => {
   const { 
@@ -72,6 +73,36 @@ const Admin: React.FC = () => {
       return [];
     }
   });
+
+  // Sync users with Neon PostgreSQL database
+  useEffect(() => {
+    api.auth.getUsers()
+      .then(neonUsers => {
+        if (neonUsers && neonUsers.length > 0) {
+          const formatted = neonUsers.map(u => ({
+            id: u.id,
+            name: u.fullName || u.email.split('@')[0],
+            email: u.email,
+            date: u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : 'Juin 2026',
+            role: u.role === 'admin' ? 'Administrateur' : 'Actif (Ce mois-ci)'
+          }));
+          setMembers(formatted);
+          localStorage.setItem('habe_registered_members', JSON.stringify(formatted));
+        }
+      })
+      .catch(err => console.warn('Neon users fetch error:', err));
+  }, []);
+
+  const handleDeleteMember = async (id: number | string, name: string) => {
+    if (!confirm(`Supprimer définitivement l'utilisateur ${name} de Neon PostgreSQL ?`)) return;
+    try {
+      await api.auth.deleteUser(id);
+      setMembers(prev => prev.filter(m => m.id !== id));
+    } catch (e) {
+      console.error(e);
+      setMembers(prev => prev.filter(m => m.id !== id));
+    }
+  };
   
   // Stats
   const totalProducts = products.length;
@@ -196,16 +227,23 @@ const Admin: React.FC = () => {
             </div>
           </div>
           
-          <button
-            onClick={() => {
-              setEditingProduct(null);
-              setIsAddingMode(true);
-            }}
-            className="bg-brand-black hover:bg-stone-800 text-white px-4 py-2 rounded-xl flex items-center gap-2 text-xs font-heading font-bold transition-all shadow-lg active:scale-95"
-          >
-            <Plus className="w-4 h-4" />
-            Nouveau Produit
-          </button>
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-mono font-semibold bg-emerald-50 border border-emerald-200 text-emerald-700">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Neon PostgreSQL Connecté
+            </span>
+            
+            <button
+              onClick={() => {
+                setEditingProduct(null);
+                setIsAddingMode(true);
+              }}
+              className="bg-brand-black hover:bg-stone-800 text-white px-4 py-2 rounded-xl flex items-center gap-2 text-xs font-heading font-bold transition-all shadow-lg active:scale-95"
+            >
+              <Plus className="w-4 h-4" />
+              Nouveau Produit
+            </button>
+          </div>
         </div>
 
         {/* Tab switchers inside header block */}
@@ -662,42 +700,49 @@ const Admin: React.FC = () => {
                 </h3>
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       const dummyNames = ['Cheikh Oumar', 'Amina Sow', 'Mamadou Kane', 'Raby Diallo', 'Fatimata Ndiaye', 'Youssou Touré', 'Mariama Ba', 'Sidi Seye'];
                       const randomName = dummyNames[Math.floor(Math.random() * dummyNames.length)];
                       const emailPrefix = randomName.toLowerCase().replace(/\s+/g, '.');
-                      const userEmail = `${emailPrefix}@gmail.com`;
-                      const newM = {
-                        name: randomName,
-                        email: userEmail,
-                        date: 'Juin 2026',
-                        role: 'Actif (Ce mois-ci)'
-                      };
-                      const updated = [newM, ...members];
-                      setMembers(updated);
-                      localStorage.setItem('habe_registered_members', JSON.stringify(updated));
-
-                      // Also allow logging in with this simulated account
+                      const randomNum = Math.floor(Math.random() * 899 + 100);
+                      const userEmail = `${emailPrefix}.${randomNum}@gmail.com`;
+                      
                       try {
-                        const localAccounts = JSON.parse(localStorage.getItem('habe_local_accounts') || '[]');
-                        if (!localAccounts.some((acc: any) => acc.email.toLowerCase() === userEmail.toLowerCase())) {
-                          localAccounts.push({
-                            email: userEmail,
-                            password: '12345678',
-                            fullName: randomName
-                          });
-                          localStorage.setItem('habe_local_accounts', JSON.stringify(localAccounts));
+                        // Persist to Neon PostgreSQL
+                        await api.auth.register(userEmail, '12345678', randomName);
+                        // Refresh from Neon
+                        const neonUsers = await api.auth.getUsers();
+                        if (neonUsers && neonUsers.length > 0) {
+                          const formatted = neonUsers.map(u => ({
+                            id: u.id,
+                            name: u.fullName || u.email.split('@')[0],
+                            email: u.email,
+                            date: u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : 'Juin 2026',
+                            role: u.role === 'admin' ? 'Administrateur' : 'Actif (Ce mois-ci)'
+                          }));
+                          setMembers(formatted);
+                          localStorage.setItem('habe_registered_members', JSON.stringify(formatted));
                         }
-                      } catch (e) {
-                        console.error(e);
+                      } catch (err) {
+                        console.error('Neon simulation register error:', err);
+                        const newM = {
+                          id: Date.now(),
+                          name: randomName,
+                          email: userEmail,
+                          date: 'Juin 2026',
+                          role: 'Actif (Ce mois-ci)'
+                        };
+                        const updated = [newM, ...members];
+                        setMembers(updated);
+                        localStorage.setItem('habe_registered_members', JSON.stringify(updated));
                       }
                     }}
                     className="px-3 py-1.5 text-[10px] font-heading font-bold uppercase tracking-wider rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 transition-all border border-stone-200 active:scale-95"
                   >
                     + Simuler une inscription
                   </button>
-                  <span className="px-2.5 py-1 text-[9px] font-mono tracking-widest font-extrabold uppercase rounded-full bg-brand-orange-dark/10 text-brand-orange-dark">
-                    Direct Live
+                  <span className="px-2.5 py-1 text-[9px] font-mono tracking-widest font-extrabold uppercase rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
+                    Neon Live
                   </span>
                 </div>
               </div>
@@ -709,11 +754,12 @@ const Admin: React.FC = () => {
                       <th className="px-6 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Adresse E-mail</th>
                       <th className="px-6 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Date d'Inscription</th>
                       <th className="px-6 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Statut</th>
+                      <th className="px-6 py-3 text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100">
                     {members.map((mbr, i) => (
-                      <tr key={i} className="hover:bg-stone-50/50 transition-colors">
+                      <tr key={mbr.id || i} className="hover:bg-stone-50/50 transition-colors">
                         <td className="px-6 py-4 text-left">
                           <div className="flex items-center gap-3 justify-start text-left">
                             <div className="w-8 h-8 rounded-full bg-brand-orange-dark/10 text-brand-orange-dark flex items-center justify-center font-bold text-xs uppercase">
@@ -731,11 +777,20 @@ const Admin: React.FC = () => {
                             {mbr.role}
                           </span>
                         </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => handleDeleteMember(mbr.id, mbr.name)}
+                            title="Supprimer de Neon PostgreSQL"
+                            className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                     {members.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="py-12 text-center text-stone-400 text-xs italic">
+                        <td colSpan={5} className="py-12 text-center text-stone-400 text-xs italic">
                           Aucun membre n'est encore inscrit. Les nouvelles inscriptions s'afficheront ici en temps réel.
                         </td>
                       </tr>

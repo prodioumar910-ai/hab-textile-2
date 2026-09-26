@@ -180,8 +180,12 @@ const TrendingSection: React.FC = () => {
         {/* Track 1: Prefix */}
         <div className="flex gap-6 flex-shrink-0">
           {TRENDING_ITEMS.map((product, idx) => (
-            <div 
+            <motion.div 
               key={`${product.id}-prefix`}
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: (idx % 4) * 0.1 }}
               className="flex-shrink-0 w-60"
               onClick={(e) => handleItemClick(idx, e)}
             >
@@ -202,15 +206,19 @@ const TrendingSection: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
         {/* Track 2: Main */}
         <div className="flex gap-6 flex-shrink-0">
           {TRENDING_ITEMS.map((product, idx) => (
-            <div 
+            <motion.div 
               key={`${product.id}-main`}
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: (idx % 4) * 0.1 }}
               className="flex-shrink-0 w-60"
               onClick={(e) => handleItemClick(idx, e)}
             >
@@ -231,7 +239,7 @@ const TrendingSection: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 

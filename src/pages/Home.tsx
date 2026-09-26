@@ -3,6 +3,7 @@ import HeroCarousel from '../components/HeroCarousel';
 import Marquee from '../components/Marquee';
 import TrendingSection from '../components/TrendingSection';
 import HomeCatalogue from '../components/HomeCatalogue';
+import PretAPorterSection from '../components/PretAPorterSection';
 import Footer from '../components/Footer';
 import { motion } from 'motion/react';
 
@@ -17,6 +18,7 @@ const Home: React.FC = () => {
       <HeroCarousel />
       <Marquee />
       <TrendingSection />
+      <PretAPorterSection />
       <HomeCatalogue />
       <Footer />
     </motion.div>

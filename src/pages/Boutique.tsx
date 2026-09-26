@@ -17,11 +17,13 @@ const categories: { name: Category; src?: string; icon: string; directImg?: bool
 ];
 
 const Boutique: React.FC = () => {
-  const { activeCategory, setActiveCategory, products } = useStore();
+  const { activeCategory, setActiveCategory, activeTarget, setActiveTarget, products } = useStore();
 
-  const filteredProducts = activeCategory 
-    ? products.filter(p => p.category === activeCategory && p.target !== 'Enfant')
-    : products.filter(p => p.category === 'Ensemble Royal' && p.target !== 'Enfant');
+  const filteredProducts = products.filter(p => {
+    const matchCategory = activeCategory ? p.category === activeCategory : p.category === 'Ensemble Royal';
+    const matchTarget = p.target === activeTarget;
+    return matchCategory && matchTarget;
+  });
 
   return (
     <motion.div
@@ -30,6 +32,23 @@ const Boutique: React.FC = () => {
       exit={{ opacity: 0, x: -20 }}
       className="px-4 pt-4 pb-32"
     >
+      {/* Target Selector */}
+      <div className="flex justify-center gap-4 mb-8">
+        {(['Enfant', 'Homme'] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setActiveTarget(t)}
+            className={`px-6 py-2 rounded-full font-heading font-bold text-sm transition-all shadow-sm border ${
+              activeTarget === t 
+                ? 'bg-brand-orange-dark text-white border-brand-orange-dark' 
+                : 'bg-white text-stone-600 border-stone-200 hover:border-brand-orange-dark/30'
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
       <motion.section 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

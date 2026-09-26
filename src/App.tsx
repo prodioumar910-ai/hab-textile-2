@@ -60,13 +60,13 @@ function AppContent() {
     }
 
     const handleScroll = () => {
-      // Transition as we start moving into the second section (below Hero's 100vh)
+      // Transition as we start moving into the second section
       const scrollPos = window.scrollY;
-      const thresholdHeader = window.innerHeight * 0.4;
-      const thresholdNav = window.innerHeight * 1.5; // Threshold for 3rd section
+      const thresholdHeader = 20; // Show header background almost immediately
+      const thresholdNav = 10; // Show navigation bar almost immediately
 
       setIsScrolled(scrollPos > thresholdHeader);
-      setShowBottomNav(scrollPos > thresholdNav);
+      setShowBottomNav(true); // Always show it on home page now
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -92,98 +92,125 @@ function AppContent() {
   };
 
   // If user is not authenticated and has not skipped, display registration onboarding page first
-  if (!user && !hasSkipped) {
-    return (
-      <div className="min-h-screen w-full flex items-center justify-center px-4 relative overflow-hidden select-none" style={{ background: "radial-gradient(circle, #FFAA5E 0%, #C1541A 100%)" }}>
-        {/* Ambient background gold lighting */}
-        <div className="absolute top-[20%] left-[10%] w-[45vw] h-[45vw] rounded-full bg-amber-500/5 blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-[20%] right-[10%] w-[35vw] h-[35vw] rounded-full bg-orange-600/5 blur-[100px] pointer-events-none" />
-        
-        <Auth showSkip={true} onSkip={handleSkip} />
-      </div>
-    );
-  }
-
-  // Experience Choices landing view
-  if (selectedExperience === 'choice') {
-    return (
-      <ExperienceChoicePage
-        onSelectBoutique={handleSelectBoutique}
-        onSelectMeasure={handleSelectMeasure}
-      />
-    );
-  }
-
-  // Interactive Virtual Tailor measure view
-  if (selectedExperience === 'measure') {
-    return (
-      <MeasurePage
-        onBackToChoice={handleResetExperience}
-        onGoToBoutique={handleSelectBoutique}
-      />
-    );
-  }
-
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Admin Back Button */}
-      {isAdminMode && (
-        <button
-          onClick={() => setIsAdminMode(false)}
-          className="fixed bottom-6 left-6 z-[10001] bg-brand-black text-white px-6 py-3 rounded-full flex items-center gap-2 text-xs font-heading font-bold shadow-2xl active:scale-95 border border-white/10"
+    <AnimatePresence mode="wait">
+      {!user && !hasSkipped ? (
+        <motion.div
+          key="auth"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+          className="min-h-screen w-full flex items-center justify-center px-4 relative overflow-hidden select-none"
+          style={{ background: "radial-gradient(circle, #FFAA5E 0%, #C1541A 100%)" }}
         >
-          <ArrowLeft className="w-4 h-4" />
-          Quitter Admin
-        </button>
-      )}
-
-      {/* Header positioning */}
-      {!isAdminMode && !selectedProduct && !isTrendingOpen && !isPretAPorterOpen && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-transparent border-transparent shadow-none border-b-0 transition-all duration-300 transform-gpu">
-          <Header 
-            activePage={activePage} 
-            setActivePage={setActivePage} 
-            isTransparent={activePage === 0 && !isScrolled} 
-            onOpenMeasure={handleSelectMeasure}
+          {/* Ambient background gold lighting */}
+          <div className="absolute top-[20%] left-[10%] w-[45vw] h-[45vw] rounded-full bg-amber-500/5 blur-[120px] pointer-events-none" />
+          <div className="absolute bottom-[20%] right-[10%] w-[35vw] h-[35vw] rounded-full bg-orange-600/5 blur-[100px] pointer-events-none" />
+          
+          <Auth showSkip={true} onSkip={handleSkip} />
+        </motion.div>
+      ) : selectedExperience === 'choice' ? (
+        <motion.div
+          key="choice"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+          className="min-h-screen"
+        >
+          <ExperienceChoicePage
+            onSelectBoutique={handleSelectBoutique}
+            onSelectMeasure={handleSelectMeasure}
           />
-        </div>
-      )}
+        </motion.div>
+      ) : selectedExperience === 'measure' ? (
+        <motion.div
+          key="measure"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+          className="min-h-screen"
+        >
+          <MeasurePage
+            onBackToChoice={handleResetExperience}
+            onGoToBoutique={handleSelectBoutique}
+          />
+        </motion.div>
+      ) : (
+        <motion.div
+          key="main-app"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+          className="flex flex-col min-h-screen"
+        >
+          {/* Admin Back Button */}
+          {isAdminMode && (
+            <button
+              onClick={() => setIsAdminMode(false)}
+              className="fixed bottom-6 left-6 z-[10001] bg-brand-black text-white px-6 py-3 rounded-full flex items-center gap-2 text-xs font-heading font-bold shadow-2xl active:scale-95 border border-white/10"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Quitter Admin
+            </button>
+          )}
 
-      <main className={`flex-1 overflow-x-hidden ${activePage !== 0 && !isAdminMode ? 'pt-20' : ''}`}>
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={isAdminMode ? 'admin' : activePage}
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.02 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="will-change-transform"
-          >
-            {renderPage()}
-          </motion.div>
-        </AnimatePresence>
-      </main>
-
-      <AnimatePresence>
-        {!isAdminMode && !selectedProduct && !isTrendingOpen && !isPretAPorterOpen && showBottomNav && (
-          <motion.div
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
-            transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-            className="z-[9999] fixed inset-x-0 bottom-0 pointer-events-none"
-          >
-            <div className="pointer-events-auto">
-              <BottomNav activePage={activePage} setActivePage={setActivePage} />
+          {/* Header positioning */}
+          {!isAdminMode && !selectedProduct && !isTrendingOpen && !isPretAPorterOpen && (
+            <div className="fixed top-0 left-0 right-0 z-50 bg-transparent border-transparent shadow-none border-b-0 transition-all duration-300 transform-gpu">
+              <Header 
+                activePage={activePage} 
+                setActivePage={setActivePage} 
+                isTransparent={activePage === 0 && !isScrolled} 
+                onOpenMeasure={handleSelectMeasure}
+              />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
 
-      {/* Global High-Z Product Detail Overlay */}
-      <ProductDetailModal />
-      <PretAPorterModal />
-    </div>
+          <main className={`flex-1 overflow-x-hidden ${activePage !== 0 && !isAdminMode ? 'pt-20' : ''}`}>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={isAdminMode ? 'admin' : activePage}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="will-change-transform"
+              >
+                {renderPage()}
+              </motion.div>
+            </AnimatePresence>
+          </main>
+
+          <AnimatePresence>
+            {!isAdminMode && !selectedProduct && !isTrendingOpen && !isPretAPorterOpen && showBottomNav && (
+              <motion.div
+                initial={{ opacity: 0, y: 100 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 100 }}
+                transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+                className="z-[9999] fixed inset-x-0 bottom-0 pointer-events-none"
+              >
+                <div className="pointer-events-auto">
+                  <BottomNav 
+                    activePage={activePage} 
+                    setActivePage={setActivePage} 
+                    onOpenMeasure={handleSelectMeasure}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Global High-Z Product Detail Overlay */}
+          <ProductDetailModal />
+          <PretAPorterModal />
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 

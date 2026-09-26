@@ -25,6 +25,7 @@ import { useStore } from "../context/StoreContext";
 import { getOptimizedImage } from "../utils/image";
 import { Bodygee3DScanner } from "../components/Bodygee3DScanner";
 import { MeasureResult } from "../types";
+import { api } from "../lib/api";
 
 interface MeasurePageProps {
   onBackToChoice: () => void;
@@ -216,6 +217,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
   const [activeTab, setActiveTab] = useState<"synthese" | "ajustement" | "tuto">("synthese");
   const [showPassportModal, setShowPassportModal] = useState<boolean>(false);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  const [showIntro, setShowIntro] = useState<boolean>(true);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -553,13 +555,20 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
         setHeight(data.hauteur.toString());
       }
       
-      // Save results locally for persistent reference in the Profile tab
-      localStorage.setItem("habe_ai_measurements", JSON.stringify({
+      // Save results locally and sync to Neon database
+      const measurementPayload = {
         ...data,
         gender,
+        hauteur: data.hauteur ? Number(data.hauteur) : parseInt(height) || 175,
         height: data.hauteur ? data.hauteur.toString() : height,
         date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
-      }));
+      };
+      localStorage.setItem("habe_ai_measurements", JSON.stringify(measurementPayload));
+      api.measurements.save({
+        ...data,
+        hauteur: data.hauteur ? Number(data.hauteur) : parseInt(height) || 175,
+        userEmail: localStorage.getItem("habe_local_admin_email") || undefined
+      }).catch(e => console.warn("Neon save measurement error:", e));
     } catch (err: any) {
       console.warn("Exception durant le traitement IA. Utilisation du processeur de couture local...", err);
       setIsLocalFallback(true);
@@ -567,13 +576,20 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
       setResult(localData);
       setAdjustedResult(localData);
       
-      localStorage.setItem("habe_ai_measurements", JSON.stringify({
+      const measurementPayload = {
         ...localData,
         gender,
+        hauteur: localData.hauteur ? Number(localData.hauteur) : parseInt(height) || 175,
         height: localData.hauteur ? localData.hauteur.toString() : height,
         date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }),
         isLocal: true
-      }));
+      };
+      localStorage.setItem("habe_ai_measurements", JSON.stringify(measurementPayload));
+      api.measurements.save({
+        ...localData,
+        hauteur: localData.hauteur ? Number(localData.hauteur) : parseInt(height) || 175,
+        userEmail: localStorage.getItem("habe_local_admin_email") || undefined
+      }).catch(e => console.warn("Neon save measurement error:", e));
     } finally {
       setLoading(false);
     }
@@ -599,6 +615,11 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
       date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }),
       isAdjusted: true
     }));
+    api.measurements.save({
+      ...newResult,
+      hauteur: newResult.hauteur ? Number(newResult.hauteur) : parseInt(height) || 175,
+      userEmail: localStorage.getItem("habe_local_admin_email") || undefined
+    }).catch(e => console.warn("Neon sync adjusted measurement error:", e));
   };
 
   useEffect(() => {
@@ -640,6 +661,67 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
       </div>
 
       <div className="max-w-4xl mx-auto z-10 relative">
+        {/* State 0: Intro Guide */}
+        {showIntro && !loading && !result && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-[#FFEAD8]/95 backdrop-blur-xl border border-stone-200/50 rounded-3xl p-6 sm:p-10 relative shadow-2xl overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-orange-dark/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-500/5 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2" />
+            
+            <div className="relative text-center max-w-2xl mx-auto">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center mx-auto mb-6 border border-stone-100"
+              >
+                <Sparkles className="w-10 h-10 text-brand-orange-dark" />
+              </motion.div>
+
+              <h2 className="font-heading font-bold text-3xl sm:text-4xl text-stone-950 tracking-tight uppercase leading-tight">
+                Votre Cabine de <br /> <span className="text-brand-orange-dark">Mesure IA</span>
+              </h2>
+              
+              <p className="text-sm font-body text-stone-600 mt-6 leading-relaxed">
+                Bienvenue dans l'atelier numérique de la Maison Habé. Notre technologie d'analyse morphologique vous permet d'obtenir vos mensurations de haute-couture en quelques secondes à partir d'une simple photo.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10">
+                {[
+                  { icon: Camera, title: "Photo Simple", desc: "Un cliché de face, corps entier" },
+                  { icon: Cpu, title: "Analyse IA", desc: "Calcul de 12 points clés" },
+                  { icon: Sparkles, title: "Prêt-à-Porter", desc: "Tailles exactes Maison Habé" }
+                ].map((item, i) => (
+                  <div key={i} className="bg-white/50 backdrop-blur-sm border border-white/40 p-4 rounded-2xl flex flex-col items-center text-center">
+                    <item.icon className="w-6 h-6 text-brand-orange-dark mb-3" />
+                    <h4 className="font-heading font-bold text-[11px] uppercase tracking-wider text-stone-900">{item.title}</h4>
+                    <p className="text-[10px] text-stone-500 mt-1">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button
+                  onClick={() => setShowIntro(false)}
+                  className="w-full sm:w-auto px-10 py-4 bg-brand-orange-dark hover:bg-brand-orange-dark/90 text-white rounded-2xl font-heading font-extrabold text-xs uppercase tracking-[0.2em] shadow-xl shadow-brand-orange-dark/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                >
+                  Commencer l'Analyse
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={onBackToChoice}
+                  className="w-full sm:w-auto px-8 py-4 bg-white/60 hover:bg-white text-stone-700 border border-stone-200 rounded-2xl font-heading font-extrabold text-xs uppercase tracking-widest transition-all"
+                >
+                  Plus tard
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* State 1: Loading Screen */}
         {loading && (
           <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center bg-[#FFEAD8]/95 backdrop-blur-md rounded-3xl border border-stone-200/50 shadow-2xl relative overflow-hidden">
@@ -1042,7 +1124,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
         )}
 
         {/* State 3: Workflow Inputs & Snapper */}
-        {!loading && !result && (
+        {!loading && !result && !showIntro && (
           <div className="bg-[#FFEAD8]/95 backdrop-blur-xl border border-stone-200/50 rounded-3xl p-6 sm:p-8 relative shadow-2xl">
             <div className="text-center max-w-xl mx-auto mb-8">
               <span className="text-[10px] font-heading font-bold uppercase tracking-[0.25em] text-brand-orange-dark bg-brand-orange-dark/5 border border-brand-orange-dark/15 px-3 py-1 rounded-full">
@@ -1130,15 +1212,16 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                 {/* Frame Stage */}
                 <div 
                   onClick={!imageSrc ? triggerFileSelector : undefined}
-                  className={`w-full max-w-sm mx-auto aspect-[3/4] bg-stone-50 border border-stone-200/80 rounded-2xl overflow-hidden relative flex items-center justify-center shadow-inner cursor-pointer hover:border-brand-orange-dark/25 transition-all ${!imageSrc ? 'hover:bg-stone-100/50' : ''}`}
+                  className={`w-full max-w-sm mx-auto aspect-[3/4] bg-stone-50 border-2 border-dashed border-stone-200/80 rounded-3xl overflow-hidden relative flex items-center justify-center shadow-inner cursor-pointer hover:border-brand-orange-dark/30 transition-all ${!imageSrc ? 'hover:bg-stone-100/50' : 'border-solid border-brand-orange-dark/10'}`}
                 >
                   {/* Silhouette Dashed Guide when image exists */}
                   {imageSrc && (
-                    <div className="absolute inset-4 border border-dashed border-stone-300 rounded-xl pointer-events-none z-10 flex items-center justify-center">
-                      <svg viewBox="0 0 100 130" className="w-[70%] h-[75%] opacity-30 text-stone-400 stroke-current fill-none">
-                        <ellipse cx="50" cy="20" rx="12" ry="15" strokeDasharray="3 3" />
-                        <path d="M 30 40 L 70 40 L 65 95 L 35 95 Z" strokeDasharray="3 3" />
-                        <line x1="50" y1="40" x2="50" y2="120" strokeDasharray="3 3" />
+                    <div className="absolute inset-6 border border-dashed border-white/40 rounded-2xl pointer-events-none z-10 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-brand-orange-dark/10" />
+                      <svg viewBox="0 0 100 130" className="w-[70%] h-[75%] opacity-40 text-white stroke-current fill-none">
+                        <ellipse cx="50" cy="20" rx="12" ry="15" strokeDasharray="4 4" />
+                        <path d="M 30 40 L 70 40 L 65 95 L 35 95 Z" strokeDasharray="4 4" />
+                        <line x1="50" y1="40" x2="50" y2="120" strokeDasharray="4 4" />
                       </svg>
                     </div>
                   )}
@@ -1154,19 +1237,19 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
 
                   {/* Mode B: Idle Empty State */}
                   {!imageSrc && (
-                    <div className="p-6 text-center max-w-[260px] flex flex-col items-center">
+                    <div className="p-8 text-center max-w-[280px] flex flex-col items-center">
                       <motion.div 
-                        animate={{ scale: [1, 1.08, 1] }}
-                        transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                        className="w-14 h-14 bg-brand-orange-dark/5 rounded-full flex items-center justify-center border border-brand-orange-dark/20 mb-4 text-brand-orange-dark shadow-sm"
+                        animate={{ scale: [1, 1.05, 1], y: [0, -4, 0] }}
+                        transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                        className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-stone-200 mb-5 text-brand-orange-dark shadow-xl"
                       >
-                        <Camera className="w-7 h-7" />
+                        <Camera className="w-8 h-8" />
                       </motion.div>
-                      <p className="text-xs font-heading font-extrabold text-stone-900 uppercase tracking-wider mb-2">
-                        Prendre ou Importer une Photo
+                      <p className="text-sm font-heading font-bold text-stone-900 uppercase tracking-wider mb-2">
+                        Capturer ma Silhouette
                       </p>
-                      <p className="text-[10px] text-stone-500 leading-relaxed">
-                        Cliquez pour ouvrir l'appareil photo de votre téléphone ou sélectionner une image existante. L'IA lancera l'analyse automatiquement.
+                      <p className="text-[10px] text-stone-500 leading-relaxed font-medium">
+                        Cliquez pour ouvrir l'appareil photo ou importer une photo de face.
                       </p>
                     </div>
                   )}
@@ -1185,6 +1268,19 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                       <RotateCw className="w-4 h-4" />
                     </button>
                   )}
+                </div>
+
+                {/* Photo Tips Toggle */}
+                <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl">
+                  <div className="w-full flex items-center justify-between text-[10px] font-heading font-extrabold uppercase tracking-wider text-amber-700">
+                    <span className="flex items-center gap-2">
+                      <Info className="w-3.5 h-3.5" />
+                      Conseils pour une mesure précise
+                    </span>
+                  </div>
+                  <p className="text-[9px] text-stone-600 mt-2 leading-relaxed font-medium">
+                    L'IA de Maison Habé analyse les pixels pour déduire les centimètres. Un fond uni, des vêtements ajustés et une lumière de face garantissent une précision chirurgicale.
+                  </p>
                 </div>
 
                 {/* Controls below Frame */}

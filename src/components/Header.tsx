@@ -30,6 +30,25 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, isTransparen
         </span>
       </div>
 
+      {/* AI Measurement Button - Prominent Position after Logo */}
+      {onOpenMeasure && (
+        <button
+          onClick={onOpenMeasure}
+          className={`flex items-center gap-2 cursor-pointer py-1.5 px-3 rounded-full transition-all duration-300 outline-none hover:scale-105 shadow-sm border ${
+            isTransparent 
+              ? 'bg-white/10 text-white border-white/20 hover:bg-white/20' 
+              : 'bg-brand-orange-dark text-white border-brand-orange-dark hover:bg-brand-orange-dark/90'
+          }`}
+          title="Cabine de Mesure IA"
+        >
+          <Camera className="w-4 h-4" />
+          <span className="text-[10px] font-heading font-extrabold uppercase tracking-wider">
+            Mesures IA
+          </span>
+          <span className="w-2 h-2 rounded-full bg-white animate-pulse hidden sm:block" />
+        </button>
+      )}
+
       <div className="flex items-center gap-5">
         {/* User Account Button */}
         <button
@@ -71,24 +90,6 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, isTransparen
             </div>
           )}
         </button>
-
-        {/* AI Measurement Button */}
-        {onOpenMeasure && (
-          <button
-            onClick={onOpenMeasure}
-            className={`flex items-center gap-1 cursor-pointer p-1 rounded-full transition-all duration-200 outline-none hover:scale-105 ${
-              isTransparent 
-                ? 'text-white hover:bg-white/10' 
-                : 'text-brand-black hover:bg-black/5'
-            }`}
-            title="Cabine de Mesure IA"
-          >
-            <Camera className="w-5 h-5" />
-            <span className="text-[8px] font-heading font-extrabold uppercase bg-brand-orange-dark text-white px-1.5 py-0.5 rounded-full scale-90 sm:inline-block hidden shadow-sm">
-              IA
-            </span>
-          </button>
-        )}
 
         {/* Shopping Cart Button */}
         <div 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { useStore } from '../context/StoreContext';
 import { PretProduct } from '../types';
 import { getOptimizedImage } from '../utils/image';
@@ -78,14 +79,24 @@ const PretAPorterSection: React.FC = () => {
     <div className="w-full">
       {/* Main horizontal scrolling section on the homepage */}
       <section className="px-5 py-8 bg-transparent">
-        <h2 className="text-base font-heading font-black text-white uppercase tracking-widest mb-4 px-1">
+        <motion.h2 
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-base font-heading font-black text-white uppercase tracking-widest mb-4 px-1"
+        >
           Vos Prêt-à-porter
-        </h2>
+        </motion.h2>
         
         <div className="flex overflow-x-auto gap-4 pb-2 scrollbar-none snap-x snap-mandatory">
-          {PRET_PRODUCTS.map((prod) => (
-            <div 
+          {PRET_PRODUCTS.map((prod, idx) => (
+            <motion.div 
               key={prod.id} 
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: idx * 0.1 }}
               className="flex-shrink-0 w-[58vw] sm:w-[48vw] md:w-[36vw] lg:w-[24vw] max-w-[230px] snap-start cursor-pointer group"
               onClick={() => handleProductClick(prod)}
             >
@@ -109,7 +120,7 @@ const PretAPorterSection: React.FC = () => {
               <p className="text-[11px] font-body font-extrabold text-brand-orange-light px-1 mt-0.5">
                 {prod.price.toLocaleString()} F CFA
               </p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>

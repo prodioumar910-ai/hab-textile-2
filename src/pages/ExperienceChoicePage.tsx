@@ -86,15 +86,21 @@ export const ExperienceChoicePage: React.FC<ExperienceChoicePageProps> = ({
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.3, type: "spring", stiffness: 100 }}
           onClick={onSelectBoutique}
-          className="group cursor-pointer bg-[#FFEAD8]/95 hover:bg-[#FFE3CD] backdrop-blur-md border border-stone-200/80 hover:border-brand-orange-dark/40 rounded-2xl sm:rounded-3xl h-[180px] sm:h-[240px] shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden"
+          className="group cursor-pointer bg-[#FFEAD8]/95 hover:bg-[#FFE3CD] backdrop-blur-md border border-stone-200/80 hover:border-brand-orange-dark/40 rounded-2xl sm:rounded-3xl h-[180px] sm:h-[240px] shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden flex flex-col"
         >
-          <img
-            src={boutiqueSrc}
-            alt="Boutique"
-            className="absolute inset-0 w-full h-full object-cover drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
-            onError={handleBoutiqueError}
-            referrerPolicy="no-referrer"
-          />
+          <div className="absolute inset-0 w-full h-full">
+            <img
+              src={boutiqueSrc}
+              alt="Boutique"
+              className="w-full h-full object-cover drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
+              onError={handleBoutiqueError}
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <div className="mt-auto p-4 z-20 bg-gradient-to-t from-stone-900/80 to-transparent w-full">
+            <h3 className="text-white font-heading font-bold text-sm sm:text-lg uppercase tracking-wider">La Boutique</h3>
+            <p className="text-white/70 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mt-0.5">Collections Habé</p>
+          </div>
         </motion.div>
 
         {/* Choice 2: Virtual AI Tailor Cabin */}
@@ -103,15 +109,21 @@ export const ExperienceChoicePage: React.FC<ExperienceChoicePageProps> = ({
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.4, type: "spring", stiffness: 100 }}
           onClick={onSelectMeasure}
-          className="group cursor-pointer bg-[#FFEAD8]/95 hover:bg-[#FFE3CD] backdrop-blur-md border border-stone-200/80 hover:border-brand-orange-dark/40 rounded-2xl sm:rounded-3xl h-[180px] sm:h-[240px] shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden"
+          className="group cursor-pointer bg-[#FFEAD8]/95 hover:bg-[#FFE3CD] backdrop-blur-md border border-stone-200/80 hover:border-brand-orange-dark/40 rounded-2xl sm:rounded-3xl h-[180px] sm:h-[240px] shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden flex flex-col"
         >
-          <img
-            src={measureSrc}
-            alt="Mesure IA"
-            className="absolute inset-0 w-full h-full object-cover drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
-            onError={handleMeasureError}
-            referrerPolicy="no-referrer"
-          />
+          <div className="absolute inset-0 w-full h-full">
+            <img
+              src={measureSrc}
+              alt="Mesure IA"
+              className="w-full h-full object-cover drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
+              onError={handleMeasureError}
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <div className="mt-auto p-4 z-20 bg-gradient-to-t from-stone-900/80 to-transparent w-full">
+            <h3 className="text-white font-heading font-bold text-sm sm:text-lg uppercase tracking-wider">Mesures IA</h3>
+            <p className="text-white/70 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mt-0.5">Atelier Numérique</p>
+          </div>
         </motion.div>
 
       </div>

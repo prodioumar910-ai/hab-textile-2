@@ -81,6 +81,10 @@ export const Bodygee3DScanner: React.FC<Bodygee3DScannerProps> = ({
 
       {/* Main 3D Scanner Stage Container adapted to warm card background */}
       <div className="relative w-full aspect-[4/5] max-h-[530px] bg-[#F7DAC1] rounded-3xl border border-[#E2B793] shadow-xl overflow-hidden flex items-center justify-center">
+        {/* Futuristic Grid Overlay */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
+             style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+        
         {/* Studio Lighting Background in warm tones matching #FFEAD8 background */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/90 via-[#F7DAC1] to-[#E3B995] pointer-events-none" />
         <div className="absolute bottom-0 inset-x-0 h-1/3 bg-gradient-to-t from-[#D2A078]/60 via-[#F7DAC1]/50 to-transparent pointer-events-none" />

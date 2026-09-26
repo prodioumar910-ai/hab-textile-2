@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Lock, User, ArrowRight, Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 
 interface AuthProps {
   showSkip?: boolean;
@@ -69,120 +70,82 @@ const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
           window.location.reload();
           return;
         }
-        
+
         try {
-          const { error: loginError } = await supabase.auth.signInWithPassword({
-            email: email.trim(),
-            password,
-          });
-          if (loginError) throw loginError;
-          
-          // Keep local account synched for offline use on this browser
-          try {
-            const localAccounts = JSON.parse(localStorage.getItem('habe_local_accounts') || '[]');
-            if (!localAccounts.some((acc: any) => acc.email.toLowerCase() === emailLower)) {
-              localAccounts.push({
-                email: emailLower,
-                password: password,
-                fullName: emailLower.split('@')[0]
-              });
-              localStorage.setItem('habe_local_accounts', JSON.stringify(localAccounts));
+          // Neon PostgreSQL login
+          const data = await api.auth.login(emailLower, password);
+          if (data && data.user) {
+            if (data.user.role === 'admin' || emailLower === 'prodioumar910@gmail.com') {
+              localStorage.setItem('habe_local_admin', 'true');
+              localStorage.setItem('habe_local_admin_email', data.user.email);
             }
-          } catch (e) {
-            console.error(e);
+            localStorage.setItem('habe_local_user', JSON.stringify({ email: data.user.email, fullName: data.user.fullName }));
+            localStorage.setItem('habe_selected_experience', 'choice');
+            window.location.reload();
+            return;
           }
-
-          localStorage.setItem('habe_selected_experience', 'choice');
-          window.location.reload();
-        } catch (supaErr: any) {
-          console.warn('Supabase login failed, trying local fallback:', supaErr);
-          
-          const isInvalidCredentials = supaErr?.message?.toLowerCase().includes('invalid login credentials') || 
-                                      supaErr?.message?.toLowerCase().includes('invalid credentials');
-
-          if (isInvalidCredentials) {
-            throw supaErr;
-          }
-
-          // Check if user is registered in the local registry
-          const localAccounts = JSON.parse(localStorage.getItem('habe_local_accounts') || '[]');
-          const foundAccount = localAccounts.find((acc: any) => acc.email.toLowerCase() === emailLower);
-          
-          if (foundAccount) {
-            if (foundAccount.password === password) {
+        } catch (apiErr: any) {
+          console.warn('Neon auth failed or offline, checking fallback:', apiErr);
+          // Fallback to local accounts or Supabase
+          try {
+            const { error: loginError } = await supabase.auth.signInWithPassword({
+              email: email.trim(),
+              password,
+            });
+            if (loginError) throw loginError;
+            localStorage.setItem('habe_selected_experience', 'choice');
+            window.location.reload();
+            return;
+          } catch (supaErr: any) {
+            // Check local accounts
+            const localAccounts = JSON.parse(localStorage.getItem('habe_local_accounts') || '[]');
+            const foundAccount = localAccounts.find((acc: any) => acc.email.toLowerCase() === emailLower);
+            if (foundAccount && foundAccount.password === password) {
               localStorage.setItem('habe_local_user', JSON.stringify({ email: emailLower, fullName: foundAccount.fullName }));
               localStorage.setItem('habe_selected_experience', 'choice');
               window.location.reload();
               return;
-            } else {
-              throw new Error('invalid login credentials');
             }
-          } else {
-            throw new Error("Aucun compte n'existe avec cette adresse e-mail. Veuillez vous inscrire d'abord.");
+            throw new Error(apiErr.message || "Adresse email ou mot de passe incorrect.");
           }
         }
       } else {
-        const storeNewMember = () => {
-          try {
-            const newM = {
-              name: fullName.trim() || emailLower.split('@')[0],
-              email: emailLower,
-              date: 'Juin 2026',
-              role: 'Actif (Ce mois-ci)'
-            };
-            const existing = JSON.parse(localStorage.getItem('habe_registered_members') || '[]');
-            if (!existing.some((m: any) => m.email.toLowerCase() === newM.email.toLowerCase())) {
-              existing.unshift(newM);
-              localStorage.setItem('habe_registered_members', JSON.stringify(existing));
-            }
-
-            // Also keep record in habe_local_accounts to enforce professional login restriction
-            const localAccounts = JSON.parse(localStorage.getItem('habe_local_accounts') || '[]');
-            if (!localAccounts.some((acc: any) => acc.email.toLowerCase() === emailLower)) {
-              localAccounts.push({
-                email: emailLower,
-                password: password,
-                fullName: fullName.trim() || emailLower.split('@')[0]
-              });
-              localStorage.setItem('habe_local_accounts', JSON.stringify(localAccounts));
-            }
-          } catch (e) {
-            console.error(e);
-          }
-        };
-
+        // Register in Neon PostgreSQL
         try {
-          const { error: signUpError } = await supabase.auth.signUp({
-            email: email.trim(),
-            password,
-            options: {
-              data: {
-                full_name: fullName.trim(),
-              },
-            },
-          });
-          if (signUpError) throw signUpError;
-          storeNewMember();
-          setSuccess('Votre compte a été créé avec succès ! Veuillez vérifier votre boîte email pour valider votre inscription.');
-          
-          // Clear sign up inputs after success
-          setFullName('');
-          setEmail('');
-          setPassword('');
-        } catch (supaErr: any) {
-          console.warn('Supabase signup failed, trying local fallback:', supaErr);
-          // Create local session immediately for smooth fallback and store member credentials
+          const regRes = await api.auth.register(emailLower, password, fullName.trim());
+          if (regRes && regRes.user) {
+            localStorage.setItem('habe_local_user', JSON.stringify({ email: regRes.user.email, fullName: regRes.user.fullName }));
+            localStorage.setItem('habe_selected_experience', 'choice');
+            setSuccess('Compte créé avec succès dans la base Neon PostgreSQL ! Redirection...');
+            setTimeout(() => {
+              window.location.reload();
+            }, 1200);
+            return;
+          }
+        } catch (regErr: any) {
+          console.warn('Neon registration issue, using local fallback:', regErr);
+          const storeNewMember = () => {
+            try {
+              const newM = {
+                name: fullName.trim() || emailLower.split('@')[0],
+                email: emailLower,
+                date: 'Juin 2026',
+                role: 'Actif (Ce mois-ci)'
+              };
+              const existing = JSON.parse(localStorage.getItem('habe_registered_members') || '[]');
+              if (!existing.some((m: any) => m.email.toLowerCase() === newM.email.toLowerCase())) {
+                existing.unshift(newM);
+                localStorage.setItem('habe_registered_members', JSON.stringify(existing));
+              }
+            } catch (e) {}
+          };
           storeNewMember();
           localStorage.setItem('habe_local_user', JSON.stringify({ email: emailLower, fullName: fullName.trim() }));
           localStorage.setItem('habe_selected_experience', 'choice');
-          setSuccess('Votre compte a été configuré avec succès ! Connexion automatique...');
-          
-          setFullName('');
-          setEmail('');
-          setPassword('');
+          setSuccess('Votre compte a été configuré avec succès ! Connexion...');
           setTimeout(() => {
             window.location.reload();
-          }, 1500);
+          }, 1200);
         }
       }
     } catch (err: any) {
