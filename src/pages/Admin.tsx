@@ -155,9 +155,15 @@ const Admin: React.FC<AdminProps> = ({ onClose }) => {
   });
 
   const [activeTab, setActiveTab] = useState<'catalogue' | 'commandes' | 'utilisateurs' | 'marque'>('catalogue');
-  const [customLogoInput, setCustomLogoInput] = useState(() => {
-    return localStorage.getItem('habe_custom_logo_url') || '';
-  });
+  const [customLogoInput, setCustomLogoInput] = useState(brandLogo.customLogo || '');
+  
+  // Keep the input field in sync with global state (updates after background database fetch)
+  useEffect(() => {
+    if (brandLogo.customLogo !== null) {
+      setCustomLogoInput(brandLogo.customLogo);
+    }
+  }, [brandLogo.customLogo]);
+
   const [logoSaveNotice, setLogoSaveNotice] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessingLogo, setIsProcessingLogo] = useState(false);

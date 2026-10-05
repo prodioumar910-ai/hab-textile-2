@@ -48,6 +48,28 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const brandLogo = useBrandLogo();
   const [cart, setCart] = useState<Product[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
+  
+  // Synchronize global site settings (logo, branding) from database on mount
+  useEffect(() => {
+    const syncGlobalSettings = async () => {
+      try {
+        const globalLogoUrl = await api.settings.getLogo();
+        if (globalLogoUrl) {
+          const localLogoUrl = localStorage.getItem('habe_custom_logo_url');
+          if (globalLogoUrl !== localLogoUrl) {
+            localStorage.setItem('habe_custom_logo_url', globalLogoUrl);
+            // Trigger reactivity for useBrandLogo hook across all components
+            window.dispatchEvent(new Event('storage'));
+            window.dispatchEvent(new CustomEvent('habe_logo_updated', { detail: globalLogoUrl }));
+          }
+        }
+      } catch (error) {
+        console.warn('[StoreContext] Could not sync global settings:', error);
+      }
+    };
+    syncGlobalSettings();
+  }, []);
+
   const [products, setProducts] = useState<Product[]>(() => {
     const saved = localStorage.getItem('habe_products');
     

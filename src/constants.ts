@@ -9,7 +9,7 @@ export const BRAND_NAME = 'Habé';
 export const BRAND_TAGLINE = "L'élégance et la tradition de la mode africaine haut de gamme";
 
 // Asset cache version to prevent browsers & Service Workers from serving stale logos
-export const ASSET_VERSION = '20261002_v19';
+export const ASSET_VERSION = '20261005_v20';
 
 // Dynamic brand logo helper (checks for runtime custom logo override from admin, falls back to new official assets)
 export function getActiveLogo(type: 'logo' | 'logo-white' | 'wide' | 'wide-white' | 'icon' | 'original' = 'logo'): string {
