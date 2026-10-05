@@ -27,108 +27,12 @@ import { APP_LOGO_WHITE, APP_LOGO_ICON } from "../constants";
 import { Bodygee3DScanner } from "../components/Bodygee3DScanner";
 import { MeasureResult } from "../types";
 import { api } from "../lib/api";
+import { computeProfessionalMeasurements, MEN_PROFILES } from "../utils/measurements";
 
 interface MeasurePageProps {
   onBackToChoice: () => void;
   onGoToBoutique: () => void;
 }
-
-export const computeLocalMeasurements = (gender: string, inputHeight: number): MeasureResult => {
-  const isHomme = gender === "homme";
-  const h = inputHeight || (isHomme ? 175 : 125);
-  
-  // Deterministic fluctuations based on height to keep things stable when adjusting sliders
-  const seed = (h % 10) + 1;
-  const fluctuation = (field: string) => {
-    const hash = field.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return ((hash + seed) % 5) - 2; // -2 to +2 cm
-  };
-
-  let fesse = 0;
-  let poitrine = 0;
-  let ceinture = 0;
-  let epaule = 0;
-  let cou = 0;
-  let manche = 0;
-  let tour_manche = 0;
-  let longueur_boubou = 0;
-  let longueur_pantalon = 0;
-  let cuisse = 0;
-
-  if (isHomme) {
-    // Fesse: 85cm à 120cm
-    fesse = Math.round(h * 0.54 + fluctuation("fesse"));
-    fesse = Math.min(120, Math.max(85, fesse));
-
-    // Poitrine: fesse + 5cm
-    poitrine = fesse + 5;
-
-    // Ceinture: = fesse
-    ceinture = fesse;
-
-    // Épaule: 43cm ou plus
-    epaule = Math.round(h * 0.26 + fluctuation("epaule"));
-    epaule = Math.max(43, epaule);
-
-    // Cou: 36cm à 44cm
-    cou = Math.round(h * 0.22 + fluctuation("cou"));
-    cou = Math.min(44, Math.max(36, cou));
-
-    // Manche: e.g. 55 to 75
-    manche = Math.round(h * 0.35 + fluctuation("manche"));
-    manche = Math.min(75, Math.max(55, manche));
-
-    // Tour de Manche: 30cm à 44cm
-    tour_manche = Math.round(h * 0.20 + fluctuation("tour_manche"));
-    tour_manche = Math.min(44, Math.max(30, tour_manche));
-
-    // Longueur boubou: 84cm à 100cm
-    longueur_boubou = Math.round(h * 0.52 + fluctuation("longueur_boubou"));
-    longueur_boubou = Math.min(100, Math.max(84, longueur_boubou));
-
-    // Longueur pantalon: 95cm à 115cm
-    longueur_pantalon = Math.round(h * 0.58 + fluctuation("longueur_pantalon"));
-    longueur_pantalon = Math.min(115, Math.max(95, longueur_pantalon));
-
-    // Cuisse: 48 à 75 cm
-    cuisse = Math.round(h * 0.32 + fluctuation("cuisse"));
-    cuisse = Math.min(75, Math.max(48, cuisse));
-  } else {
-    // Enfant
-    fesse = Math.round(h * 0.48 + fluctuation("fesse_enf"));
-    poitrine = fesse + 3;
-    ceinture = fesse;
-    epaule = Math.round(h * 0.24 + fluctuation("epaule_enf"));
-    cou = Math.round(h * 0.20 + fluctuation("cou_enf"));
-    manche = Math.round(h * 0.32 + fluctuation("manche_enf"));
-    tour_manche = Math.round(h * 0.16 + fluctuation("tour_manche_enf"));
-    longueur_boubou = Math.round(h * 0.46 + fluctuation("longueur_boubou_enf"));
-    longueur_pantalon = Math.round(h * 0.50 + fluctuation("longueur_pantalon_enf"));
-    cuisse = Math.round(h * 0.28 + fluctuation("cuisse_enf"));
-  }
-
-  let comment = "";
-  if (isHomme) {
-    comment = `Votre morphologie présente une excellente proportion athlétique pour un homme avec une poitrine de ${poitrine}cm et un tour de fesse/bassin de ${fesse}cm. Votre stature est idéale pour nos grands boubous majestueux Habé (longueur de ${longueur_boubou}cm préconisée) et nos coupes de pantalons ajustées (longueur de ${longueur_pantalon}cm).`;
-  } else {
-    comment = `Un profil de jeune couturier en pleine croissance, dynamique et très prometteur. Ses proportions sont régulières, ce qui facilite un seyant impeccable pour tous nos ensembles pour enfants et tenues de fête traditionnelles. Optez pour une aisance confortable de 2 cm supplémentaires lors de la coupe de ses vêtements.`;
-  }
-
-  return {
-    hauteur: h,
-    epaule,
-    cou,
-    manche,
-    tour_manche,
-    longueur_boubou,
-    longueur_pantalon,
-    fesse,
-    poitrine,
-    cuisse,
-    ceinture,
-    comment
-  };
-};
 
 export const getRecommendations = (gender: string, m: MeasureResult) => {
   // Determine Body shape
@@ -137,61 +41,54 @@ export const getRecommendations = (gender: string, m: MeasureResult) => {
   
   if (gender === "homme") {
     const diffPT = m.poitrine - m.ceinture;
-    if (diffPT >= 10) {
+    const ratioEpaule = m.epaule / (m.hauteur || 175);
+
+    if (diffPT >= 12 || ratioEpaule > 0.27) {
       shape = "Morphologie Athlétique (V-Shape)";
-      shapeDesc = "Vos épaules et votre poitrine sont bien développées par rapport à votre ceinture. Les coupes ajustées (Slim Fit) pour les chemises et les vestes cintrées mettront particulièrement en valeur votre carrure.";
-    } else if (diffPT <= 2 && m.ceinture >= m.poitrine) {
+      shapeDesc = "Carrure imposante et taille fine. Privilégiez les coupes ajustées (Slim Fit) pour vos Kaftans et des Boubous avec une belle structure d'épaules pour magnifier votre stature.";
+    } else if (diffPT < 5 && m.ceinture > m.poitrine * 0.9) {
       shape = "Morphologie Ovale / Solide";
-      shapeDesc = "Votre corps est harmonieux avec du volume au niveau du buste. Privilégiez des vêtements structurés mais confortables (Regular Fit), des vestes droites à deux boutons pour allonger votre silhouette.";
+      shapeDesc = "Silhouette généreuse et harmonieuse. Les coupes droites (Regular Fit) et les tissus avec une bonne tenue comme le Bazin Riche vous offriront un confort absolu et une élégance intemporelle.";
     } else {
       shape = "Morphologie Rectangulaire / Classique";
-      shapeDesc = "Vos épaules, votre taille/ceinture et vos hanches/fesses sont alignées de façon équilibrée. C'est un profil idéal pour jouer sur les superpositions. Les vestes structurées aux épaules marquées vous iront à merveille.";
+      shapeDesc = "Proportions équilibrées entre le buste et le bassin. C'est le profil idéal pour porter toute la gamme Habé, des ensembles Sénateurs aux Grands Boubous traditionnels.";
     }
   } else {
     // Enfant
-    const diffPH = m.poitrine - m.fesse;
-    if (diffPH >= 4) {
-      shape = "Morphologie Conique / Grandissant";
-      shapeDesc = "Un profil élancé en pleine croissance. Parfait pour les ensembles boubou avec épaules dégagées.";
-    } else {
-      shape = "Morphologie Régulière";
-      shapeDesc = "Proportions standards idéales pour toutes nos collections d'enfants.";
-    }
+    shape = "Morphologie Junior Habé";
+    shapeDesc = "Coupe étudiée pour accompagner la croissance de l'enfant tout en conservant le prestige de la haute-couture africaine.";
   }
 
-  // Calculate Sizing
-  // Shirt
+  // Calculate Sizing (Habé Standards)
   let shirtSize = "";
   if (gender === "homme") {
-    if (m.poitrine < 90) shirtSize = "37/38 (S)";
-    else if (m.poitrine < 98) shirtSize = "39/40 (M)";
-    else if (m.poitrine < 106) shirtSize = "41/42 (L)";
-    else if (m.poitrine < 114) shirtSize = "43/44 (XL)";
-    else shirtSize = "45/46 (XXL)";
+    if (m.poitrine < 92) shirtSize = "S (37/38)";
+    else if (m.poitrine < 100) shirtSize = "M (39/40)";
+    else if (m.poitrine < 108) shirtSize = "L (41/42)";
+    else if (m.poitrine < 116) shirtSize = "XL (43/44)";
+    else shirtSize = "XXL (45/46+)";
   } else {
-    if (m.poitrine < 62) shirtSize = "6/8 ans";
-    else if (m.poitrine < 72) shirtSize = "8/10 ans";
-    else if (m.poitrine < 82) shirtSize = "10/12 ans";
-    else shirtSize = "12/14 ans";
+    const h = m.hauteur || 125;
+    if (h < 90) shirtSize = "2/3 ans";
+    else if (h < 110) shirtSize = "4/6 ans";
+    else if (h < 130) shirtSize = "8/10 ans";
+    else if (h < 150) shirtSize = "12/14 ans";
+    else shirtSize = "Junior Pro";
   }
 
-  // Blazer / Veste (FR size)
-  let blazerSize = 0;
-  if (gender === "homme") {
-    blazerSize = Math.round(m.poitrine / 2);
-  } else {
-    blazerSize = Math.round(m.poitrine / 2) - 6;
+  // Blazer / Veste / Kaftan (FR size)
+  let blazerSize = gender === "homme" ? Math.round(m.poitrine / 2) : 0;
+  if (blazerSize > 0) {
+     blazerSize = blazerSize - (blazerSize % 2); // Ensure even
+     blazerSize = Math.max(44, Math.min(64, blazerSize));
   }
-  blazerSize = Math.max(24, Math.min(62, blazerSize - (blazerSize % 2)));
 
   // Trouser (FR size)
-  let trouserSize = 0;
-  if (gender === "homme") {
-    trouserSize = Math.round(m.ceinture / 2);
-  } else {
-    trouserSize = Math.round(m.ceinture / 2) - 4;
+  let trouserSize = gender === "homme" ? Math.round(m.ceinture / 2) : 0;
+  if (trouserSize > 0) {
+    trouserSize = trouserSize - (trouserSize % 2);
+    trouserSize = Math.max(38, Math.min(60, trouserSize));
   }
-  trouserSize = Math.max(22, Math.min(58, trouserSize - (trouserSize % 2)));
 
   return {
     shape,
@@ -205,6 +102,7 @@ export const getRecommendations = (gender: string, m: MeasureResult) => {
 export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoToBoutique }) => {
   const { user, products, setSelectedProduct, brandLogo } = useStore();
   const [gender, setGender] = useState<string>("homme");
+  const [profileKey, setProfileKey] = useState<string>("classique");
   const [height, setHeight] = useState<string>("175");
   const [isLocalFallback, setIsLocalFallback] = useState<boolean>(false);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -480,7 +378,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
       if (!response) {
         console.warn("Aucune réponse du serveur. Utilisation du processeur de couture local de Habé...");
         setIsLocalFallback(true);
-        const localData = computeLocalMeasurements(gender, parseInt(height));
+        const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey);
         setResult(localData);
         setAdjustedResult(localData);
         
@@ -514,7 +412,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
 
         console.warn("Erreur de réponse du serveur. Utilisation de l'Atelier local Habé...");
         setIsLocalFallback(true);
-        const localData = computeLocalMeasurements(gender, parseInt(height));
+        const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey);
         setResult(localData);
         setAdjustedResult(localData);
         
@@ -538,7 +436,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
       } catch (parseErr: any) {
         console.warn("Échec d'analyse de la réponse IA. Utilisation de l'Atelier de couture local...");
         setIsLocalFallback(true);
-        data = computeLocalMeasurements(gender, parseInt(height));
+        data = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey);
       }
 
       setResult(data);
@@ -565,7 +463,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
     } catch (err: any) {
       console.warn("Exception durant le traitement IA. Utilisation du processeur de couture local...", err);
       setIsLocalFallback(true);
-      const localData = computeLocalMeasurements(gender, parseInt(height));
+      const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey);
       setResult(localData);
       setAdjustedResult(localData);
       
@@ -1151,7 +1049,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                   {/* Gender selection */}
                   <div className="space-y-2 mb-4">
                     <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-600">
-                      Sélectionner le Profil
+                      1. Sélectionner le Profil
                     </label>
                     <div className="grid grid-cols-2 gap-2">
                       {[
@@ -1174,6 +1072,51 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                           {g.label}
                         </button>
                       ))}
+                    </div>
+                  </div>
+
+                  {/* Profile Key selection for Men */}
+                  {gender === "homme" && (
+                    <div className="space-y-2 mb-4">
+                      <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-600">
+                        2. Type de Corpulence
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {Object.entries(MEN_PROFILES).map(([key, p]) => (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => setProfileKey(key)}
+                            className={`py-2 px-1 rounded-xl text-[9px] font-heading font-bold tracking-tight uppercase transition-all flex flex-col items-center justify-center min-h-[50px] ${
+                              profileKey === key 
+                                ? "bg-amber-100 border-amber-300 text-amber-900 shadow-sm" 
+                                : "bg-stone-50 border border-stone-200 text-stone-500 hover:bg-white"
+                            }`}
+                          >
+                            <span>{p.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Manual Height Input */}
+                  <div className="space-y-2">
+                    <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-600">
+                      {gender === "homme" ? "3." : "2."} Taille de Stature (cm)
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="range"
+                        min={gender === "homme" ? 150 : 80}
+                        max={gender === "homme" ? 220 : 160}
+                        value={height}
+                        onChange={(e) => setHeight(e.target.value)}
+                        className="flex-1 h-1.5 bg-stone-200 rounded-full appearance-none cursor-pointer accent-brand-orange-dark"
+                      />
+                      <div className="bg-white px-3 py-1.5 rounded-lg border border-stone-200 font-mono font-bold text-stone-900 text-xs min-w-[70px] text-center">
+                        {height} cm
+                      </div>
                     </div>
                   </div>
                 </div>
