@@ -10,7 +10,7 @@ export const BRAND_NAME = 'Habé';
 export const BRAND_TAGLINE = "L'élégance et la tradition de la mode africaine haut de gamme";
 
 // Asset cache version to prevent browsers & Service Workers from serving stale logos
-export const ASSET_VERSION = '20261005_v21';
+export const ASSET_VERSION = '20261005_v22_new_logo';
 
 // Dynamic brand logo helper (checks for runtime custom logo override from admin, falls back to new official assets)
 export function getActiveLogo(type: 'logo' | 'logo-white' | 'wide' | 'wide-white' | 'icon' | 'original' = 'logo'): string {
@@ -20,13 +20,17 @@ export function getActiveLogo(type: 'logo' | 'logo-white' | 'wide' | 'wide-white
       return custom.trim();
     }
   }
+
+  // Use the new horizontal logo provided by the user in public folder
+  const officialLogo = `/LOGO%20HORIZONTAL_Plan%20de%20travail%201.png?v=${ASSET_VERSION}`;
+
   switch (type) {
-    case 'logo-white': return OFFICIAL_BRAND_LOGO_DATA;
-    case 'wide': return OFFICIAL_BRAND_LOGO_DATA;
-    case 'wide-white': return OFFICIAL_BRAND_LOGO_DATA;
-    case 'icon': return OFFICIAL_BRAND_LOGO_DATA;
-    case 'original': return OFFICIAL_BRAND_LOGO_DATA;
-    default: return OFFICIAL_BRAND_LOGO_DATA;
+    case 'logo-white': return officialLogo;
+    case 'wide': return officialLogo;
+    case 'wide-white': return officialLogo;
+    case 'icon': return officialLogo;
+    case 'original': return officialLogo;
+    default: return officialLogo;
   }
 }
 
@@ -72,24 +76,24 @@ export function useBrandLogo(): BrandLogoState {
 
 // Logo assets (guaranteed fresh with query buster):
 // Primary authentic logo (authentic pure stylized 'h' emblem, transparent background)
-export const APP_LOGO = OFFICIAL_BRAND_LOGO_DATA;
+export const APP_LOGO = getActiveLogo('logo');
 
 // Inverted logo for dark backgrounds, dark headers, and footer (authentic emblem + white text)
-export const APP_LOGO_WHITE = OFFICIAL_BRAND_LOGO_DATA;
+export const APP_LOGO_WHITE = getActiveLogo('logo-white');
 
 // Horizontal lockup (authentic emblem + text side-by-side for navigation bar)
-export const APP_LOGO_WIDE = OFFICIAL_BRAND_LOGO_DATA;
-export const APP_LOGO_WIDE_WHITE = OFFICIAL_BRAND_LOGO_DATA;
+export const APP_LOGO_WIDE = getActiveLogo('wide');
+export const APP_LOGO_WIDE_WHITE = getActiveLogo('wide-white');
 
 // Standalone monogram emblem icon (pure vibrant orange stylized 'h' emblem, transparent background)
-export const APP_LOGO_ICON = OFFICIAL_BRAND_LOGO_DATA;
+export const APP_LOGO_ICON = getActiveLogo('icon');
 
 // Standalone typography wordmark (for dark and light backgrounds)
-export const APP_LOGO_TEXT = OFFICIAL_BRAND_LOGO_DATA;
-export const APP_LOGO_TEXT_WHITE = OFFICIAL_BRAND_LOGO_DATA;
+export const APP_LOGO_TEXT = getActiveLogo('logo');
+export const APP_LOGO_TEXT_WHITE = getActiveLogo('logo-white');
 
 // Original master logo
-export const APP_LOGO_ORIGINAL = OFFICIAL_BRAND_LOGO_DATA;
+export const APP_LOGO_ORIGINAL = getActiveLogo('original');
 
 // Square high-resolution app icon for PWA, bookmarks & mobile installation
 export const APP_ICON = `/icon-192.png?v=${ASSET_VERSION}`;

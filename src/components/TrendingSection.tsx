@@ -5,21 +5,16 @@ import { useStore } from '../context/StoreContext';
 import { getOptimizedImage } from '../utils/image';
 
 const TRENDING_ITEMS = [
-  { id: 't1', name: 'Boubou Majesté', image: 'https://lh3.googleusercontent.com/d/1jnoz-YiJjiXAg5ulvILf85v_pAqmRtQ4' },
-  { id: 't2', name: 'Ensemble Royal', image: 'https://lh3.googleusercontent.com/d/1oMoyw-7qyg4Ih6aWFzQFuHgTIi2m-_CV' },
-  { id: 't3', name: 'Robe Divine Coton', image: 'https://lh3.googleusercontent.com/d/1BbR26kpQ4LdImgGrAVxeCIkBEX-E8TWF' },
-  { id: 't4', name: 'Bazin Prestige Or', image: 'https://lh3.googleusercontent.com/d/1E9-lDyyWea8NtahCjY_p49Y4kkqhwGqT' },
-  { id: 't5', name: 'Ensemble Signature', image: 'https://lh3.googleusercontent.com/d/1l0xs1ZZQpnzhTE-OKc-8sl9VTwc7h-eb' },
-  { id: 't6', name: 'Sénateur Raffiné', image: 'https://lh3.googleusercontent.com/d/1tMzFDhuxnNgBaKHkh4pRtAKllfSxBYdF' },
-  { id: 't7', name: 'Wax Couture Impérial', image: 'https://lh3.googleusercontent.com/d/1pvgXg-TO12SBeJ-EgHkvSxFGVd3pr7ve' },
-  { id: 't8', name: 'Gandoura Élite', image: 'https://lh3.googleusercontent.com/d/1mVQd0T30KsH3VJk1d2uNjpHtXGAcIV9C' },
-  { id: 't9', name: 'Kaftan Pureté', image: 'https://lh3.googleusercontent.com/d/1vS0ddy64oCSnvggkJs-kpzsJjxLrAf7I' },
-  { id: 't10', name: 'Abaya Moderne', image: 'https://lh3.googleusercontent.com/d/1gicja5relC7Qa-SvwbTnmmKd8Ef3Z0Eo' },
-  { id: 't11', name: 'Boubou Céleste', image: 'https://lh3.googleusercontent.com/d/1cxOd2dOGBbAG9cryAC5-UUDQFm0S2_x1' },
-  { id: 't12', name: 'Linen d’Exception', image: 'https://lh3.googleusercontent.com/d/1c1UVTCsiflQFhYw6EgC_kdmsEyJfcw-y' },
-  { id: 't13', name: 'Wax Élégance', image: 'https://lh3.googleusercontent.com/d/1sXCLy4i4xgDykTNp1LkIK9DdnqSZt0sE' },
-  { id: 't14', name: 'Grand Boubou Suprême', image: 'https://lh3.googleusercontent.com/d/1A9YMMSAigfMZFWjpufkWOSFDgaYKrK3a' },
-  { id: 't15', name: 'Ensemble Ambassadeur', image: 'https://lh3.googleusercontent.com/d/1aKlS5fXkvaIXJ2uVjBp9m33A9mAvaDu9' },
+  { id: 'hm-1', name: "Boubou Royal d'Or", image: 'https://lh3.googleusercontent.com/d/18HxJiKqb9dRx5J_9OHyLwQwbwViDnmws' },
+  { id: 'kd-1', name: "Ensemble Royal Junior Or", image: 'https://lh3.googleusercontent.com/d/1WhYofpnj4MpoDAIY2wvWX-qYwfl9Nqve' },
+  { id: 'hm-8', name: 'Boubou Royal Excellence', image: 'https://lh3.googleusercontent.com/d/1CSU6vDruqukQpvS5FV8_pWFIZdITPRZj' },
+  { id: 'kd-9', name: "Boubou d'Or Enfant", image: 'https://lh3.googleusercontent.com/d/11H8t34yu0Xe4lQUgEkTWHk8BWP3UdKmX' },
+  { id: 'hm-6', name: 'Kaftan Impérial Brodé', image: 'https://lh3.googleusercontent.com/d/1eZ48hX3O_tlrBe1iDSTCIBlmlBsjX6Ma' },
+  { id: 'kd-3', name: "Boubou Impérial Kid", image: 'https://lh3.googleusercontent.com/d/1T0OQcSvsgR6GbMuR128mIjIr46scc5Px' },
+  { id: 'hm-4', name: 'Boubou Prestige Moutarde', image: 'https://lh3.googleusercontent.com/d/1w9n95-LCG8z6oSKgrY4pz78VlSMJ7gR2' },
+  { id: 'kd-8', name: "Ensemble Dynastie Kid Wax", image: 'https://lh3.googleusercontent.com/d/1MgkG5BWdubX74GSs1QSOihYxPNOI4HLL' },
+  { id: 'hm-2', name: 'Kaftan Bleu Nuit Brodé', image: 'https://lh3.googleusercontent.com/d/1G3sC5y1cwyJd3Ml2pX7yXS0NbH_pVtoY' },
+  { id: 'kd-2', name: "Kaftan Royal Kid Indigo", image: 'https://lh3.googleusercontent.com/d/13urnzRLr1NkJfn8Q4Y5vO3GAieBEAxrY' },
 ];
 
 const TrendingSection: React.FC = () => {

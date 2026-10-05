@@ -104,11 +104,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSharp = false, sho
           <div className={`relative aspect-[3/4] ${isSharp ? '' : 'rounded-xl'} overflow-hidden bg-white flex items-center justify-center border border-black/5 shadow-sm`}>
             {product.image ? (
               <img
-                src={getOptimizedImage(product.image, 800)}
+                src={getOptimizedImage(product.image, 1200)}
                 alt={product.name}
                 loading="lazy"
                 referrerPolicy="no-referrer"
-                className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-500"
+                className="w-full h-full object-cover object-[center_15%] group-hover:scale-105 transition-transform duration-700 ease-out"
               />
             ) : (
               <div className="flex flex-col items-center justify-center p-4 text-center select-none w-full h-full bg-stone-100/85">
