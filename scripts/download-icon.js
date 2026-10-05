@@ -85,6 +85,13 @@ async function run() {
     }
   }
   console.log('All downloads finished.');
+  
+  try {
+    const { generateLogoAssets } = await import('./generate-logo-assets.js');
+    generateLogoAssets();
+  } catch (e) {
+    console.warn('Could not run generateLogoAssets:', e.message);
+  }
 }
 
 run();

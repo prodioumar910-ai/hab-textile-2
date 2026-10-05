@@ -3,21 +3,55 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Maison Habé</title>
+    <title>Habé</title>
+    <meta name="description" content="Application web de mode haut de gamme pour Habé, proposant des collections Homme et Enfant, des accessoires et un catalogue interactif." />
+    <meta property="og:title" content="Habé" />
+    <meta property="og:description" content="Application web de mode haut de gamme pour Habé, proposant des collections Homme et Enfant, des accessoires et un catalogue interactif." />
+    <meta property="og:image" content="/icon-512.png" />
+    
+    <!-- Cache prevention for instant brand assets update -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <!-- Favicon and App Icons (versioned) -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png?v=20261002_v19" />
+    <link rel="shortcut icon" href="/favicon.ico?v=20261002_v19" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png?v=20261002_v19" />
+    <meta property="og:image" content="/icon-512.png?v=20261002_v19" />
     
     <!-- PWA primary tags -->
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="manifest" href="/manifest.json?v=20261002_v19" />
     <meta name="theme-color" content="#0D0D0D" />
     <meta name="mobile-web-app-capable" content="yes" />
     
     <!-- iOS support (iPhone/iPad) -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Maison Habé" />
-    <link rel="apple-touch-icon" href="/icon.jpeg" />
+    <meta name="apple-mobile-web-app-title" content="Habé" />
     
     <!-- splash screens (pour donner l'effet appli réelle au démarrage) -->
-    <link rel="apple-touch-startup-image" href="/icon.jpeg" />
+    <link rel="apple-touch-startup-image" href="/icon-512.png?v=20261002_v19" />
+
+    <!-- Instant stale cache killer script -->
+    <script>
+      (function() {
+        var currentVersion = 'habe_asset_v16';
+        if (localStorage.getItem('habe_last_cleared_version') !== currentVersion) {
+          if ('caches' in window) {
+            caches.keys().then(function(names) {
+              names.forEach(function(name) { caches.delete(name); });
+            });
+          }
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+              regs.forEach(function(r) { r.unregister(); });
+            });
+          }
+          localStorage.setItem('habe_last_cleared_version', currentVersion);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

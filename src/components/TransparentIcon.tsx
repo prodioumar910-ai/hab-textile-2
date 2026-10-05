@@ -109,7 +109,7 @@ export const TransparentIcon: React.FC<TransparentIconProps> = ({
         }
 
         // Broad tolerance to cover soft shadows or gradients
-        const tolerance = 58;
+        const tolerance = 18;
 
         for (let i = 0; i < data.length; i += 4) {
           const r = data[i];

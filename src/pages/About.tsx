@@ -4,7 +4,7 @@ import { MapPin, Phone, MessageSquare, Instagram, Truck, ExternalLink } from 'lu
 import { getOptimizedImage } from '../utils/image';
 
 const About: React.FC = () => {
-  const whatsappUrl = "https://wa.me/22394020209?text=Bonjour%20Hab%C3%A9%20Textile%2C%20je%20souhaite%20finaliser%20ma%20commande.";
+  const whatsappUrl = "https://wa.me/22394020209?text=Bonjour%20Hab%C3%A9%2C%20je%20souhaite%20finaliser%20ma%20commande.";
   const instagramUrl = "https://www.instagram.com/habe_textile";
   const tiktokUrl = "https://www.tiktok.com/@habe_textile";
 
@@ -35,7 +35,7 @@ const About: React.FC = () => {
         <div className="flex items-center justify-center gap-2 p-3 bg-white/30 backdrop-blur-md rounded-2xl border border-white/20 shadow-sm">
           <Truck className="w-4 h-4 text-brand-orange-dark shrink-0 animate-bounce" />
           <p className="font-heading font-medium text-xs text-brand-black tracking-wide">
-            Habé Textile livre partout dans le monde
+            Habé livre partout dans le monde
           </p>
         </div>
       </section>
@@ -46,7 +46,7 @@ const About: React.FC = () => {
         
         <div className="bg-white/25 backdrop-blur-md border border-white/25 rounded-3xl p-5 shadow-sm font-body text-xs text-brand-black/90 space-y-4">
           <p className="leading-relaxed">
-            Habé Textile est une entreprise malienne du secteur de luxe fondée à Bamako par Abdoulaye Sylla.
+            Habé est une entreprise malienne du secteur de luxe fondée à Bamako par Abdoulaye Sylla.
           </p>
           <p className="leading-relaxed">
             Elle est spécialisée dans le style homme et garçon qui confectionne des vêtements de luxe pour des grandes événements et quotidiennement.

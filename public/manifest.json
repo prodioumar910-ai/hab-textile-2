@@ -1,5 +1,5 @@
 {
-  "name": "Maison Habé",
+  "name": "Habé",
   "short_name": "Habé",
   "description": "L'excellence du prêt-à-porter traditionnel revisité.",
   "start_url": "/",
@@ -8,15 +8,15 @@
   "theme_color": "#FF8C00",
   "icons": [
     {
-      "src": "/icon.jpeg",
+      "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon.jpeg",
+      "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]

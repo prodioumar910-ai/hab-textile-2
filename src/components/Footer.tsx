@@ -1,16 +1,28 @@
 import React from 'react';
 import { Instagram, Facebook, Phone, MapPin, Clock } from 'lucide-react';
+import { useBrandLogo } from '../constants';
 
 const Footer: React.FC = () => {
+  const { logoIcon, logoWideWhite, isCustom } = useBrandLogo();
+
   return (
     <footer className="w-full bg-brand-black/90 border-t border-white/5 pt-12 pb-28 px-6 mt-6">
       <div className="max-w-4xl mx-auto flex flex-col gap-8 md:flex-row md:justify-between md:items-start text-left">
         
         {/* Brand Details */}
         <div className="flex flex-col gap-3">
-          <h2 className="text-xl font-heading font-black text-white tracking-widest uppercase">
-            Maison Habé
-          </h2>
+          <div className="flex items-center gap-3">
+            <img 
+              src={isCustom ? logoWideWhite : logoIcon} 
+              alt="Habé" 
+              className="h-12 sm:h-14 w-auto max-w-[280px] sm:max-w-[320px] object-contain drop-shadow-md"
+            />
+            {!isCustom && (
+              <h2 className="text-xl font-heading font-black text-white tracking-widest uppercase">
+                Habé
+              </h2>
+            )}
+          </div>
           <p className="text-xs text-white/50 leading-relaxed max-w-xs font-body">
             L'excellence du prêt-à-porter traditionnel revisité. Des créations uniques façonnées avec passion pour sublimer toutes vos apparitions.
           </p>
@@ -84,7 +96,7 @@ const Footer: React.FC = () => {
       {/* Footer Bottom copyright and attribution */}
       <div className="max-w-4xl mx-auto mt-12 pt-6 border-t border-white/5 flex flex-col sm:flex-row sm:justify-between items-center gap-4 text-center sm:text-left">
         <p className="text-[10px] text-white/30 font-mono tracking-wider uppercase">
-          &copy; {new Date().getFullYear()} Maison Habé. Tous droits réservés.
+          &copy; {new Date().getFullYear()} Habé. Tous droits réservés.
         </p>
         <p className="text-[9px] text-white/20 font-mono tracking-wider uppercase">
           Création de luxe africain

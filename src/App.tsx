@@ -19,17 +19,20 @@ import { AnimatePresence, motion } from 'motion/react';
 import { ArrowLeft } from 'lucide-react';
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { PretAPorterModal } from './components/PretAPorterModal';
+import { SplashScreen } from './components/SplashScreen';
 
 function AppContent() {
   const { user, selectedProduct, isTrendingOpen, isPretAPorterOpen } = useStore();
   const [activePage, setActivePage] = useState(0);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [shouldHideHeader, setShouldHideHeader] = useState(false);
   const [showBottomNav, setShowBottomNav] = useState(false);
   const [selectedExperience, setSelectedExperience] = useState<'choice' | 'boutique' | 'measure'>(() => {
     return (localStorage.getItem('habe_selected_experience') as 'choice' | 'boutique' | 'measure') || 'choice';
   });
   const [hasSkipped, setHasSkipped] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
 
   const handleSkip = () => {
     localStorage.setItem('habe_selected_experience', 'choice');
@@ -55,22 +58,23 @@ function AppContent() {
   useEffect(() => {
     if (activePage !== 0) {
       setIsScrolled(true);
+      setShouldHideHeader(false);
       setShowBottomNav(true);
       return;
     }
 
     const handleScroll = () => {
-      // Transition as we start moving into the second section
       const scrollPos = window.scrollY;
-      const thresholdHeader = 20; // Show header background almost immediately
-      const thresholdNav = 10; // Show navigation bar almost immediately
-
-      setIsScrolled(scrollPos > thresholdHeader);
-      setShowBottomNav(true); // Always show it on home page now
+      const windowHeight = window.innerHeight;
+      
+      setIsScrolled(scrollPos > 20);
+      // Hide header after Section 1 (which is HeroCarousel at h-screen)
+      setShouldHideHeader(scrollPos > windowHeight - 100);
+      setShowBottomNav(true);
     };
 
     window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Check initial scroll
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, [activePage]);
 
@@ -79,8 +83,12 @@ function AppContent() {
   }, [activePage]);
 
   const renderPage = () => {
-    const isActuallyAdmin = user?.email?.toLowerCase() === 'prodioumar910@gmail.com';
-    if (isAdminMode && isActuallyAdmin) return <Admin />;
+    const isActuallyAdmin = 
+      user?.email?.toLowerCase() === 'prodioumar910@gmail.com' ||
+      localStorage.getItem('habe_local_admin') === 'true' ||
+      user?.role === 'admin' ||
+      (user as any)?.user_metadata?.role === 'admin';
+    if (isAdminMode && isActuallyAdmin) return <Admin onClose={() => setIsAdminMode(false)} />;
     
     switch (activePage) {
       case 0: return <Home />;
@@ -93,7 +101,18 @@ function AppContent() {
 
   // If user is not authenticated and has not skipped, display registration onboarding page first
   return (
-    <AnimatePresence mode="wait">
+    <>
+      <AnimatePresence>
+        {showSplash && (
+          <SplashScreen
+            onFinish={() => {
+              setShowSplash(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
       {!user && !hasSkipped ? (
         <motion.div
           key="auth"
@@ -151,20 +170,19 @@ function AppContent() {
           {isAdminMode && (
             <button
               onClick={() => setIsAdminMode(false)}
-              className="fixed bottom-6 left-6 z-[10001] bg-brand-black text-white px-6 py-3 rounded-full flex items-center gap-2 text-xs font-heading font-bold shadow-2xl active:scale-95 border border-white/10"
+              className="fixed bottom-6 left-6 z-[10001] bg-white/70 backdrop-blur-xl text-brand-black px-6 py-3 rounded-full flex items-center gap-2 text-xs font-heading font-bold shadow-2xl active:scale-95 border border-white/40"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4 text-brand-orange-dark" />
               Quitter Admin
             </button>
           )}
 
-          {/* Header positioning */}
+          {/* Header positioning - Transparent background, hides on scroll */}
           {!isAdminMode && !selectedProduct && !isTrendingOpen && !isPretAPorterOpen && (
-            <div className="fixed top-0 left-0 right-0 z-50 bg-transparent border-transparent shadow-none border-b-0 transition-all duration-300 transform-gpu">
+            <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 transform-gpu ${shouldHideHeader ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}>
               <Header 
                 activePage={activePage} 
                 setActivePage={setActivePage} 
-                isTransparent={activePage === 0 && !isScrolled} 
                 onOpenMeasure={handleSelectMeasure}
               />
             </div>
@@ -210,7 +228,8 @@ function AppContent() {
           <PretAPorterModal />
         </motion.div>
       )}
-    </AnimatePresence>
+      </AnimatePresence>
+    </>
   );
 }
 

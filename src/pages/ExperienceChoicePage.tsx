@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "motion/react";
+import { useBrandLogo } from "../constants";
 
 interface ExperienceChoicePageProps {
   onSelectBoutique: () => void;
@@ -10,6 +11,7 @@ export const ExperienceChoicePage: React.FC<ExperienceChoicePageProps> = ({
   onSelectBoutique,
   onSelectMeasure,
 }) => {
+  const { logoIcon, logoWhite, isCustom } = useBrandLogo();
   const [boutiqueSrc, setBoutiqueSrc] = React.useState('https://lh3.googleusercontent.com/d/1vXWUkn_u2vcKnHTiBvW0dLsUTsLSbI13');
   const [boutiqueErrCount, setBoutiqueErrCount] = React.useState(0);
   
@@ -48,14 +50,15 @@ export const ExperienceChoicePage: React.FC<ExperienceChoicePageProps> = ({
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
-          className="inline-block mb-4"
+          className="inline-block mb-3"
         >
-          <img
-            src="https://lh3.googleusercontent.com/d/1rIc99ggOZFOnB_wYD9Fnq1klzVJTkAma"
-            alt="Habé Textile Logo"
-            className="h-20 w-auto mx-auto object-contain"
-            referrerPolicy="no-referrer"
-          />
+          <div className="bg-white/20 backdrop-blur-xl border border-white/30 p-6 sm:p-8 rounded-[40px] shadow-2xl flex items-center justify-center overflow-hidden">
+            <img
+              src={isCustom ? (logoWhite || logoIcon) : logoIcon}
+              alt="Habé"
+              className="h-32 sm:h-48 w-auto max-w-[360px] sm:max-w-[520px] mx-auto object-contain drop-shadow-2xl"
+            />
+          </div>
         </motion.div>
 
         <motion.h1
@@ -64,7 +67,7 @@ export const ExperienceChoicePage: React.FC<ExperienceChoicePageProps> = ({
           transition={{ duration: 0.6, delay: 0.1 }}
           className="font-heading font-extrabold text-3xl sm:text-4xl text-white tracking-widest uppercase mt-2"
         >
-          Maison Habé
+          Habé
         </motion.h1>
         
         <motion.p
@@ -135,7 +138,7 @@ export const ExperienceChoicePage: React.FC<ExperienceChoicePageProps> = ({
         transition={{ duration: 1, delay: 0.6 }}
         className="mt-12 text-[10px] text-white font-body text-center"
       >
-        Maison Habé Haute Couture © {new Date().getFullYear()} — Tous droits réservés.
+        Habé Haute Couture © {new Date().getFullYear()} — Tous droits réservés.
       </motion.p>
     </div>
   );

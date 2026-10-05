@@ -102,6 +102,15 @@ export async function initDb() {
       );
     `);
 
+    // 6. Site settings table (for logo, brand assets, site configuration)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS site_settings (
+        key VARCHAR(100) PRIMARY KEY,
+        value TEXT,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+    `);
+
     // Seed default admin if not exists
     const adminCheck = await client.query('SELECT id FROM users WHERE email = $1', ['prodioumar910@gmail.com']);
     if (adminCheck.rows.length === 0) {
@@ -343,5 +352,32 @@ export async function createReview(review: any) {
     [review.productId, review.authorName, review.rating, review.comment]
   );
   return res.rows[0];
+}
+
+// Site Settings (Brand logo, preferences)
+export async function getSetting(key: string): Promise<string | null> {
+  try {
+    const res = await pool.query('SELECT value FROM site_settings WHERE key = $1', [key]);
+    if (res.rows.length > 0) {
+      return res.rows[0].value;
+    }
+    return null;
+  } catch (e) {
+    console.warn(`Error getting setting ${key}:`, e);
+    return null;
+  }
+}
+
+export async function setSetting(key: string, value: string): Promise<void> {
+  try {
+    await pool.query(
+      `INSERT INTO site_settings (key, value, updated_at) 
+       VALUES ($1, $2, NOW()) 
+       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
+      [key, value]
+    );
+  } catch (e) {
+    console.warn(`Error saving setting ${key}:`, e);
+  }
 }
 

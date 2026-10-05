@@ -4,9 +4,10 @@ import { supabase } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { INITIAL_PRODUCTS } from '../data/initialProducts';
 import { api } from '../lib/api';
+import { useBrandLogo, BrandLogoState } from '../constants';
 
 interface StoreContextType {
-
+  brandLogo: BrandLogoState;
   cart: Product[];
   favorites: string[];
   products: Product[];
@@ -44,6 +45,7 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const brandLogo = useBrandLogo();
   const [cart, setCart] = useState<Product[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [products, setProducts] = useState<Product[]>(() => {
@@ -219,18 +221,54 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
     }
 
-    // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      // If we are signed in on Supabase with the admin email, also register it as admin
-      setUser(session?.user ?? null);
-    });
+    // Check current session with safe fallback
+    try {
+      supabase.auth.getSession()
+        .then((res: any) => {
+          const session = res?.data?.session;
+          if (session?.user) {
+            setUser(session.user);
+          }
+        })
+        .catch((e: any) => {
+          console.warn('Supabase getSession network notice:', e?.message || e);
+        });
+    } catch (e) {
+      console.warn('Supabase auth getSession skipped:', e);
+    }
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    let subscription: { unsubscribe: () => void } | null = null;
+    try {
+      const authSub = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+          setUser(session.user);
+        }
+      });
+      subscription = authSub?.data?.subscription || null;
+    } catch (e) {
+      console.warn('Supabase onAuthStateChange skipped:', e);
+    }
+
+    // Sync logo from backend Neon PostgreSQL database so all devices and sessions stay in sync
+    api.settings.getLogo().then((serverLogo) => {
+      if (serverLogo && serverLogo.trim().length > 5) {
+        const currentLocal = localStorage.getItem('habe_custom_logo_url');
+        if (currentLocal !== serverLogo.trim()) {
+          localStorage.setItem('habe_custom_logo_url', serverLogo.trim());
+          window.dispatchEvent(new Event('storage'));
+          window.dispatchEvent(new CustomEvent('habe_logo_updated', { detail: serverLogo.trim() }));
+        }
+      }
+    }).catch((e) => {
+      console.warn('Backend logo sync skipped:', e);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      if (subscription && typeof subscription.unsubscribe === 'function') {
+        subscription.unsubscribe();
+      }
+    };
   }, []);
 
   const signOut = async () => {
@@ -301,6 +339,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   return (
     <StoreContext.Provider value={{
+      brandLogo,
       cart, favorites, products, addProduct, removeProduct, updateProduct,
       addToCart, removeFromCart, toggleFavorite,
       activeTarget, setActiveTarget, activeCategory, setActiveCategory,

@@ -51,7 +51,7 @@ const SafeImage: React.FC<{ id: string }> = ({ id }) => {
       {/* 100% visible uncropped foreground image */}
       <img 
         src={src} 
-        alt="Trusted client of Habé Textile" 
+        alt="Client Habé" 
         className="relative z-10 w-full h-full object-contain" 
         onError={handleError}
         referrerPolicy="no-referrer"

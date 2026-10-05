@@ -26,13 +26,13 @@ export const getOptimizedImage = (url: string | undefined, width: number = 400):
     // and authentication cookie verification round-trips.
     // Specifying `=w${targetSz}-rw` instructs Google's edge CDN server to scale on-the-fly and transcode
     // to WebP, reducing the weight of the images up to 95% while keeping them crisp and with full CORS support.
-    const targetSz = width > 0 ? width : 400;
+    const targetSz = width > 0 ? width : 1000;
     return `https://lh3.googleusercontent.com/d/${id}=w${targetSz}-rw`;
   }
 
   if (url.includes('lh3.googleusercontent.com')) {
     const baseUrl = url.split('=')[0];
-    const targetWidth = width > 0 ? width : 400;
+    const targetWidth = width > 0 ? width : 1000;
     return `${baseUrl}=w${targetWidth}-rw`;
   }
 

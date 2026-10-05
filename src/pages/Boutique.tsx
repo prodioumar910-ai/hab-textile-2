@@ -19,11 +19,20 @@ const categories: { name: Category; src?: string; icon: string; directImg?: bool
 const Boutique: React.FC = () => {
   const { activeCategory, setActiveCategory, activeTarget, setActiveTarget, products } = useStore();
 
-  const filteredProducts = products.filter(p => {
-    const matchCategory = activeCategory ? p.category === activeCategory : p.category === 'Ensemble Royal';
-    const matchTarget = p.target === activeTarget;
-    return matchCategory && matchTarget;
-  });
+  const filteredProducts = products
+    .filter(p => {
+      const matchCategory = activeCategory ? p.category === activeCategory : true;
+      const matchTarget = p.target === activeTarget;
+      return matchCategory && matchTarget;
+    })
+    .sort((a, b) => {
+      // Prioritize newest collections (hm-* and kd-*)
+      const isNewA = a.id.startsWith('hm-') || a.id.startsWith('kd-');
+      const isNewB = b.id.startsWith('hm-') || b.id.startsWith('kd-');
+      if (isNewA && !isNewB) return -1;
+      if (!isNewA && isNewB) return 1;
+      return 0;
+    });
 
   return (
     <motion.div

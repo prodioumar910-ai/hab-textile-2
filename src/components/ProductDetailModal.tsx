@@ -28,7 +28,7 @@ import { getOptimizedImage } from '../utils/image';
 import { Product, Order, OrderItem } from '../types';
 
 export const ProductDetailModal: React.FC = () => {
-  const { selectedProduct, setSelectedProduct, addToCart, products, addOrder } = useStore();
+  const { selectedProduct, setSelectedProduct, addToCart, products, addOrder, brandLogo } = useStore();
   const [selectedImg, setSelectedImg] = useState('');
   
   // Checkout flow state
@@ -219,7 +219,7 @@ export const ProductDetailModal: React.FC = () => {
       itemsText += `\n\n${index + 2}. *${ad.productName}*\n   • Quantité: ${ad.quantity}\n   • Taille: ${ad.size}\n   • Couleur: ${ad.color}\n   • Prix: ${ad.price.toLocaleString('fr-FR')} FCFA (Add-on)`;
     });
 
-    const waMessage = `🔴 *NOUVELLE COMMANDE - HABÉ TEXTILE* 🔴
+    const waMessage = `🔴 *NOUVELLE COMMANDE - HABÉ* 🔴
 
 👤 *COORDONNÉES CLIENT :*
 • *Nom:* ${clientName.trim()}
@@ -389,7 +389,7 @@ _Merci de confirmer ma commande ainsi que les délais de confection. À bientôt
                       <p className="text-xs font-body font-normal text-stone-300 leading-relaxed">
                         {selectedProduct.description ? selectedProduct.description : (
                           <>
-                            Cette superbe pièce de haute couture signée par la maison <strong className="text-brand-orange-light font-bold">Habé Textile</strong> est le symbole suprême de raffinement et d'authenticité. Conçue avec des finitions d'excellence à la main, elle assure une silhouette majestueuse et un confort haut de gamme pour toutes vos grandes occasions.
+                            Cette superbe pièce de haute couture signée par la maison <strong className="text-brand-orange-light font-bold">Habé</strong> est le symbole suprême de raffinement et d'authenticité. Conçue avec des finitions d'excellence à la main, elle assure une silhouette majestueuse et un confort haut de gamme pour toutes vos grandes occasions.
                           </>
                         )}
                       </p>
@@ -1006,7 +1006,7 @@ _Merci de confirmer ma commande ainsi que les délais de confection. À bientôt
                           >
                             <div className="space-y-1.5">
                               <div className="aspect-square bg-stone-900 rounded-lg overflow-hidden border border-white/5">
-                                <img src={p.image || '/logo.png'} alt={p.name} className="w-full h-full object-cover" />
+                                <img src={p.image || brandLogo.logo} alt={p.name} className="w-full h-full object-cover" />
                               </div>
                               <div>
                                 <h4 className="text-[10px] font-heading font-extrabold truncate text-white uppercase">{p.name}</h4>
@@ -1150,7 +1150,7 @@ _Merci de confirmer ma commande ainsi que les délais de confection. À bientôt
                   <div className="space-y-2">
                     <h3 className="font-heading font-black text-2xl uppercase tracking-wider text-white">Commande Enregistrée !</h3>
                     <p className="text-xs text-stone-300 max-w-md mx-auto leading-relaxed">
-                      Félicitations, votre commande a été finalisée avec succès sur <strong className="text-brand-orange-light">Habé Textile</strong> ! Une fenêtre WhatsApp s'est ouverte pour finaliser la transmission directe.
+                      Félicitations, votre commande a été finalisée avec succès sur <strong className="text-brand-orange-light">Habé</strong> ! Une fenêtre WhatsApp s'est ouverte pour finaliser la transmission directe.
                     </p>
                     <p className="text-[11px] text-stone-500 italic">
                       Les détails de la commande ont également été envoyés à l'interface d'administration de la boutique.

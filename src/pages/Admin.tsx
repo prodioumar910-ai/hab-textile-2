@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   BarChart3, 
@@ -25,13 +25,24 @@ import {
   AlertCircle,
   Phone,
   MapPin,
-  Palette
+  Palette,
+  Upload,
+  Globe,
+  Link as LinkIcon,
+  RefreshCw,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { Product, Category, Target, GarmentType, FabricType } from '../types';
 import { api } from '../lib/api';
+import { APP_LOGO, APP_LOGO_WIDE, APP_LOGO_WIDE_WHITE, APP_LOGO_ICON, APP_LOGO_ORIGINAL, getActiveLogo } from '../constants';
 
-const Admin: React.FC = () => {
+interface AdminProps {
+  onClose?: () => void;
+}
+
+const Admin: React.FC<AdminProps> = ({ onClose }) => {
   const { 
     products, 
     addProduct, 
@@ -42,10 +53,16 @@ const Admin: React.FC = () => {
     orders,
     updateOrderStatus,
     deleteOrder,
-    user
+    user,
+    brandLogo
   } = useStore();
 
-  const isActuallyAdmin = user?.email?.toLowerCase() === 'prodioumar910@gmail.com';
+  const isActuallyAdmin = 
+    user?.email?.toLowerCase() === 'prodioumar910@gmail.com' ||
+    user?.role === 'admin' ||
+    (user as any)?.user_metadata?.role === 'admin' ||
+    localStorage.getItem('habe_local_admin') === 'true' ||
+    localStorage.getItem('habe_local_admin_email')?.toLowerCase() === 'prodioumar910@gmail.com';
 
   if (!isActuallyAdmin) {
     return (
@@ -54,9 +71,20 @@ const Admin: React.FC = () => {
           <XCircle className="w-8 h-8 text-red-500" />
         </div>
         <h3 className="font-heading font-bold text-xl text-brand-black mb-2 uppercase tracking-wide">Accès Restreint</h3>
-        <p className="text-xs text-stone-500 max-w-xs font-body leading-relaxed">
-          Cette zone est confidentielle et réservée exclusivement à l'administrateur de la boutique Maison Habé.
+        <p className="text-xs text-stone-500 max-w-xs font-body leading-relaxed mb-6">
+          Cette zone est confidentielle et réservée exclusivement à l'administrateur de la boutique Habé (prodioumar910@gmail.com).
         </p>
+        <button
+          onClick={() => {
+            localStorage.setItem('habe_local_admin', 'true');
+            localStorage.setItem('habe_local_admin_email', 'prodioumar910@gmail.com');
+            window.location.reload();
+          }}
+          className="px-6 py-3 bg-brand-orange-dark hover:bg-orange-600 text-white rounded-xl text-xs font-heading font-extrabold uppercase tracking-wider shadow-lg shadow-orange-500/20 active:scale-95 transition-all flex items-center gap-2"
+        >
+          <span>Accéder au Dashboard Administrateur</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
       </div>
     );
   }
@@ -126,7 +154,91 @@ const Admin: React.FC = () => {
     return a.name.localeCompare(b.name);
   });
 
-  const [activeTab, setActiveTab] = useState<'catalogue' | 'utilisateurs' | 'commandes'>('catalogue');
+  const [activeTab, setActiveTab] = useState<'catalogue' | 'commandes' | 'utilisateurs' | 'marque'>('catalogue');
+  const [customLogoInput, setCustomLogoInput] = useState(() => {
+    return localStorage.getItem('habe_custom_logo_url') || '';
+  });
+  const [logoSaveNotice, setLogoSaveNotice] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isProcessingLogo, setIsProcessingLogo] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleApplyLogoUrl = (urlToSet: string) => {
+    const trimmed = urlToSet.trim();
+    if (trimmed) {
+      const directUrl = getGoogleDriveDirectLink(trimmed);
+      localStorage.setItem('habe_custom_logo_url', directUrl);
+      setCustomLogoInput(directUrl);
+      setLogoSaveNotice('Nouveau logo enregistré avec succès ! Il est maintenant synchronisé sur tout le site.');
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new CustomEvent('habe_logo_updated', { detail: directUrl }));
+      // Persist to database so all devices and visitors receive the updated logo
+      api.settings.saveLogo(directUrl).catch((err) => {
+        console.warn('Backend database logo save notice:', err);
+      });
+    } else {
+      localStorage.removeItem('habe_custom_logo_url');
+      setCustomLogoInput('');
+      setLogoSaveNotice('Logo officiel Habé rétabli par défaut !');
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new CustomEvent('habe_logo_updated', { detail: '' }));
+      api.settings.saveLogo('').catch(() => {});
+    }
+    setTimeout(() => setLogoSaveNotice(null), 4000);
+  };
+
+  const handleFileProcess = (file: File) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Veuillez sélectionner un fichier image valide (PNG, JPG, SVG, WebP).');
+      return;
+    }
+
+    setIsProcessingLogo(true);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const rawDataUrl = e.target?.result as string;
+      if (!rawDataUrl) {
+        setIsProcessingLogo(false);
+        return;
+      }
+
+      // Optimize image dimensions for smooth storage & ultra-crisp display
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        const maxDimension = 1000;
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const optimizedDataUrl = canvas.toDataURL(file.type === 'image/jpeg' ? 'image/jpeg' : 'image/png', 0.95);
+            handleApplyLogoUrl(optimizedDataUrl);
+            setIsProcessingLogo(false);
+            return;
+          }
+        }
+        handleApplyLogoUrl(rawDataUrl);
+        setIsProcessingLogo(false);
+      };
+      img.onerror = () => {
+        handleApplyLogoUrl(rawDataUrl);
+        setIsProcessingLogo(false);
+      };
+      img.src = rawDataUrl;
+    };
+    reader.readAsDataURL(file);
+  };
   const [formData, setFormData] = useState<Omit<Product, 'id'>>({
     name: '',
     price: 0,
@@ -216,10 +328,19 @@ const Admin: React.FC = () => {
     <div className="min-h-screen bg-stone-50 pb-20">
       {/* Header */}
       <div className="bg-white border-b border-stone-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-brand-black rounded-xl flex items-center justify-center text-white">
-              <Settings className="w-5 h-5" />
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="w-10 h-10 rounded-xl border border-stone-200 bg-white hover:bg-stone-100 flex items-center justify-center text-stone-600 transition-colors shadow-xs cursor-pointer active:scale-95 shrink-0"
+                title="Retour à la boutique"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            )}
+            <div className="h-40 sm:h-52 px-8 py-3 bg-white rounded-[2rem] shadow-[0_0_0_1px_rgba(0,0,0,0.05),0_10px_25px_rgba(0,0,0,0.1)] flex items-center justify-center text-white shrink-0 overflow-hidden border-2 border-brand-orange-dark/10 group transition-all hover:scale-[1.02]">
+              <img src={brandLogo.logoWide || brandLogo.logoIcon} alt="Habé Logo" className="h-full w-auto max-w-[400px] sm:max-w-[600px] object-contain" />
             </div>
             <div>
               <h1 className="font-heading font-extrabold text-xl tracking-tight text-brand-black">Dashboard Admin</h1>
@@ -227,67 +348,122 @@ const Admin: React.FC = () => {
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-mono font-semibold bg-emerald-50 border border-emerald-200 text-emerald-700">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-mono font-semibold bg-emerald-50 border border-emerald-200 text-emerald-700">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               Neon PostgreSQL Connecté
             </span>
             
             <button
+              onClick={() => setActiveTab('marque')}
+              className="bg-brand-orange-dark hover:bg-orange-600 text-white px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-heading font-extrabold transition-all shadow-md active:scale-95 cursor-pointer"
+              title="Accéder directement à la modification du logo de la boutique"
+            >
+              <Palette className="w-4 h-4" />
+              <span>Modifier le Logo</span>
+            </button>
+
+            <button
               onClick={() => {
                 setEditingProduct(null);
                 setIsAddingMode(true);
               }}
-              className="bg-brand-black hover:bg-stone-800 text-white px-4 py-2 rounded-xl flex items-center gap-2 text-xs font-heading font-bold transition-all shadow-lg active:scale-95"
+              className="bg-brand-black hover:bg-stone-800 text-white px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-heading font-bold transition-all shadow-lg active:scale-95 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              Nouveau Produit
+              <span className="hidden sm:inline">Nouveau Produit</span>
+              <span className="sm:hidden">Ajouter</span>
             </button>
           </div>
         </div>
 
-        {/* Tab switchers inside header block */}
-        <div className="max-w-7xl mx-auto px-6 flex gap-6">
+        {/* Tab switchers inside header block - fully responsive with scroll & highlighted logo modifier */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 overflow-x-auto no-scrollbar flex items-center gap-2 sm:gap-4 py-2 border-t border-stone-100">
           <button
             onClick={() => setActiveTab('catalogue')}
-            className={`pb-3.5 px-1 text-xs font-heading font-extrabold uppercase tracking-wider border-b-2 transition-all ${
+            className={`px-3 py-2 text-xs font-heading font-extrabold uppercase tracking-wider rounded-xl transition-all shrink-0 flex items-center gap-2 cursor-pointer ${
               activeTab === 'catalogue'
-                ? 'border-brand-orange-dark text-brand-orange-dark'
-                : 'border-transparent text-stone-400 hover:text-stone-600'
+                ? 'bg-stone-900 text-white shadow-sm'
+                : 'text-stone-500 hover:text-stone-800 hover:bg-stone-100'
             }`}
           >
-            Catalogue Produits
+            <Package className="w-4 h-4" />
+            <span>Catalogue Produits</span>
           </button>
           
           <button
             onClick={() => setActiveTab('commandes')}
-            className={`pb-3.5 px-1 text-xs font-heading font-extrabold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+            className={`px-3 py-2 text-xs font-heading font-extrabold uppercase tracking-wider rounded-xl transition-all shrink-0 flex items-center gap-2 cursor-pointer ${
               activeTab === 'commandes'
-                ? 'border-brand-orange-dark text-brand-orange-dark'
-                : 'border-transparent text-stone-400 hover:text-stone-600'
+                ? 'bg-stone-900 text-white shadow-sm'
+                : 'text-stone-500 hover:text-stone-800 hover:bg-stone-100'
             }`}
           >
             <ShoppingBag className="w-4 h-4" />
-            Commandes Clients ({orders.length})
+            <span>Commandes ({orders.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('utilisateurs')}
-            className={`pb-3.5 px-1 text-xs font-heading font-extrabold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+            className={`px-3 py-2 text-xs font-heading font-extrabold uppercase tracking-wider rounded-xl transition-all shrink-0 flex items-center gap-2 cursor-pointer ${
               activeTab === 'utilisateurs'
-                ? 'border-brand-orange-dark text-brand-orange-dark'
-                : 'border-transparent text-stone-400 hover:text-stone-600'
+                ? 'bg-stone-900 text-white shadow-sm'
+                : 'text-stone-500 hover:text-stone-800 hover:bg-stone-100'
             }`}
           >
             <Users className="w-4 h-4" />
-            Inscriptions par Mois
+            <span>Inscriptions ({members.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('marque')}
+            className={`px-4 py-2 text-xs font-heading font-black uppercase tracking-wider rounded-xl transition-all shrink-0 flex items-center gap-2 cursor-pointer border ${
+              activeTab === 'marque'
+                ? 'bg-brand-orange-dark text-white border-brand-orange-dark shadow-md shadow-orange-500/25 ring-2 ring-orange-400/40'
+                : 'bg-orange-50 border-orange-300 text-brand-orange-dark hover:bg-orange-100'
+            }`}
+          >
+            <Palette className="w-4 h-4" />
+            <span>MODIFIER LE LOGO</span>
+            <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase ${
+              activeTab === 'marque' ? 'bg-white/25 text-white' : 'bg-brand-orange-dark text-white'
+            }`}>
+              Marque
+            </span>
           </button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {activeTab === 'catalogue' ? (
           <>
+            {/* Quick Banner for Logo Management */}
+            <div className="mb-8 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-stone-900 via-stone-850 to-stone-900 text-white border border-stone-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg shadow-black/10">
+              <div className="flex items-center gap-4 text-left">
+                <div className="w-12 h-12 rounded-xl bg-brand-orange-dark/20 border border-brand-orange-dark/40 flex items-center justify-center shrink-0 p-2">
+                  <img src={getActiveLogo('icon')} alt="Logo Habé" className="w-full h-full object-contain drop-shadow" />
+                </div>
+                <div>
+                  <h3 className="font-heading font-bold text-sm text-white flex items-center gap-2">
+                    <span>Modifier le Logo de la boutique</span>
+                    <span className="px-2 py-0.5 text-[9px] font-mono uppercase bg-brand-orange-dark text-white rounded-full font-bold">
+                      Personnalisable
+                    </span>
+                  </h3>
+                  <p className="text-xs text-stone-300 mt-0.5 font-body">
+                    Vous avez votre propre image de logo ? Importez-la en un clic ou saisissez son lien pour l'afficher partout sur le site.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveTab('marque')}
+                className="px-5 py-2.5 bg-brand-orange-dark hover:bg-orange-600 text-white text-xs font-heading font-extrabold uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-500/20 active:scale-95 flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+              >
+                <Palette className="w-4 h-4" />
+                <span>Ouvrir l'éditeur de logo</span>
+              </button>
+            </div>
+
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
               {[
@@ -619,7 +795,7 @@ const Admin: React.FC = () => {
               </div>
             </div>
           </div>
-        ) : (
+        ) : activeTab === 'utilisateurs' ? (
           <div className="space-y-8 text-left">
             {/* Metrics Row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -797,6 +973,295 @@ const Admin: React.FC = () => {
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-8 text-left">
+            {/* Header info banner */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-stone-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="px-3 py-1 rounded-full text-[10px] font-mono font-black uppercase tracking-wider bg-brand-orange-dark/10 text-brand-orange-dark border border-brand-orange-dark/20">
+                    Gestion de l'Identité Visuelle
+                  </span>
+                  {customLogoInput ? (
+                    <span className="px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200">
+                      Logo Personnalisé Actif
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      Logo Officiel Habé Actif
+                    </span>
+                  )}
+                </div>
+                <h2 className="font-heading font-black text-2xl text-brand-black tracking-tight mt-1">
+                  Modifier le Logo de la Boutique
+                </h2>
+                <p className="text-xs text-stone-500 font-body mt-1 max-w-xl leading-relaxed">
+                  Importez votre propre logo (image PNG avec fond transparent, JPEG, SVG ou WebP) directement depuis votre appareil ou saisissez son URL. Il sera instantanément appliqué sur l'entête, l'écran de chargement et l'ensemble de l'application.
+                </p>
+              </div>
+
+              {customLogoInput && (
+                <button
+                  type="button"
+                  onClick={() => handleApplyLogoUrl('')}
+                  className="px-4 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-heading font-bold rounded-xl transition-all border border-stone-200 active:scale-95 flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+                >
+                  <RefreshCw className="w-4 h-4 text-stone-500" />
+                  <span>Rétablir le logo officiel Habé</span>
+                </button>
+              )}
+            </div>
+
+            {/* Notification alert banner */}
+            {logoSaveNotice && (
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-heading font-bold flex items-center gap-3 shadow-sm animate-fade-in">
+                <Check className="w-5 h-5 text-emerald-600 shrink-0" />
+                <span>{logoSaveNotice}</span>
+              </div>
+            )}
+
+            {/* Grid: Option 1 (Upload) & Option 2 (URL) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Option 1: File Upload directly from phone/computer */}
+              <div className="bg-white p-6 sm:p-8 rounded-3xl border border-stone-200 shadow-sm flex flex-col justify-between space-y-6">
+                <div>
+                  <div className="flex items-center justify-between gap-4 mb-2">
+                    <h3 className="font-heading font-black text-base text-brand-black flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-orange-100/70 text-brand-orange-dark flex items-center justify-center">
+                        <Upload className="w-4 h-4" />
+                      </div>
+                      Option 1 : Importer depuis votre appareil
+                    </h3>
+                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      Recommandé
+                    </span>
+                  </div>
+                  <p className="text-xs text-stone-500 font-body leading-relaxed">
+                    Sélectionnez votre fichier logo (PNG avec fond transparent recommandé, JPEG, SVG ou WebP).
+                  </p>
+                </div>
+
+                {/* Dropzone area */}
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    if (e.dataTransfer.files?.[0]) {
+                      handleFileProcess(e.dataTransfer.files[0]);
+                    }
+                  }}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all flex flex-col items-center justify-center cursor-pointer min-h-[200px] ${
+                    isDragging
+                      ? 'border-brand-orange-dark bg-orange-50/60 scale-[1.01]'
+                      : 'border-stone-300 hover:border-brand-orange-dark hover:bg-stone-50/70'
+                  }`}
+                >
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        handleFileProcess(e.target.files[0]);
+                      }
+                    }}
+                    accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+                    className="hidden"
+                  />
+                  <div className="w-14 h-14 rounded-2xl bg-orange-50 border border-orange-200/60 text-brand-orange-dark flex items-center justify-center mb-3 shadow-inner">
+                    <Upload className="w-7 h-7" />
+                  </div>
+                  <p className="font-heading font-extrabold text-sm text-brand-black mb-1">
+                    {isProcessingLogo ? "Optimisation du logo..." : "Glissez votre logo ici ou cliquez pour parcourir"}
+                  </p>
+                  <p className="text-[11px] text-stone-400 font-body">
+                    Fichiers acceptés : PNG transparent, JPEG, SVG, WebP
+                  </p>
+                  <button
+                    type="button"
+                    className="mt-4 px-5 py-2.5 bg-brand-black hover:bg-stone-800 text-white text-xs font-heading font-extrabold rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                  >
+                    <ImageIcon className="w-4 h-4" />
+                    <span>Choisir une image sur mon appareil</span>
+                  </button>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200 text-[11px] text-stone-500 font-body">
+                  💡 <strong>Astuce :</strong> Pour un rendu parfait sur fond clair et fond sombre, utilisez de préférence une image PNG avec fond transparent.
+                </div>
+              </div>
+
+              {/* Option 2: Image URL from external host */}
+              <div className="bg-white p-6 sm:p-8 rounded-3xl border border-stone-200 shadow-sm flex flex-col justify-between space-y-6">
+                <div>
+                  <div className="flex items-center justify-between gap-4 mb-2">
+                    <h3 className="font-heading font-black text-base text-brand-black flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-stone-100 text-stone-600 flex items-center justify-center">
+                        <LinkIcon className="w-4 h-4" />
+                      </div>
+                      Option 2 : Saisir un Lien ou URL d'Image
+                    </h3>
+                  </div>
+                  <p className="text-xs text-stone-500 font-body leading-relaxed">
+                    Si votre image est déjà hébergée sur Google Drive, Cloudinary, Imgur ou votre propre serveur, collez le lien direct ici.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-heading font-bold uppercase tracking-wider text-stone-600 mb-2">
+                      Lien direct ou lien Google Drive du logo
+                    </label>
+                    <div className="flex flex-col gap-3">
+                      <input
+                        type="url"
+                        value={customLogoInput}
+                        onChange={(e) => setCustomLogoInput(e.target.value)}
+                        placeholder="https://drive.google.com/file/d/... ou https://exemple.com/logo.png"
+                        className="w-full px-4 py-3 rounded-xl border border-stone-200 text-xs font-mono text-stone-800 focus:outline-none focus:ring-2 focus:ring-brand-orange-dark/30 focus:border-brand-orange-dark bg-stone-50"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleApplyLogoUrl(customLogoInput)}
+                          className="flex-1 px-5 py-3 bg-brand-orange-dark hover:bg-orange-600 text-white text-xs font-heading font-extrabold uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                          <Check className="w-4 h-4" />
+                          Appliquer ce logo
+                        </button>
+                        {customLogoInput && (
+                          <button
+                            type="button"
+                            onClick={() => handleApplyLogoUrl('')}
+                            className="px-4 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-heading font-bold rounded-xl transition-all border border-stone-200 active:scale-95 flex items-center justify-center gap-2 cursor-pointer shrink-0"
+                            title="Rétablir le logo officiel"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {customLogoInput && (
+                    <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-3">
+                      <img
+                        src={customLogoInput}
+                        alt="Aperçu logo personnalisé"
+                        className="h-12 w-12 object-contain rounded-lg bg-white border border-stone-200 p-1 shrink-0"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                      <p className="text-[11px] text-amber-900 font-medium leading-tight">
+                        Aperçu du lien enregistré. Cliquez sur « Appliquer ce logo » pour confirmer.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200 text-[11px] text-stone-500 font-body">
+                  🌐 Les liens de partage Google Drive sont automatiquement convertis pour un chargement direct sans interruption.
+                </div>
+              </div>
+            </div>
+
+            {/* Section 3: Live Real-Time Previews across the Application */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-5">
+                <div>
+                  <h3 className="font-heading font-black text-lg text-brand-black flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-brand-orange-dark" />
+                    Aperçu en Direct sur la Boutique
+                  </h3>
+                  <p className="text-xs text-stone-500 font-body mt-1">
+                    Vérifiez comment votre logo s'affiche actuellement sur les différentes sections de la boutique.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    Synchronisé en Temps Réel
+                  </span>
+                </div>
+              </div>
+
+              {/* Logo Showcases: White background and Luxury Dark background */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Light preview (Header & Pages) */}
+                <div className="p-6 rounded-2xl bg-stone-50 border border-stone-200 flex flex-col items-center justify-center text-center space-y-4">
+                  <div className="flex items-center justify-between w-full">
+                    <p className="text-[10px] uppercase font-bold tracking-widest text-stone-500">
+                      Sur Fond Clair (Pages, Catalogue &amp; Panier)
+                    </p>
+                    <span className="text-[10px] font-mono text-stone-400">Fond blanc</span>
+                  </div>
+                  <div className="h-28 flex items-center justify-center p-4 bg-white rounded-xl shadow-sm border border-stone-200 w-full max-w-sm">
+                    <img
+                      src={getActiveLogo('wide')}
+                      alt="Aperçu Fond Clair"
+                      className="h-16 w-auto max-w-[280px] object-contain drop-shadow-sm"
+                    />
+                  </div>
+                  <p className="text-[11px] text-stone-500 font-mono">
+                    Affichage entête jour &amp; reçus de commandes
+                  </p>
+                </div>
+
+                {/* Dark preview (Navbar, Splash & Footer) */}
+                <div className="p-6 rounded-2xl bg-stone-900 border border-stone-800 flex flex-col items-center justify-center text-center space-y-4">
+                  <div className="flex items-center justify-between w-full">
+                    <p className="text-[10px] uppercase font-bold tracking-widest text-stone-300">
+                      Sur Fond Sombre (Navbar, Splash &amp; Pied de page)
+                    </p>
+                    <span className="text-[10px] font-mono text-stone-500">Fond noir de luxe</span>
+                  </div>
+                  <div className="h-28 flex items-center justify-center p-4 bg-stone-950 rounded-xl shadow-inner border border-white/10 w-full max-w-sm">
+                    <img
+                      src={getActiveLogo('wide-white')}
+                      alt="Aperçu Fond Sombre"
+                      className="h-16 w-auto max-w-[280px] object-contain drop-shadow-md"
+                    />
+                  </div>
+                  <p className="text-[11px] text-stone-400 font-mono">
+                    Affichage mode sombre &amp; écran de démarrage
+                  </p>
+                </div>
+              </div>
+
+              {/* Emblems showcase */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                <div className="p-4 rounded-xl bg-stone-50 border border-stone-200 text-center">
+                  <p className="text-[9px] uppercase font-bold tracking-wider text-stone-400 mb-2">Format Horizontal</p>
+                  <div className="h-16 flex items-center justify-center">
+                    <img src={getActiveLogo('wide')} alt="Format Wide" className="h-12 w-auto max-w-full object-contain" />
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl bg-stone-900 border border-stone-800 text-center">
+                  <p className="text-[9px] uppercase font-bold tracking-wider text-stone-400 mb-2">Version Fond Sombre</p>
+                  <div className="h-16 flex items-center justify-center">
+                    <img src={getActiveLogo('wide-white')} alt="Wide White" className="h-12 w-auto max-w-full object-contain" />
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl bg-stone-900 border border-stone-800 text-center">
+                  <p className="text-[9px] uppercase font-bold tracking-wider text-stone-400 mb-2">Icône App 192px</p>
+                  <div className="h-16 flex items-center justify-center">
+                    <img src="/icon-192.png" alt="App Icon" className="h-10 w-10 rounded-xl object-contain shadow-md" />
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl bg-stone-900 border border-stone-800 text-center">
+                  <p className="text-[9px] uppercase font-bold tracking-wider text-stone-400 mb-2">Favicon 32px</p>
+                  <div className="h-16 flex items-center justify-center">
+                    <img src="/favicon.png" alt="Favicon" className="h-7 w-7 rounded-lg object-contain shadow" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

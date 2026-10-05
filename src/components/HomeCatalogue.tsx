@@ -1,4 +1,5 @@
-import { motion, AnimatePresence } from 'motion/react';
+import React from 'react';
+import { motion } from 'motion/react';
 import { useStore } from '../context/StoreContext';
 import ProductCard from './ProductCard';
 import { Target } from '../types';

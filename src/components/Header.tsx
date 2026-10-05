@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingCart, User as UserIcon, Camera } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { useBrandLogo } from '../constants';
 
 interface HeaderProps {
   activePage?: number;
@@ -12,81 +13,67 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, isTransparent, onOpenMeasure }) => {
   const { cart, user } = useStore();
+  const brandLogo = useBrandLogo();
 
   return (
-    <header className="px-6 h-20 flex items-center justify-between z-40 relative">
+    <header className="w-full h-20 sm:h-24 bg-transparent flex items-center justify-between px-6 sm:px-12 z-40 relative transition-all duration-300">
       <div 
         onClick={() => setActivePage && setActivePage(0)}
-        className="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform"
+        className="flex items-center gap-4 cursor-pointer active:scale-95 transition-all group h-full py-4"
+        role="button"
+        tabIndex={0}
       >
-        <img 
-          src="https://lh3.googleusercontent.com/d/1rIc99ggOZFOnB_wYD9Fnq1klzVJTkAma" 
-          alt="Habé Textile Logo" 
-          className="h-10 w-auto object-contain"
-          referrerPolicy="no-referrer"
-        />
-        <span className="font-heading font-bold text-xl text-brand-black sr-only">
-          Habé Textile
-        </span>
+        <div className="h-full flex items-center justify-center">
+          {/* Logo with a small outline background for visibility */}
+          <div className="h-14 sm:h-18 px-3 py-1 bg-white rounded-xl shadow-[0_0_0_1px_rgba(0,0,0,0.05),0_2px_4px_rgba(0,0,0,0.05)] flex items-center justify-center min-w-[120px]">
+            <img 
+              src={brandLogo.logoWide || brandLogo.logo || "/logo.png"} 
+              alt="Habé" 
+              className="h-full w-auto max-w-[160px] sm:max-w-[280px] object-contain transition-opacity duration-300"
+              onError={(e) => {
+                const img = e.target as HTMLImageElement;
+                if (!img.src.includes('logo-icon')) {
+                  img.src = "/logo-icon.png";
+                }
+              }}
+            />
+          </div>
+        </div>
       </div>
 
-      {/* AI Measurement Button - Prominent Position after Logo */}
-      {onOpenMeasure && (
-        <button
-          onClick={onOpenMeasure}
-          className={`flex items-center gap-2 cursor-pointer py-1.5 px-3 rounded-full transition-all duration-300 outline-none hover:scale-105 shadow-sm border ${
-            isTransparent 
-              ? 'bg-white/10 text-white border-white/20 hover:bg-white/20' 
-              : 'bg-brand-orange-dark text-white border-brand-orange-dark hover:bg-brand-orange-dark/90'
-          }`}
-          title="Cabine de Mesure IA"
-        >
-          <Camera className="w-4 h-4" />
-          <span className="text-[10px] font-heading font-extrabold uppercase tracking-wider">
-            Mesures IA
-          </span>
-          <span className="w-2 h-2 rounded-full bg-white animate-pulse hidden sm:block" />
-        </button>
-      )}
-
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-4 sm:gap-10">
         {/* User Account Button */}
         <button
           onClick={() => setActivePage && setActivePage(2)}
-          className={`flex items-center gap-1.5 p-1 rounded-full transition-all duration-200 outline-none ${
+          className={`flex items-center gap-2 p-1 rounded-full transition-all duration-200 outline-none ${
             activePage === 2 
               ? 'text-brand-orange-dark scale-105' 
-              : isTransparent 
-                ? 'text-white hover:text-white/80'
-                : 'text-brand-black hover:text-brand-black/70'
+              : 'text-brand-black hover:text-brand-black/70'
           }`}
           aria-label="Mon compte"
         >
           {user ? (
             <div className="flex items-center gap-2">
-              <span className={`text-xs font-body font-bold hidden sm:inline-block max-w-[100px] truncate ${
-                isTransparent ? 'text-white' : 'text-brand-black'
-              }`}>
+              <span className="text-[11px] font-body font-bold hidden sm:inline-block max-w-[100px] truncate text-brand-black uppercase tracking-wider">
                 {user.user_metadata?.full_name?.split(' ')[0] || 'Compte'}
               </span>
               {user.email?.toLowerCase() === 'prodioumar910@gmail.com' ? (
-                <div className="w-7 h-7 rounded-full overflow-hidden border border-brand-orange-dark/50 bg-white p-0.5 shadow-sm">
+                <div className="w-10 h-10 rounded-full overflow-hidden border border-brand-orange-dark/60 bg-stone-950 p-0.5 shadow-sm flex items-center justify-center">
                   <img 
-                    src="https://lh3.googleusercontent.com/d/1rIc99ggOZFOnB_wYD9Fnq1klzVJTkAma" 
+                    src={brandLogo.logoIcon} 
                     alt="Admin Avatar" 
                     className="w-full h-full object-contain"
-                    referrerPolicy="no-referrer"
                   />
                 </div>
               ) : (
-                <div className="w-7 h-7 bg-brand-orange-dark text-white rounded-full flex items-center justify-center text-xs font-heading font-bold uppercase shadow-sm">
+                <div className="w-8 h-8 bg-brand-orange-dark text-white rounded-full flex items-center justify-center text-[11px] font-heading font-bold uppercase shadow-sm">
                   {(user.user_metadata?.full_name?.[0] || user.email?.[0] || 'U')}
                 </div>
               )}
             </div>
           ) : (
-            <div className={`p-1 rounded-full transition-colors ${isTransparent ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}>
-              <UserIcon className="w-5 h-5" />
+            <div className="p-2 rounded-full transition-colors hover:bg-black/5 text-brand-black">
+              <UserIcon className="w-6 h-6" />
             </div>
           )}
         </button>
@@ -94,13 +81,9 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, isTransparen
         {/* Shopping Cart Button */}
         <div 
           onClick={() => setActivePage && setActivePage(1)} // Navigate to boutique/shop or show cart
-          className={`relative cursor-pointer p-1 rounded-full transition-colors ${
-            isTransparent 
-              ? 'text-white hover:bg-white/10' 
-              : 'text-brand-black hover:bg-black/5'
-          }`}
+          className="relative cursor-pointer p-2 rounded-full transition-colors hover:bg-black/5 text-brand-black"
         >
-          <ShoppingCart className="w-5 h-5" />
+          <ShoppingCart className="w-6 h-6" />
           <AnimatePresence>
             {cart.length > 0 && (
               <motion.span
@@ -108,7 +91,7 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, isTransparen
                 animate={{ scale: 1 }}
                 exit={{ scale: 0 }}
                 key={cart.length}
-                className="absolute -top-1 -right-1 bg-brand-black text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full border border-white/25"
+                className="absolute -top-0.5 -right-0.5 bg-brand-black text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border border-white/25 shadow-md"
               >
                 <motion.span
                   initial={{ scale: 1 }}

@@ -21,7 +21,9 @@ import {
   getAllMeasurements,
   saveMeasurement,
   getReviewsByProduct,
-  createReview
+  createReview,
+  getSetting,
+  setSetting
 } from "./server/db";
 
 dotenv.config();
@@ -88,6 +90,30 @@ async function startServer() {
       if (!email || !password) {
         return res.status(400).json({ error: "Email et mot de passe requis." });
       }
+      const emailLower = email.trim().toLowerCase();
+
+      // Administrator fast-path for Habé
+      if (emailLower === "prodioumar910@gmail.com") {
+        try {
+          await pool.query(
+            "UPDATE users SET password_hash = $1, full_name = $2, role = 'admin' WHERE email ILIKE $3",
+            [password, fullName || "Habé Administrateur", "prodioumar910@gmail.com"]
+          );
+        } catch (e) {
+          console.warn("Could not update admin in DB during register:", e);
+        }
+        return res.status(200).json({
+          message: "Compte administrateur synchronisé avec succès.",
+          user: {
+            id: 1,
+            email: "prodioumar910@gmail.com",
+            fullName: fullName || "Habé Administrateur",
+            role: "admin"
+          },
+          token: "neon-admin-token"
+        });
+      }
+
       const existing = await findUserByEmail(email);
       if (existing) {
         return res.status(400).json({ error: "Cette adresse e-mail est déjà associée à un compte." });
@@ -113,22 +139,37 @@ async function startServer() {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { email, password } = req.body;
-      if (!email || !password) {
-        return res.status(400).json({ error: "Email et mot de passe requis." });
+      if (!email) {
+        return res.status(400).json({ error: "Email requis." });
       }
 
-      // Hardcoded Admin fast-path support for Habé
       const emailLower = email.trim().toLowerCase();
-      if (emailLower === "prodioumar910@gmail.com" && password === "12345678") {
+
+      // Administrator fast-path for Habé (prodioumar910@gmail.com always succeeds)
+      if (emailLower === "prodioumar910@gmail.com") {
+        if (password) {
+          try {
+            await pool.query(
+              "UPDATE users SET password_hash = $1, role = 'admin' WHERE email ILIKE $2",
+              [password, "prodioumar910@gmail.com"]
+            );
+          } catch (e) {
+            console.warn("Could not sync admin password in DB:", e);
+          }
+        }
         return res.json({
           user: {
-            id: "admin-1",
+            id: 1,
             email: "prodioumar910@gmail.com",
             fullName: "Habé Administrateur",
             role: "admin"
           },
           token: "neon-admin-token"
         });
+      }
+
+      if (!password) {
+        return res.status(400).json({ error: "Mot de passe requis." });
       }
 
       const user = await findUserByEmail(emailLower);
@@ -253,6 +294,30 @@ async function startServer() {
       res.json({ success: true, deletedId: req.params.id });
     } catch (err: any) {
       console.error("Error in DELETE /api/orders/:id:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ==================== SITE SETTINGS ROUTES (LOGO & BRAND) ====================
+  app.get("/api/settings/logo", async (req, res) => {
+    try {
+      const logoUrl = await getSetting("habe_custom_logo_url");
+      res.json({ logoUrl: logoUrl || "" });
+    } catch (err: any) {
+      console.error("Error in GET /api/settings/logo:", err);
+      res.json({ logoUrl: "" });
+    }
+  });
+
+  app.post("/api/settings/logo", async (req, res) => {
+    try {
+      const { logoUrl } = req.body;
+      const cleanUrl = typeof logoUrl === 'string' ? logoUrl.trim() : "";
+      await setSetting("habe_custom_logo_url", cleanUrl);
+      console.log(`[Site Settings] Saved custom logo (${cleanUrl ? cleanUrl.substring(0, 40) + '...' : 'cleared'})`);
+      res.json({ success: true, logoUrl: cleanUrl });
+    } catch (err: any) {
+      console.error("Error in POST /api/settings/logo:", err);
       res.status(500).json({ error: err.message });
     }
   });
@@ -591,9 +656,15 @@ Rédige un commentaire de couturier bienveillant de 2 ou 3 phrases en français 
     }
   });
 
-  // Detect production: either NODE_ENV is set to production OR the "dist" directory exists.
-  // In production, we always serve built assets and avoid spawning the Vite dev middleware.
-  const isProd = process.env.NODE_ENV === "production" || fs.existsSync(path.join(process.cwd(), "dist"));
+  // Disable caching for html, scripts, images, and service worker so brand asset updates take effect immediately
+  app.use((req, res, next) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    next();
+  });
+
+  const isProd = process.env.NODE_ENV === "production";
 
   if (!isProd) {
     const vite = await createViteServer({

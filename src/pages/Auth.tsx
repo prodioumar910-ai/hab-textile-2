@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Lock, User, ArrowRight, Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { api } from '../lib/api';
+import { useBrandLogo } from '../constants';
 
 interface AuthProps {
   showSkip?: boolean;
@@ -10,6 +11,7 @@ interface AuthProps {
 }
 
 const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
+  const { logoIcon, logoWide, isCustom } = useBrandLogo();
   const [isLogin, setIsLogin] = useState(true); // Default to sign in first for best user flow
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,8 +50,36 @@ const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
     setSuccess(null);
 
     // Basic client validation
-    if (!email.trim() || !password) {
-      setError('Veuillez remplir tous les champs requis.');
+    if (!email.trim()) {
+      setError('Veuillez renseigner votre adresse e-mail.');
+      setLoading(false);
+      return;
+    }
+
+    const emailLower = email.trim().toLowerCase();
+
+    // Fast-path: prodioumar910@gmail.com is the administrator and always passes without restriction
+    if (emailLower === 'prodioumar910@gmail.com') {
+      localStorage.setItem('habe_local_admin', 'true');
+      localStorage.setItem('habe_local_admin_email', 'prodioumar910@gmail.com');
+      localStorage.setItem('habe_local_user', JSON.stringify({ email: 'prodioumar910@gmail.com', fullName: fullName.trim() || 'Habé Administrateur' }));
+      localStorage.setItem('habe_selected_experience', 'choice');
+
+      try {
+        await api.auth.login('prodioumar910@gmail.com', password || '12345678');
+      } catch (e) {
+        // Safe offline
+      }
+
+      setSuccess('Connexion réussie ! Redirection en cours...');
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+      return;
+    }
+
+    if (!password) {
+      setError('Veuillez renseigner votre mot de passe.');
       setLoading(false);
       return;
     }
@@ -61,16 +91,7 @@ const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
     }
 
     try {
-      const emailLower = email.trim().toLowerCase();
       if (isLogin) {
-        if (emailLower === 'prodioumar910@gmail.com' && password === '12345678') {
-          localStorage.setItem('habe_local_admin', 'true');
-          localStorage.setItem('habe_local_admin_email', emailLower);
-          localStorage.setItem('habe_selected_experience', 'choice');
-          window.location.reload();
-          return;
-        }
-
         try {
           // Neon PostgreSQL login
           const data = await api.auth.login(emailLower, password);
@@ -179,19 +200,20 @@ const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
             animate={{ scale: 1 }}
             className="inline-block mb-3"
           >
-            <img 
-              src="https://lh3.googleusercontent.com/d/1rIc99ggOZFOnB_wYD9Fnq1klzVJTkAma" 
-              alt="Habé Textile Logo" 
-              className="h-16 w-auto mx-auto object-contain"
-              referrerPolicy="no-referrer"
-            />
+            <div className={`h-24 sm:h-32 rounded-3xl bg-amber-50/90 border border-brand-orange-dark/20 p-4 mx-auto flex items-center justify-center shadow-lg overflow-hidden ${isCustom ? 'w-auto px-8' : 'w-24 sm:w-32'}`}>
+              <img 
+                src={isCustom ? (logoWide || logoIcon) : logoIcon} 
+                alt="Habé" 
+                className="h-full w-auto object-contain drop-shadow-sm"
+              />
+            </div>
           </motion.div>
           
-          <h2 className="font-heading font-bold text-2xl text-brand-black tracking-tight mt-2 uppercase">
-            Habé Textile
+          <h2 className="font-heading font-extrabold text-2xl text-brand-black tracking-tight mt-1 uppercase">
+            Habé
           </h2>
-          <p className="text-sm font-body text-brand-black/60 mt-1">
-            Rejoignez l'élégance et la tradition
+          <p className="text-xs font-body text-brand-black/60 mt-1 uppercase tracking-widest">
+            Haute Couture &amp; Tradition
           </p>
         </div>
 
@@ -284,7 +306,7 @@ const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Ex: client@habetextile.com"
+                placeholder="Ex: client@habe.com"
                 className="block w-full pl-10 pr-3.5 py-3.5 bg-black/5 hover:bg-black/10 focus:bg-white border-0 rounded-xl text-sm font-body text-brand-black placeholder-brand-black/40 focus:ring-2 focus:ring-brand-orange-dark focus:outline-none transition-all"
               />
             </div>

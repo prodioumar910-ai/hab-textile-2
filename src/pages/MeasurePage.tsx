@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useStore } from "../context/StoreContext";
 import { getOptimizedImage } from "../utils/image";
+import { APP_LOGO_WHITE, APP_LOGO_ICON } from "../constants";
 import { Bodygee3DScanner } from "../components/Bodygee3DScanner";
 import { MeasureResult } from "../types";
 import { api } from "../lib/api";
@@ -202,7 +203,7 @@ export const getRecommendations = (gender: string, m: MeasureResult) => {
 };
 
 export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoToBoutique }) => {
-  const { user, products, setSelectedProduct } = useStore();
+  const { user, products, setSelectedProduct, brandLogo } = useStore();
   const [gender, setGender] = useState<string>("homme");
   const [height, setHeight] = useState<string>("175");
   const [isLocalFallback, setIsLocalFallback] = useState<boolean>(false);
@@ -387,47 +388,39 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
     // Fast image downscaling before network transfer
     const activeImage = await resizeImage(rawActiveImage, 800, 800);
 
-    // Absolute fallback URLs for dev and prod
-    const devUrl = "https://ais-dev-upzhp3kqwztocsgkzoovce-115539072125.europe-west2.run.app/api/measure";
-    const sharedUrl = "https://ais-pre-upzhp3kqwztocsgkzoovce-115539072125.europe-west2.run.app/api/measure";
-
+    // Try to determine the best endpoint dynamically to avoid CORS or "Failed to fetch" errors
     const endpoints: string[] = [];
-
-    // 0. User-defined custom backend URL (for self-hosting and advanced deployments)
-    const customBackendUrl = (import.meta as any).env?.VITE_BACKEND_URL;
-    if (customBackendUrl) {
-      // Normalize url to avoid double slashes or missing api suffix
-      const normalizedUrl = customBackendUrl.endsWith("/api/measure")
-        ? customBackendUrl
-        : customBackendUrl.endsWith("/")
-        ? `${customBackendUrl}api/measure`
-        : `${customBackendUrl}/api/measure`;
-      endpoints.push(normalizedUrl);
-    }
-
-    // 1. Current origin relative endpoint (works on standard web browsers and inside dev previews)
+    
+    // 1. Current origin relative endpoint (Most reliable for web browsers)
     if (window.location.protocol !== "capacitor:" && window.location.protocol !== "file:") {
       endpoints.push("/api/measure");
     }
 
-    // 2. Local network IP / Localhost port 3000 mapping (if accessed via frontend port like 5173 on computer or phone)
+    // 2. User-defined custom backend URL (Ignored if pointing to Supabase misconfiguration)
+    const env = (import.meta as any).env || {};
+    let customBackendUrl = env.VITE_BACKEND_URL;
+    
+    if (customBackendUrl && typeof customBackendUrl === 'string' && !customBackendUrl.toLowerCase().includes('supabase.co')) {
+      customBackendUrl = customBackendUrl.trim();
+      const baseUrl = customBackendUrl.endsWith("/") ? customBackendUrl.slice(0, -1) : customBackendUrl;
+      endpoints.push(`${baseUrl}/api/measure`);
+    }
+
+    // 3. Current window origin (Helpful for some local dev setups)
+    if (window.location.origin && !endpoints.includes(`${window.location.origin}/api/measure`)) {
+      endpoints.push(`${window.location.origin}/api/measure`);
+    }
+
+    // 4. Local network IP / Localhost port 3000 mapping
     if (
       window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1" ||
-      window.location.hostname.startsWith("192.168.") ||
-      window.location.hostname.startsWith("10.") ||
-      window.location.hostname.startsWith("172.")
+      window.location.hostname.startsWith("192.168.")
     ) {
       if (window.location.port !== "3000") {
         endpoints.push(`http://${window.location.hostname}:3000/api/measure`);
       }
     }
-
-    // 3. Absolute Dev URL (works from anywhere, but may trigger redirect if not authenticated)
-    endpoints.push(devUrl);
-
-    // 4. Absolute Shared URL (publicly accessible, guaranteed server-side handling)
-    endpoints.push(sharedUrl);
 
     let response: Response | null = null;
     let primaryEndpointError: string | null = null;
@@ -485,7 +478,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
 
     try {
       if (!response) {
-        console.warn("Aucune réponse du serveur. Utilisation du processeur de couture local de Maison Habé...");
+        console.warn("Aucune réponse du serveur. Utilisation du processeur de couture local de Habé...");
         setIsLocalFallback(true);
         const localData = computeLocalMeasurements(gender, parseInt(height));
         setResult(localData);
@@ -519,7 +512,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
           return;
         }
 
-        console.warn("Erreur de réponse du serveur. Utilisation de l'Atelier local Maison Habé...");
+        console.warn("Erreur de réponse du serveur. Utilisation de l'Atelier local Habé...");
         setIsLocalFallback(true);
         const localData = computeLocalMeasurements(gender, parseInt(height));
         setResult(localData);
@@ -648,13 +641,14 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
         </button>
 
         <div className="flex items-center gap-2">
-          <img 
-            src="https://lh3.googleusercontent.com/d/1rIc99ggOZFOnB_wYD9Fnq1klzVJTkAma" 
-            alt="Maison Habé" 
-            className="h-8 w-auto object-contain"
-            referrerPolicy="no-referrer"
-          />
-          <span className="font-heading font-extrabold text-sm tracking-widest uppercase text-white">
+          <div className="bg-white/20 backdrop-blur-xl border border-white/30 p-3 rounded-2xl flex items-center justify-center overflow-hidden shadow-xl">
+            <img 
+              src={brandLogo.isCustom ? (brandLogo.logoWideWhite || brandLogo.logoIcon) : brandLogo.logoIcon} 
+              alt="Habé" 
+              className="h-14 sm:h-20 w-auto max-w-[200px] sm:max-w-[280px] object-contain drop-shadow-md"
+            />
+          </div>
+          <span className="font-heading font-extrabold text-sm tracking-widest uppercase text-white ml-2">
             MESURES IA
           </span>
         </div>
@@ -686,14 +680,14 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
               </h2>
               
               <p className="text-sm font-body text-stone-600 mt-6 leading-relaxed">
-                Bienvenue dans l'atelier numérique de la Maison Habé. Notre technologie d'analyse morphologique vous permet d'obtenir vos mensurations de haute-couture en quelques secondes à partir d'une simple photo.
+                Bienvenue dans l'atelier numérique de Habé. Notre technologie d'analyse morphologique vous permet d'obtenir vos mensurations de haute-couture en quelques secondes à partir d'une simple photo.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10">
                 {[
                   { icon: Camera, title: "Photo Simple", desc: "Un cliché de face, corps entier" },
                   { icon: Cpu, title: "Analyse IA", desc: "Calcul de 12 points clés" },
-                  { icon: Sparkles, title: "Prêt-à-Porter", desc: "Tailles exactes Maison Habé" }
+                  { icon: Sparkles, title: "Prêt-à-Porter", desc: "Tailles exactes Habé" }
                 ].map((item, i) => (
                   <div key={i} className="bg-white/50 backdrop-blur-sm border border-white/40 p-4 rounded-2xl flex flex-col items-center text-center">
                     <item.icon className="w-6 h-6 text-brand-orange-dark mb-3" />
@@ -786,7 +780,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
               <div className="mt-4 flex gap-3 text-stone-600 text-[10px] font-extrabold font-heading">
                 <span className="flex items-center gap-1 bg-white/40 px-2 py-1 rounded-full border border-white/20">
                   <span className="w-2.5 h-2.5 rounded-full bg-brand-orange-dark" />
-                  Maison Habé 3D
+                  Habé 3D
                 </span>
                 <span className="flex items-center gap-1 bg-white/40 px-2 py-1 rounded-full border border-white/20">
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
@@ -803,7 +797,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                 <div className="flex items-center justify-between mb-4 border-b border-white/30 pb-3">
                   <div>
                     <span className="text-[9px] uppercase font-heading tracking-widest text-brand-orange-dark font-bold flex items-center gap-1">
-                      <Cpu className="w-3.5 h-3.5 animate-pulse" /> Atelier Numérique Maison Habé
+                      <Cpu className="w-3.5 h-3.5 animate-pulse" /> Atelier Numérique Habé
                     </span>
                     <h2 className="font-heading font-bold text-xl text-stone-950 tracking-tight uppercase">
                       Vos Mensurations de Couture
@@ -1058,7 +1052,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                       Modèles suggérés pour votre corps
                     </h3>
                     <p className="text-xs text-stone-600 mt-1 font-body font-medium">
-                      Sélection exclusive de créations Maison Habé adaptées à votre morphologie et idéales pour vos mensurations.
+                      Sélection exclusive de créations Habé adaptées à votre morphologie et idéales pour vos mensurations.
                     </p>
                   </div>
                   <button
@@ -1128,7 +1122,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
           <div className="bg-[#FFEAD8]/95 backdrop-blur-xl border border-stone-200/50 rounded-3xl p-6 sm:p-8 relative shadow-2xl">
             <div className="text-center max-w-xl mx-auto mb-8">
               <span className="text-[10px] font-heading font-bold uppercase tracking-[0.25em] text-brand-orange-dark bg-brand-orange-dark/5 border border-brand-orange-dark/15 px-3 py-1 rounded-full">
-                Exclusivité Maison Habé
+                Exclusivité Habé
               </span>
               <h2 className="font-heading font-bold text-3xl text-stone-950 tracking-tight uppercase mt-4">
                 Mesure IA
@@ -1279,7 +1273,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                     </span>
                   </div>
                   <p className="text-[9px] text-stone-600 mt-2 leading-relaxed font-medium">
-                    L'IA de Maison Habé analyse les pixels pour déduire les centimètres. Un fond uni, des vêtements ajustés et une lumière de face garantissent une précision chirurgicale.
+                    L'IA de Habé analyse les pixels pour déduire les centimètres. Un fond uni, des vêtements ajustés et une lumière de face garantissent une précision chirurgicale.
                   </p>
                 </div>
 
@@ -1332,12 +1326,13 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                 <div className="bg-[#C1541A] text-white p-5 text-center relative shrink-0">
                   <div className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-8 bg-stone-950/60 rounded-r-full" />
                   <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-8 bg-stone-950/60 rounded-l-full" />
-                  <img 
-                    src="https://lh3.googleusercontent.com/d/1rIc99ggOZFOnB_wYD9Fnq1klzVJTkAma" 
-                    alt="Maison Habé Logo" 
-                    className="h-10 w-auto mx-auto brightness-0 invert"
-                    referrerPolicy="no-referrer"
-                  />
+                  <div className="bg-white/90 p-3 rounded-2xl mx-auto inline-flex items-center justify-center shadow-lg mb-2">
+                    <img 
+                      src={brandLogo.logo || brandLogo.logoIcon} 
+                      alt="Habé Logo" 
+                      className="h-14 w-auto max-w-[200px] object-contain"
+                    />
+                  </div>
                   <h3 className="font-heading font-bold text-xs uppercase tracking-[0.3em] mt-2 text-amber-200">
                     Passeport de Couture Numérique
                   </h3>
@@ -1440,7 +1435,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                   <button
                      onClick={() => {
                        if (!adjustedResult) return;
-                       const text = `PASSEPORT DE COUTURE NUMÉRIQUE - MAISON HABÉ\n\n` +
+                       const text = `PASSEPORT DE COUTURE NUMÉRIQUE - HABÉ\n\n` +
                          `Titulaire : ${user?.user_metadata?.full_name || user?.email || "Couturier Invité"}\n` +
                          `Genre : ${gender === "homme" ? "Homme" : "Enfant"}\n` +
                          `Hauteur : ${height} cm\n\n` +
@@ -1456,7 +1451,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                          `- Tour de Cuisse : ${adjustedResult.cuisse} cm\n` +
                          `- Ceinture (Fesse) : ${adjustedResult.ceinture} cm\n\n` +
                          `Recommandations de tailles d'Atelier : Veste T${getRecommendations(gender, adjustedResult).blazerSize}, Chemise ${getRecommendations(gender, adjustedResult).shirtSize}\n` +
-                         `Délivré numériquement sur Maison Habé IA`;
+                         `Délivré numériquement sur Habé IA`;
 
                        navigator.clipboard.writeText(text);
                        setCopySuccess(true);

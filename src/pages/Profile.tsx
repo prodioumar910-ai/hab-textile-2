@@ -11,7 +11,7 @@ interface ProfileProps {
 }
 
 const Profile: React.FC<ProfileProps> = ({ onOpenAdmin, onOpenMeasure }) => {
-  const { favorites, user, signOut, products } = useStore();
+  const { favorites, user, signOut, products, brandLogo } = useStore();
   
   if (!user) {
     return <Auth />;
@@ -46,15 +46,14 @@ const Profile: React.FC<ProfileProps> = ({ onOpenAdmin, onOpenMeasure }) => {
         transition={{ duration: 0.6 }}
         className="flex flex-col items-center mb-12"
       >
-        <div className="w-24 h-24 rounded-full border-4 border-white/40 overflow-hidden mb-4 shadow-xl bg-white p-1">
+        <div className="w-24 h-24 rounded-full border-4 border-white/60 overflow-hidden mb-4 shadow-xl bg-stone-950 p-2 flex items-center justify-center">
           <img
             src={user.email?.toLowerCase() === 'prodioumar910@gmail.com'
-              ? "https://lh3.googleusercontent.com/d/1rIc99ggOZFOnB_wYD9Fnq1klzVJTkAma"
+              ? brandLogo.logoIcon
               : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop"
             }
             alt="Avatar"
-            className="w-full h-full object-contain rounded-full"
-            referrerPolicy="no-referrer"
+            className="w-full h-full object-contain"
           />
         </div>
         <h2 className="font-heading font-bold text-xl text-brand-black">
@@ -222,9 +221,14 @@ const Profile: React.FC<ProfileProps> = ({ onOpenAdmin, onOpenMeasure }) => {
           {[
             { icon: Bell, label: 'Notifications' },
             { icon: Globe, label: 'Langue (Français)' },
-            ...(onOpenAdmin && user?.email?.toLowerCase() === 'prodioumar910@gmail.com' ? [{ 
+            ...(onOpenAdmin && (
+              user?.email?.toLowerCase() === 'prodioumar910@gmail.com' ||
+              user?.role === 'admin' ||
+              (user as any)?.user_metadata?.role === 'admin' ||
+              localStorage.getItem('habe_local_admin') === 'true'
+            ) ? [{ 
               icon: ShieldCheck, 
-              label: 'Administration Boutique', 
+              label: 'Administration Boutique (Habé Dashboard)', 
               onClick: onOpenAdmin 
             }] : []),
             { 
