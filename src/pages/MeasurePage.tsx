@@ -380,7 +380,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
       if (!response) {
         console.warn("Aucune réponse du serveur. Utilisation du processeur de couture local de Habé...");
         setIsLocalFallback(true);
-        const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey);
+        const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey, activeImage);
         setResult(localData);
         setAdjustedResult(localData);
         
@@ -414,7 +414,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
 
         console.warn("Erreur de réponse du serveur. Utilisation de l'Atelier local Habé...");
         setIsLocalFallback(true);
-        const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey);
+        const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey, activeImage);
         setResult(localData);
         setAdjustedResult(localData);
         
@@ -438,7 +438,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
       } catch (parseErr: any) {
         console.warn("Échec d'analyse de la réponse IA. Utilisation de l'Atelier de couture local...");
         setIsLocalFallback(true);
-        data = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey);
+        data = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey, activeImage);
       }
 
       setResult(data);
@@ -465,7 +465,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
     } catch (err: any) {
       console.warn("Exception durant le traitement IA. Utilisation du processeur de couture local...", err);
       setIsLocalFallback(true);
-      const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey);
+      const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey, activeImage);
       setResult(localData);
       setAdjustedResult(localData);
       
@@ -1101,26 +1101,6 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                       </div>
                     </div>
                   )}
-
-                  {/* Manual Height Input */}
-                  <div className="space-y-2">
-                    <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-600">
-                      {gender === "homme" ? "3." : "2."} Taille de Stature (cm)
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="range"
-                        min={gender === "homme" ? 150 : 80}
-                        max={gender === "homme" ? 220 : 160}
-                        value={height}
-                        onChange={(e) => setHeight(e.target.value)}
-                        className="flex-1 h-1.5 bg-stone-200 rounded-full appearance-none cursor-pointer accent-brand-orange-dark"
-                      />
-                      <div className="bg-white px-3 py-1.5 rounded-lg border border-stone-200 font-mono font-bold text-stone-900 text-xs min-w-[70px] text-center">
-                        {height} cm
-                      </div>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 text-[10px] text-stone-850 leading-relaxed space-y-2 font-medium">
@@ -1145,7 +1125,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
               {/* Right Column: Direct Photo Frame */}
               <div className="space-y-4">
                 <h3 className="text-xs font-heading font-extrabold uppercase tracking-widest text-stone-900 mb-3 flex items-center gap-2">
-                  <Camera className="w-3.5 h-3.5 text-stone-750" /> 2. Photo complète du corps
+                  <Camera className="w-3.5 h-3.5 text-stone-750" /> 3. Photo complète du corps
                 </h3>
 
                 {/* Frame Stage */}
