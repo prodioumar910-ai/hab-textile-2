@@ -333,7 +333,9 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             image: activeImage,
-            gender
+            gender,
+            height: parseInt(height),
+            profile: profileKey
           })
         });
 

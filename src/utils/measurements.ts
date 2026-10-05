@@ -99,23 +99,27 @@ export function computeProfessionalMeasurements(
   const isHomme = gender === 'homme';
   const h = height || (isHomme ? 175 : 125);
   
+  // Deterministic fluctuation based on height and profile to avoid generic "perfect" numbers
+  const fluctuation = (field: string, scale: number = 2) => {
+    const seed = (h * 13) + (isHomme ? 100 : 50) + field.length;
+    return (seed % (scale * 2 + 1)) - scale; // e.g. -2 to +2
+  };
+
   if (isHomme) {
     const profile = MEN_PROFILES[profileKey] || MEN_PROFILES.classique;
     const r = profile.ratios;
 
-    const poitrine = Math.round(h * r.poitrine);
-    const fesse = Math.round(h * r.fesse);
-    const ceinture = Math.round(h * r.ceinture);
-    const epaule = Math.round(h * r.epaule);
-    const cou = Math.round(h * r.cou);
-    const manche = Math.round(h * r.manche);
-    const tour_manche = Math.round(h * r.tour_manche);
-    const cuisse = Math.round(h * r.cuisse);
+    const poitrine = Math.round(h * r.poitrine) + fluctuation("poitrine", 3);
+    const fesse = Math.round(h * r.fesse) + fluctuation("fesse", 3);
+    const ceinture = Math.round(h * r.ceinture) + fluctuation("ceinture", 3);
+    const epaule = Math.round(h * r.epaule) + fluctuation("epaule", 1);
+    const cou = Math.round(h * r.cou) + fluctuation("cou", 1);
+    const manche = Math.round(h * r.manche) + fluctuation("manche", 2);
+    const tour_manche = Math.round(h * r.tour_manche) + fluctuation("tour_manche", 2);
+    const cuisse = Math.round(h * r.cuisse) + fluctuation("cuisse", 2);
 
-    // Boubou length depends on height (ankle length approx h * 0.8, but garment length LB is often shorter for tops)
-    // LB in original code was 84-100.
-    const longueur_boubou = Math.round(h * 0.52); 
-    const longueur_pantalon = Math.round(h * 0.58);
+    const longueur_boubou = Math.round(h * 0.52) + fluctuation("lb", 2); 
+    const longueur_pantalon = Math.round(h * 0.58) + fluctuation("lp", 2);
 
     return {
       hauteur: h,

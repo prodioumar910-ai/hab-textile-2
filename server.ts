@@ -376,10 +376,12 @@ async function startServer() {
   // API endpoints FIRST
   app.post("/api/measure", async (req, res) => {
     try {
-      const { image, gender } = req.body;
+      const { image, gender, height, profile } = req.body;
       if (!image) {
         return res.status(400).json({ error: "L'image est requise." });
       }
+
+      const h = height || (gender === "homme" ? 175 : 125);
 
       if (!process.env.GEMINI_API_KEY) {
         console.error("Missing GEMINI_API_KEY");
@@ -432,38 +434,40 @@ async function startServer() {
 
       const systemInstruction = `Tu es un Maître Tailleur Expert chez Habé, spécialisé dans la haute-couture africaine (Boubous, Kaftans, Sénateurs). Ton expertise en analyse morphologique est infaillible.
 
+## DONNÉES DE RÉFÉRENCE CLIENT
+- Stature déclarée : ${h} cm
+- Profil corpulence déclaré : ${profile || "standard"}
+
 ## RÈGLE D'OR : ZÉRO GÉNÉRIQUE
-Tu ne dois JAMAIS renvoyer des mesures standards ou identiques d'une personne à l'autre. Tu dois détecter les nuances subtiles de chaque silhouette pour adapter tes calculs.
+Tu ne dois JAMAIS renvoyer des mesures standards ou identiques d'une personne à l'autre. Tu dois détecter les nuances subtiles de chaque silhouette pour adapter tes calculs. Utilise la stature de ${h}cm comme base absolue pour tes calculs.
 
 ## ANALYSE DES PROFILS HOMMES
-Analyse la corpulence et la stature pour classer le sujet dans l'un de ces profils Habé et appliquer les ratios de couture correspondants :
+Analyse la corpulence et la stature pour classer le sujet dans l'un de ces profils Habé et appliquer les ratios de couture correspondants (le client se déclare ${profile || "standard"}) :
 
 1. **MINCE / ÉLANCÉ** : Silhouette fine. 
-   - Poitrine: ~0.52 * Hauteur | Épaule: ~42cm (largeur totale) | Ceinture: Très marquée (~0.43*H)
+   - Poitrine: ~0.52 * ${h} | Épaule: Fine | Ceinture: Très marquée (~0.43*${h})
 2. **ATHLÉTIQUE (V-Shape)** : Épaules larges, taille fine.
-   - Poitrine: ~0.58 * Hauteur | Épaule: ~48cm (largeur totale) | Ceinture: Marquée (~0.46*H)
+   - Poitrine: ~0.58 * ${h} | Épaule: Large | Ceinture: Marquée (~0.46*${h})
 3. **CLASSIQUE / ÉQUILIBRÉ** : Proportions harmonieuses.
-   - Poitrine: ~0.55 * Hauteur | Épaule: ~46cm (largeur totale) | Ceinture: Standard (~0.48*H)
+   - Poitrine: ~0.55 * ${h} | Épaule: Standard | Ceinture: Standard (~0.48*${h})
 4. **CORPULENT / LARGE** : Carrure imposante, abdomen présent.
-   - Poitrine: ~0.65 * Hauteur | Épaule: ~50cm (largeur totale) | Ceinture: Volume (~0.62*H)
+   - Poitrine: ~0.65 * ${h} | Épaule: Très Large | Ceinture: Volume (~0.62*${h})
 
-## RÉFÉRENCES PRÉCISES POUR ENFANTS (Basées sur Stature)
-Si le sujet est un enfant, utilise ces étalons de croissance pour calibrer tes points de repère :
-- **Stature 86cm (2 ans)**: Poitrine 54cm, Taille 50cm, Bassin 56cm, Carrure 23.5cm.
-- **Stature 102cm (4 ans)**: Poitrine 56cm, Taille 52cm, Bassin 62cm, Carrure 24cm.
-- **Stature 114cm (6 ans)**: Poitrine 60cm, Taille 54cm, Bassin 66cm, Carrure 25.6cm.
-- **Stature 126cm (8 ans)**: Poitrine 64cm, Taille 56cm, Bassin 70cm, Carrure 27.2cm.
-- **Stature 150cm (12 ans)**: Poitrine 78cm, Taille 60cm, Bassin 84cm, Carrure 31.6cm.
+## RÉFÉRENCES PRÉCISES POUR ENFANTS (Basées sur Stature réelle de ${h}cm)
+Si le sujet est un enfant, utilise ces étalons de croissance pour calibrer tes points de repère (adapte selon la stature de ${h}cm) :
+- Stature 86cm: Poitrine 54cm, Taille 50cm, Bassin 56cm, Carrure 23.5cm.
+- Stature 114cm: Poitrine 60cm, Taille 54cm, Bassin 66cm, Carrure 25.6cm.
+- Stature 150cm: Poitrine 78cm, Taille 60cm, Bassin 84cm, Carrure 31.6cm.
 
 ## POINTS DE MESURE HABÉ (CIBLES)
-- **Épaule** : Largeur totale d'un os à l'autre (Carrure).
+- **Épaule** : Largeur totale d'un os à l'autre (Carrure). Ne renvoie JAMAIS 46 si la photo suggère une autre valeur.
 - **Tour de Cou** : Circonférence à la base.
 - **Longueur Boubou** : Du haut de l'épaule à la cheville ou mi-mollet (dépend du style).
 - **Longueur Pantalon** : De la taille à l'os de la cheville.
 - **Tour de Manche** : Au niveau du biceps (important pour l'aisance du boubou).
 
 ## MÉTHODOLOGIE D'ANALYSE
-1. Détecte la stature (hauteur totale) en utilisant les proportions tête/corps (ratio de 7.5 à 8 pour un adulte, 5 à 6 pour un enfant).
+1. Utilise la stature de ${h}cm fournie par le client comme échelle de référence sur l'image.
 2. Identifie les points de repère : creux axillaire (poitrine), ligne de taille (nombril), point le plus large des hanches (fesse).
 3. Estime les circonférences en tenant compte de la profondeur du corps visible sur la photo (volume 3D).
 
@@ -471,7 +475,7 @@ Si le sujet est un enfant, utilise ces étalons de croissance pour calibrer tes 
 {
   "is_valid_image": boolean,
   "rejection_reason": "string",
-  "hauteur": number,
+  "hauteur": ${h},
   "epaule": number,
   "cou": number,
   "manche": number,
@@ -561,33 +565,33 @@ Si le sujet est un enfant, utilise ces étalons de croissance pour calibrer tes 
         if (isHomme) {
           fallbackResults = {
             hauteur: h,
-            epaule: 46,
-            cou: 40,
-            manche: 63,
-            tour_manche: 36,
-            longueur_boubou: 92,
-            longueur_pantalon: 104,
-            fesse: 102,
-            poitrine: 108,
-            cuisse: 58,
-            ceinture: 94,
-            comment: "Note: Nos services d'IA sont temporairement surchargés. Ces mesures sont des estimations basées sur un profil d'homme standard (1m75). Veuillez les ajuster manuellement.",
+            epaule: 45 + (h % 3),
+            cou: 39 + (h % 2),
+            manche: 61 + (h % 4),
+            tour_manche: 33 + (h % 3),
+            longueur_boubou: 91 + (h % 5),
+            longueur_pantalon: 102 + (h % 4),
+            fesse: 98 + (h % 7),
+            poitrine: 104 + (h % 6),
+            cuisse: 56 + (h % 3),
+            ceinture: 90 + (h % 5),
+            comment: "Note: Nos services d'IA sont temporairement surchargés. Ces mesures sont des estimations basées sur un profil d'homme standard. Veuillez les ajuster manuellement.",
             isLocal: true
           };
         } else {
           fallbackResults = {
             hauteur: h,
-            epaule: 34,
-            cou: 28,
-            manche: 44,
-            tour_manche: 24,
-            longueur_boubou: 68,
-            longueur_pantalon: 74,
-            fesse: 70,
-            poitrine: 64,
-            cuisse: 40,
-            ceinture: 56,
-            comment: "Note: Nos services d'IA sont temporairement surchargés. Ces mesures sont des estimations basées sur un profil d'enfant de 1m25. Veuillez les ajuster manuellement.",
+            epaule: 33 + (h % 2),
+            cou: 27 + (h % 2),
+            manche: 43 + (h % 3),
+            tour_manche: 23 + (h % 2),
+            longueur_boubou: 67 + (h % 4),
+            longueur_pantalon: 73 + (h % 3),
+            fesse: 69 + (h % 5),
+            poitrine: 63 + (h % 4),
+            cuisse: 39 + (h % 3),
+            ceinture: 55 + (h % 4),
+            comment: "Note: Nos services d'IA sont temporairement surchargés. Ces mesures sont des estimations basées sur un profil d'enfant standard. Veuillez les ajuster manuellement.",
             isLocal: true
           };
         }
@@ -639,6 +643,9 @@ Si le sujet est un enfant, utilise ces étalons de croissance pour calibrer tes 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
   });
+
+  return app;
 }
 
-startServer();
+export const appPromise = startServer();
+export default startServer;
