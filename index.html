@@ -14,29 +14,33 @@
     <meta http-equiv="Expires" content="0" />
 
     <!-- Favicon and App Icons (versioned) -->
-    <link rel="icon" type="image/png" href="/LOGO%20HORIZONTAL_Plan%20de%20travail%201.png?v=20261005_v23" />
-    <link rel="shortcut icon" href="/LOGO%20HORIZONTAL_Plan%20de%20travail%201.png?v=20261005_v23" />
-    <link rel="apple-touch-icon" href="/LOGO%20HORIZONTAL_Plan%20de%20travail%201.png?v=20261005_v23" />
-    <meta property="og:image" content="/LOGO%20HORIZONTAL_Plan%20de%20travail%201.png?v=20261005_v23" />
+    <link rel="icon" type="image/png" href="/favicon.png?v=20261021_v26_exact_icon" />
+    <link rel="icon" type="image/jpeg" href="/176SP.jpg?v=20261021_v26_exact_icon" />
+    <link rel="shortcut icon" href="/favicon.ico?v=20261021_v26_exact_icon" />
+    <link rel="apple-touch-icon" href="/icon-192.png?v=20261021_v26_exact_icon" />
+    <meta property="og:image" content="/176SP.jpg?v=20261021_v26_exact_icon" />
     
     <!-- PWA primary tags -->
-    <link rel="manifest" href="/manifest.json?v=20261005_v23" />
+    <link rel="manifest" href="/manifest.json?v=20261021_v26_exact_icon" />
     <meta name="theme-color" content="#0D0D0D" />
     <meta name="mobile-web-app-capable" content="yes" />
     
     <!-- iOS support (iPhone/iPad) -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Habé" />
+    <meta name="apple-mobile-web-app-title" content="Habé Textile" />
     
     <!-- splash screens (pour donner l'effet appli réelle au démarrage) -->
-    <link rel="apple-touch-startup-image" href="/LOGO%20HORIZONTAL_Plan%20de%20travail%201.png?v=20261005_v23" />
+    <link rel="apple-touch-startup-image" href="/176SP.jpg?v=20261021_v26_exact_icon" />
 
     <!-- Instant stale cache killer script -->
     <script>
       (function() {
-        var currentVersion = 'habe_asset_v23';
+        var currentVersion = 'habe_asset_v26_exact_icon';
         if (localStorage.getItem('habe_last_cleared_version') !== currentVersion) {
+          try {
+            localStorage.removeItem('habe_custom_logo_url');
+          } catch(e) {}
           if ('caches' in window) {
             caches.keys().then(function(names) {
               names.forEach(function(name) { caches.delete(name); });

@@ -12,7 +12,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activePage, setActivePage, onOpen
   const navItems = [
     { icon: Home, label: 'Accueil', index: 0 },
     { icon: ShoppingBag, label: 'Boutique', index: 1 },
-    { icon: Camera, label: 'Mesures IA', onClick: onOpenMeasure, isSpecial: true },
+    { icon: Camera, label: 'Modèle Habé', onClick: onOpenMeasure, isSpecial: true },
     { icon: Info, label: 'À propos', index: 3 },
     { icon: User, label: 'Profil', index: 2 },
   ];

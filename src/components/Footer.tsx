@@ -13,15 +13,10 @@ const Footer: React.FC = () => {
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
             <img 
-              src={isCustom ? logoWideWhite : logoIcon} 
-              alt="Habé" 
-              className="h-12 sm:h-14 w-auto max-w-[280px] sm:max-w-[320px] object-contain drop-shadow-md"
+              src={logoWideWhite} 
+              alt="Habé Textile" 
+              className="h-12 sm:h-14 w-auto max-w-[280px] sm:max-w-[340px] object-contain drop-shadow-md"
             />
-            {!isCustom && (
-              <h2 className="text-xl font-heading font-black text-white tracking-widest uppercase">
-                Habé
-              </h2>
-            )}
           </div>
           <p className="text-xs text-white/50 leading-relaxed max-w-xs font-body">
             L'excellence du prêt-à-porter traditionnel revisité. Des créations uniques façonnées avec passion pour sublimer toutes vos apparitions.

@@ -55,6 +55,15 @@ export interface PretProduct {
   description: string;
 }
 
+export interface RecommendedModel {
+  productId: string;
+  productName: string;
+  matchScore: number;
+  matchReason: string;
+  stylingTips: string;
+  recommendedCut: string;
+}
+
 export interface MeasureResult {
   hauteur?: number;
   epaule: number;
@@ -69,5 +78,9 @@ export interface MeasureResult {
   ceinture: number;
   comment: string;
   isLocal?: boolean;
+  morphologyTitle?: string;
+  morphologyDescription?: string;
+  recommendedModels?: RecommendedModel[];
 }
+
 

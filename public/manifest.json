@@ -8,8 +8,14 @@
   "theme_color": "#FF8C00",
   "icons": [
     {
-      "src": "/LOGO%20HORIZONTAL_Plan%20de%20travail%201.png",
-      "sizes": "192x192 512x512",
+      "src": "/icon-192.png?v=20261021_v26_exact_icon",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png?v=20261021_v26_exact_icon",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }

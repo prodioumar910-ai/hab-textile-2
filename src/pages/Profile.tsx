@@ -64,7 +64,7 @@ const Profile: React.FC<ProfileProps> = ({ onOpenAdmin, onOpenMeasure }) => {
         </button>
       </motion.section>
 
-      {/* AI Measurements Section */}
+      {/* Modèle Habé Textile Section */}
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -74,8 +74,8 @@ const Profile: React.FC<ProfileProps> = ({ onOpenAdmin, onOpenMeasure }) => {
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Ruler className="w-5 h-5 text-brand-black" />
-            <h3 className="font-heading font-bold text-lg text-brand-black">Mes Mesures IA</h3>
+            <Sparkles className="w-5 h-5 text-brand-orange-dark" />
+            <h3 className="font-heading font-bold text-lg text-brand-black">Modèle Habé Textile</h3>
           </div>
           {savedMeasurements && (
             <span className="text-[9px] font-heading font-extrabold uppercase bg-brand-orange-dark/15 text-brand-orange-dark border border-brand-orange-dark/25 px-2 py-0.5 rounded-full shadow-sm">
@@ -86,14 +86,30 @@ const Profile: React.FC<ProfileProps> = ({ onOpenAdmin, onOpenMeasure }) => {
 
         {savedMeasurements ? (
           <div className="bg-white/40 backdrop-blur-md border border-white/30 rounded-3xl p-5 sm:p-6 shadow-sm">
+            {savedMeasurements.morphologyTitle && (
+              <div className="mb-4 pb-3 border-b border-white/20 flex items-center justify-between">
+                <div>
+                  <span className="text-[8.5px] uppercase font-heading font-extrabold text-brand-orange-dark tracking-wider">
+                    Morphologie détectée
+                  </span>
+                  <h4 className="font-heading font-bold text-sm text-stone-900">
+                    {savedMeasurements.morphologyTitle}
+                  </h4>
+                </div>
+                <span className="text-[10px] bg-green-500/10 text-green-700 border border-green-500/20 px-2 py-0.5 rounded-full font-heading font-extrabold">
+                  Sans défaut
+                </span>
+              </div>
+            )}
+
             <div className="grid grid-cols-3 gap-2.5 mb-4">
               {[
+                { label: "Épaule", value: savedMeasurements.epaule },
                 { label: "Poitrine", value: savedMeasurements.poitrine },
-                { label: "Taille", value: savedMeasurements.taille },
-                { label: "Hanches", value: savedMeasurements.hanche },
+                { label: "Ceinture", value: savedMeasurements.ceinture },
                 { label: "Manche", value: savedMeasurements.manche },
-                { label: "Coude", value: savedMeasurements.coude },
-                { label: "Pantalon", value: savedMeasurements.pantalon }
+                { label: "Boubou", value: savedMeasurements.longueur_boubou },
+                { label: "Pantalon", value: savedMeasurements.longueur_pantalon }
               ].map((m, i) => (
                 <div key={i} className="bg-white/30 border border-white/20 rounded-2xl p-3 text-center shadow-xs">
                   <span className="text-brand-black/50 text-[9px] font-body font-extrabold block truncate uppercase tracking-wider">
@@ -101,7 +117,7 @@ const Profile: React.FC<ProfileProps> = ({ onOpenAdmin, onOpenMeasure }) => {
                   </span>
                   <div className="flex items-baseline justify-center gap-0.5 mt-0.5">
                     <span className="font-heading font-extrabold text-brand-black text-lg">
-                      {m.value}
+                      {m.value || "—"}
                     </span>
                     <span className="text-[8px] text-brand-orange-dark font-heading font-bold">cm</span>
                   </div>
@@ -111,7 +127,7 @@ const Profile: React.FC<ProfileProps> = ({ onOpenAdmin, onOpenMeasure }) => {
 
             <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-4 mb-4 relative overflow-hidden">
               <span className="text-[9px] font-heading font-extrabold uppercase text-brand-orange-dark tracking-widest flex items-center gap-1.5 mb-1.5">
-                <Sparkles className="w-3.5 h-3.5" /> Avis Maître Tailleur
+                <Sparkles className="w-3.5 h-3.5" /> Conseil Styliste Habé
               </span>
               <p className="text-xs text-brand-black/80 font-body italic leading-relaxed">
                 "{savedMeasurements.comment}"
@@ -124,20 +140,20 @@ const Profile: React.FC<ProfileProps> = ({ onOpenAdmin, onOpenMeasure }) => {
                 className="w-full py-3 bg-brand-orange-dark/10 hover:bg-brand-orange-dark/15 border border-brand-orange-dark/20 text-brand-orange-dark rounded-xl text-xs font-heading font-extrabold uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-[0.99]"
               >
                 <Camera className="w-4 h-4" />
-                Mettre à jour mes mesures par IA
+                Découvrir mes modèles Habé sur photo
               </button>
             )}
           </div>
         ) : (
           <div className="bg-white/20 backdrop-blur-md rounded-3xl p-6 text-center border border-white/20 shadow-sm flex flex-col items-center">
             <div className="w-12 h-12 bg-white/40 rounded-full flex items-center justify-center mb-3 text-brand-orange-dark border border-white/40 shadow-inner">
-              <Ruler className="w-5 h-5 animate-pulse" />
+              <Sparkles className="w-5 h-5 animate-pulse" />
             </div>
             <p className="text-xs font-body font-bold text-brand-black/85">
-              Aucune mesure enregistrée
+              Trouvez votre modèle parfait
             </p>
             <p className="text-[10px] font-body text-brand-black/60 mt-1 max-w-[250px] mb-4 leading-relaxed">
-              Prenez une photo pour que notre IA estime gratuitement vos mensurations couturières de haute précision.
+              Mettez votre photo : l'application vous propose directement les modèles Habé Textile qui vous correspondent sans défaut.
             </p>
             {onOpenMeasure && (
               <button
@@ -145,7 +161,7 @@ const Profile: React.FC<ProfileProps> = ({ onOpenAdmin, onOpenMeasure }) => {
                 className="px-6 py-2.5 bg-brand-orange-dark hover:bg-brand-orange-dark/95 active:scale-95 text-white rounded-xl text-xs font-heading font-extrabold uppercase tracking-widest transition-all shadow-md shadow-brand-orange-dark/15 border border-brand-orange-light/25 flex items-center gap-1.5"
               >
                 <Camera className="w-4 h-4" />
-                Lancer l'Analyse IA Gratuite
+                Trouver mon Modèle Habé
               </button>
             )}
           </div>

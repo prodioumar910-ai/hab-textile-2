@@ -156,6 +156,98 @@ export function computeProfessionalMeasurements(
     const longueur_boubou = Math.round(h * 0.53) + getVariation("lb", -3, 3); 
     const longueur_pantalon = Math.round(h * 0.59) + getVariation("lp", -3, 3);
 
+    const isAthletique = profileKey === "athletique" || epaule >= 48;
+    const isMince = profileKey === "mince" || (epaule <= 45 && poitrine < 95);
+
+    let morphologyTitle = "Silhouette Noble Classique";
+    let morphologyDesc = "Proportions équilibrées entre le buste et la taille, idéale pour porter toute la collection Habé.";
+    let recommendedModels = [
+      {
+        productId: 'hm-1',
+        productName: "Boubou Royal d'Or",
+        matchScore: 98,
+        matchReason: `La coupe impériale et le plastron brodé structurent majestueusement votre carrure de ${epaule} cm sans aucun pli disgracieux.`,
+        stylingTips: "Idéal pour les grandes cérémonies. À associer avec des babouches dorées.",
+        recommendedCut: "Coupe Royale Confort"
+      },
+      {
+        productId: 'hm-2',
+        productName: 'Kaftan Bleu Nuit Brodé',
+        matchScore: 95,
+        matchReason: `Le col officier et la ligne cintrée allongent le torse et valorisent harmonieusement votre tour de poitrine de ${poitrine} cm.`,
+        stylingTips: "Parfait de jour comme de soirée avec des chaussures en cuir noir.",
+        recommendedCut: "Coupe Ajustée Prestige"
+      },
+      {
+        productId: 'hm-4',
+        productName: 'Boubou Prestige Moutarde',
+        matchScore: 93,
+        matchReason: "La richesse du Bazin et le tombé droit procurent une présence noble sans alourdir la silhouette.",
+        stylingTips: "À porter avec assurance lors des réceptions de prestige.",
+        recommendedCut: "Coupe Impériale Droite"
+      }
+    ];
+
+    if (isAthletique) {
+      morphologyTitle = "Silhouette Athlétique V-Shape";
+      morphologyDesc = `Carrure puissante (${epaule} cm) avec buste dessiné. Les modèles cintrés et les cols officiers valorisent naturellement votre carrure.`;
+      recommendedModels = [
+        {
+          productId: 'hm-2',
+          productName: 'Kaftan Bleu Nuit Brodé',
+          matchScore: 99,
+          matchReason: `Souligne parfaitement la puissance de vos épaules de ${epaule} cm tout en épousant la ligne de taille sans tension au dos.`,
+          stylingTips: "Boutonnez le col jusqu'en haut pour accentuer la prestance du port de tête.",
+          recommendedCut: "Coupe Royale Slim Fit"
+        },
+        {
+          productId: 'hm-1',
+          productName: "Boubou Royal d'Or",
+          matchScore: 97,
+          matchReason: "Le plastron géométrique doré élargit visuellement le haut du corps tout en offrant un tombé fluide.",
+          stylingTips: "Accompagnez d'une montre de caractère et de babouches traditionnelles.",
+          recommendedCut: "Coupe Impériale Athlétique"
+        },
+        {
+          productId: 'hm-6',
+          productName: 'Kaftan Impérial Brodé',
+          matchScore: 95,
+          matchReason: `Les broderies verticales d'exception s'alignent sur vos ${poitrine} cm de poitrine sans tirer sur les coutures.`,
+          stylingTips: "Tenue d'apparat parfaite pour les mariages et galas.",
+          recommendedCut: "Coupe Prestige Structurée"
+        }
+      ];
+    } else if (isMince) {
+      morphologyTitle = "Silhouette Élancée & Longiligne";
+      morphologyDesc = `Silhouette haute et svelte (${h} cm). Les lignes contemporaines et les coupes semi-ajustées vous confèrent une distinction moderne.`;
+      recommendedModels = [
+        {
+          productId: 'hm-5',
+          productName: 'Sénateur Moderne Vert',
+          matchScore: 98,
+          matchReason: `La coupe moderne et épurée structure votre silhouette de ${h} cm sans flotter ni créer de surplus de tissu.`,
+          stylingTips: "Un ensemble chic et minimaliste parfait pour les rendez-vous d'affaires.",
+          recommendedCut: "Coupe Moderne Ajustée"
+        },
+        {
+          productId: 'hm-3',
+          productName: 'Kaftan Blanc Éclat',
+          matchScore: 96,
+          matchReason: "La pureté du blanc et la rigueur du col officier apportent volume et prestance à votre buste.",
+          stylingTips: "Portez avec des mocassins souples et un chapeau traditionnel Habé.",
+          recommendedCut: "Coupe Droite Raffinée"
+        },
+        {
+          productId: 'hm-2',
+          productName: 'Kaftan Bleu Nuit Brodé',
+          matchScore: 94,
+          matchReason: `Les broderies ton-sur-ton donnent du relief aux épaules de ${epaule} cm avec raffinement.`,
+          stylingTips: "Idéal pour les sorties de fin de semaine et célébrations.",
+          recommendedCut: "Coupe Cintrée Élancée"
+        }
+      ];
+    }
+
     return {
       hauteur: h,
       poitrine,
@@ -168,7 +260,10 @@ export function computeProfessionalMeasurements(
       cuisse,
       longueur_boubou,
       longueur_pantalon,
-      comment: `Analyse morphologique : silhouette ${profile.name} identifiée. Carrure estimée à ${epaule} cm, poitrine ${poitrine} cm. Vos mesures Habé sont adaptées à votre morphologie unique.`
+      morphologyTitle,
+      morphologyDescription: morphologyDesc,
+      recommendedModels,
+      comment: `Analyse morphologique : ${morphologyTitle}. Carrure estimée à ${epaule} cm, poitrine ${poitrine} cm. Les modèles Habé ci-dessous ont été sélectionnés sur mesure pour vous sublimer sans défaut.`
     };
   } else {
     // Interpolate child data
@@ -199,6 +294,33 @@ export function computeProfessionalMeasurements(
     const longueur_boubou = Math.round(h * 0.49) + getVariation("lb_enf", -2, 2);
     const longueur_pantalon = Math.round(h * 0.53) + getVariation("lp_enf", -2, 2);
 
+    const recommendedModels = [
+      {
+        productId: 'kd-1',
+        productName: "Ensemble Royal Junior Or",
+        matchScore: 98,
+        matchReason: `Confection étudiée avec aisance pour accompagner la carrure de ${epaule} cm de l'enfant tout en garantissant un confort royal.`,
+        stylingTips: "Parfait pour les fêtes de famille et grandes occasions.",
+        recommendedCut: "Coupe Junior Confort"
+      },
+      {
+        productId: 'kd-2',
+        productName: "Kaftan Royal Kid Indigo",
+        matchScore: 96,
+        matchReason: `Ligne souple adaptée à la stature de ${h} cm, offrant une élégance princière sans gêner les mouvements.`,
+        stylingTips: "À porter avec de petites babouches traditionnelles.",
+        recommendedCut: "Coupe Évolutive Habé"
+      },
+      {
+        productId: 'kd-3',
+        productName: "Boubou Impérial Kid",
+        matchScore: 94,
+        matchReason: "Bazin doux et résistant avec un tombé impeccable pour les cérémonies solennelles.",
+        stylingTips: "Idéal pour les baptêmes et célébrations religieuses.",
+        recommendedCut: "Coupe Traditionnelle Junior"
+      }
+    ];
+
     return {
       hauteur: h,
       poitrine,
@@ -211,7 +333,10 @@ export function computeProfessionalMeasurements(
       cuisse,
       longueur_boubou,
       longueur_pantalon,
-      comment: `Morphologie Junior analysée : carrure de ${epaule} cm avec aisance haute-couture Habé pour liberté de mouvement totale.`
+      morphologyTitle: "Morphologie Junior Habé",
+      morphologyDescription: `Stature enfant de ${h} cm. Proportions harmonisées pour conjuguer aisance et prestige de la haute-couture africaine.`,
+      recommendedModels,
+      comment: `Morphologie Junior analysée : carrure de ${epaule} cm avec aisance haute-couture Habé. Les modèles ci-dessous sont coupés sur mesure pour votre enfant.`
     };
   }
 }

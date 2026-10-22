@@ -11,7 +11,7 @@ export const ExperienceChoicePage: React.FC<ExperienceChoicePageProps> = ({
   onSelectBoutique,
   onSelectMeasure,
 }) => {
-  const { logoIcon, logoWhite, isCustom } = useBrandLogo();
+  const { logo, logoIcon, logoWhite, isCustom } = useBrandLogo();
   const [boutiqueSrc, setBoutiqueSrc] = React.useState('https://lh3.googleusercontent.com/d/1vXWUkn_u2vcKnHTiBvW0dLsUTsLSbI13');
   const [boutiqueErrCount, setBoutiqueErrCount] = React.useState(0);
   
@@ -52,11 +52,11 @@ export const ExperienceChoicePage: React.FC<ExperienceChoicePageProps> = ({
           transition={{ duration: 0.6 }}
           className="inline-block mb-3"
         >
-          <div className="bg-white/20 backdrop-blur-xl border border-white/30 p-6 sm:p-8 rounded-[40px] shadow-2xl flex items-center justify-center overflow-hidden">
+          <div className="bg-white/30 backdrop-blur-xl border border-white/40 p-3 sm:p-4 rounded-2xl shadow-xl flex items-center justify-center overflow-hidden">
             <img
-              src={isCustom ? (logoWhite || logoIcon) : logoIcon}
+              src={isCustom ? (logoWhite || logoIcon) : logo}
               alt="Habé"
-              className="h-32 sm:h-48 w-auto max-w-[360px] sm:max-w-[520px] mx-auto object-contain drop-shadow-2xl"
+              className="h-14 sm:h-18 w-auto max-w-[130px] sm:max-w-[160px] mx-auto object-contain drop-shadow-md"
             />
           </div>
         </motion.div>
@@ -106,7 +106,7 @@ export const ExperienceChoicePage: React.FC<ExperienceChoicePageProps> = ({
           </div>
         </motion.div>
 
-        {/* Choice 2: Virtual AI Tailor Cabin */}
+        {/* Choice 2: Modèle Habé Textile */}
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
@@ -117,15 +117,15 @@ export const ExperienceChoicePage: React.FC<ExperienceChoicePageProps> = ({
           <div className="absolute inset-0 w-full h-full">
             <img
               src={measureSrc}
-              alt="Mesure IA"
+              alt="Modèle Habé Textile"
               className="w-full h-full object-cover drop-shadow-lg group-hover:scale-105 transition-transform duration-300"
               onError={handleMeasureError}
               referrerPolicy="no-referrer"
             />
           </div>
           <div className="mt-auto p-4 z-20 bg-gradient-to-t from-stone-900/80 to-transparent w-full">
-            <h3 className="text-white font-heading font-bold text-sm sm:text-lg uppercase tracking-wider">Mesures IA</h3>
-            <p className="text-white/70 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mt-0.5">Atelier Numérique</p>
+            <h3 className="text-white font-heading font-bold text-sm sm:text-lg uppercase tracking-wider">Modèle Habé</h3>
+            <p className="text-white/70 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mt-0.5">Styliste & Modèles sur Photo</p>
           </div>
         </motion.div>
 

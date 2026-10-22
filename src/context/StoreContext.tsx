@@ -54,13 +54,19 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const syncGlobalSettings = async () => {
       try {
         const globalLogoUrl = await api.settings.getLogo();
-        if (globalLogoUrl) {
+        if (globalLogoUrl && globalLogoUrl.trim().length > 5) {
           const localLogoUrl = localStorage.getItem('habe_custom_logo_url');
           if (globalLogoUrl !== localLogoUrl) {
             localStorage.setItem('habe_custom_logo_url', globalLogoUrl);
-            // Trigger reactivity for useBrandLogo hook across all components
             window.dispatchEvent(new Event('storage'));
             window.dispatchEvent(new CustomEvent('habe_logo_updated', { detail: globalLogoUrl }));
+          }
+        } else {
+          // If server setting is empty, remove stale legacy custom logo
+          if (localStorage.getItem('habe_custom_logo_url')) {
+            localStorage.removeItem('habe_custom_logo_url');
+            window.dispatchEvent(new Event('storage'));
+            window.dispatchEvent(new CustomEvent('habe_logo_updated', { detail: '' }));
           }
         }
       } catch (error) {
@@ -280,6 +286,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           localStorage.setItem('habe_custom_logo_url', serverLogo.trim());
           window.dispatchEvent(new Event('storage'));
           window.dispatchEvent(new CustomEvent('habe_logo_updated', { detail: serverLogo.trim() }));
+        }
+      } else {
+        if (localStorage.getItem('habe_custom_logo_url')) {
+          localStorage.removeItem('habe_custom_logo_url');
+          window.dispatchEvent(new Event('storage'));
+          window.dispatchEvent(new CustomEvent('habe_logo_updated', { detail: '' }));
         }
       }
     }).catch((e) => {

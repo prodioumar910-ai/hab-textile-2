@@ -10,27 +10,30 @@ export const BRAND_NAME = 'Habé';
 export const BRAND_TAGLINE = "L'élégance et la tradition de la mode africaine haut de gamme";
 
 // Asset cache version to prevent browsers & Service Workers from serving stale logos
-export const ASSET_VERSION = '20261005_v23_icons';
+export const ASSET_VERSION = '20261021_v26_exact_icon';
 
 // Dynamic brand logo helper (checks for runtime custom logo override from admin, falls back to new official assets)
 export function getActiveLogo(type: 'logo' | 'logo-white' | 'wide' | 'wide-white' | 'icon' | 'original' = 'logo'): string {
   if (typeof window !== 'undefined') {
     const custom = localStorage.getItem('habe_custom_logo_url');
-    if (custom && custom.trim().length > 5) {
+    // Clear any stale base64 strings from earlier test runs
+    if (custom && (custom.startsWith('data:image/png;base64,iVBOR') || custom.length > 5000)) {
+      try {
+        localStorage.removeItem('habe_custom_logo_url');
+      } catch (e) {}
+    } else if (custom && custom.trim().length > 5 && type !== 'icon') {
       return custom.trim();
     }
   }
 
-  // Use the new horizontal logo provided by the user in public folder
-  const officialLogo = `/LOGO%20HORIZONTAL_Plan%20de%20travail%201.png?v=${ASSET_VERSION}`;
-
   switch (type) {
-    case 'logo-white': return officialLogo;
-    case 'wide': return officialLogo;
-    case 'wide-white': return officialLogo;
-    case 'icon': return officialLogo;
-    case 'original': return officialLogo;
-    default: return officialLogo;
+    case 'icon': return `/favicon.png?v=${ASSET_VERSION}`;
+    case 'logo-white': return `/logo-white.png?v=${ASSET_VERSION}`;
+    case 'wide': return `/logo-wide.png?v=${ASSET_VERSION}`;
+    case 'wide-white': return `/logo-wide-white.png?v=${ASSET_VERSION}`;
+    case 'original': return `/176SP.jpg?v=${ASSET_VERSION}`;
+    case 'logo':
+    default: return `/logo.png?v=${ASSET_VERSION}`;
   }
 }
 
@@ -96,4 +99,4 @@ export const APP_LOGO_TEXT_WHITE = getActiveLogo('logo-white');
 export const APP_LOGO_ORIGINAL = getActiveLogo('original');
 
 // Square high-resolution app icon for PWA, bookmarks & mobile installation
-export const APP_ICON = `/LOGO%20HORIZONTAL_Plan%20de%20travail%201.png?v=${ASSET_VERSION}`;
+export const APP_ICON = `/logo-icon.png?v=${ASSET_VERSION}`;

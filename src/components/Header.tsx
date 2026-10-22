@@ -25,11 +25,11 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, isTransparen
       >
         <div className="h-full flex items-center justify-center">
           {/* Logo with a small outline background for visibility */}
-          <div className="h-14 sm:h-18 px-3 py-1 bg-white rounded-xl shadow-[0_0_0_1px_rgba(0,0,0,0.05),0_2px_4px_rgba(0,0,0,0.05)] flex items-center justify-center min-w-[120px]">
+          <div className="h-10 sm:h-12 px-2.5 py-1 bg-white rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.06)] flex items-center justify-center">
             <img 
               src={brandLogo.logoWide || brandLogo.logo || "/logo.png"} 
               alt="Habé" 
-              className="h-full w-auto max-w-[160px] sm:max-w-[280px] object-contain transition-opacity duration-300"
+              className="h-full w-auto max-w-[105px] sm:max-w-[130px] object-contain transition-opacity duration-300"
               onError={(e) => {
                 const img = e.target as HTMLImageElement;
                 if (!img.src.includes('logo-icon')) {

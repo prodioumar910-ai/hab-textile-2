@@ -50,23 +50,22 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
         >
           {/* Logo container - Purely transparent background */}
           <motion.div
-            initial={{ scale: 0.5, opacity: 0, rotate: 0 }}
+            initial={{ scale: 0.85, opacity: 0 }}
             animate={{ 
               scale: 1, 
-              opacity: 1, 
-              rotate: 360
+              opacity: 1
             }}
             transition={{
-              duration: 1.2,
-              ease: [0.34, 1.56, 0.64, 1], // Sudden stop with bounce
-              delay: 0.2
+              duration: 0.8,
+              ease: [0.22, 1, 0.36, 1],
+              delay: 0.1
             }}
-            className={`relative flex items-center justify-center overflow-visible ${isCustom ? 'w-[80vw] max-w-[400px] h-32 sm:h-40' : 'w-24 h-24 sm:w-32 sm:h-32'}`}
+            className="relative flex items-center justify-center overflow-visible w-28 sm:w-36 h-20 sm:h-24"
           >
             <motion.img
-              src={isCustom ? (logoWide || logo) : logo}
-              alt="Habé"
-              className="w-full h-full object-contain"
+              src={logo}
+              alt="Habé Textile"
+              className="w-full h-full object-contain drop-shadow-sm"
             />
           </motion.div>
         </motion.div>

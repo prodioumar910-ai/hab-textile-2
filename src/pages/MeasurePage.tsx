@@ -3,29 +3,20 @@ import { motion, AnimatePresence } from "motion/react";
 import { 
   Camera, 
   RotateCw, 
-  User, 
   Sparkles, 
   ArrowLeft, 
   ShoppingBag, 
-  Loader2, 
   Check, 
   ChevronRight, 
+  ChevronLeft,
   Info,
   Sliders,
-  SlidersHorizontal,
-  Download,
-  Clipboard,
-  BookOpen,
-  Printer,
-  Share2,
-  ExternalLink,
-  Cpu
+  CheckCircle2,
+  Store
 } from "lucide-react";
 import { useStore } from "../context/StoreContext";
 import { getOptimizedImage } from "../utils/image";
-import { APP_LOGO_WHITE, APP_LOGO_ICON } from "../constants";
-import { Bodygee3DScanner } from "../components/Bodygee3DScanner";
-import { MeasureResult } from "../types";
+import { MeasureResult, Product } from "../types";
 import { api } from "../lib/api";
 import { computeProfessionalMeasurements, MEN_PROFILES } from "../utils/measurements";
 
@@ -34,187 +25,153 @@ interface MeasurePageProps {
   onGoToBoutique: () => void;
 }
 
-export const getRecommendations = (gender: string, m: MeasureResult) => {
-  // Determine Body shape
-  let shape = "";
-  let shapeDesc = "";
-  
-  if (gender === "homme") {
-    const diffPT = m.poitrine - m.ceinture;
-    const ratioEpaule = m.epaule / (m.hauteur || 175);
-
-    if (diffPT >= 12 || ratioEpaule > 0.27) {
-      shape = "Morphologie Athlétique (V-Shape)";
-      shapeDesc = "Carrure imposante et taille fine. Privilégiez les coupes ajustées (Slim Fit) pour vos Kaftans et des Boubous avec une belle structure d'épaules pour magnifier votre stature.";
-    } else if (diffPT < 5 && m.ceinture > m.poitrine * 0.9) {
-      shape = "Morphologie Ovale / Solide";
-      shapeDesc = "Silhouette généreuse et harmonieuse. Les coupes droites (Regular Fit) et les tissus avec une bonne tenue comme le Bazin Riche vous offriront un confort absolu et une élégance intemporelle.";
-    } else {
-      shape = "Morphologie Rectangulaire / Classique";
-      shapeDesc = "Proportions équilibrées entre le buste et le bassin. C'est le profil idéal pour porter toute la gamme Habé, des ensembles Sénateurs aux Grands Boubous traditionnels.";
-    }
-  } else {
-    // Enfant
-    shape = "Morphologie Junior Habé";
-    shapeDesc = "Coupe étudiée pour accompagner la croissance de l'enfant tout en conservant le prestige de la haute-couture africaine.";
-  }
-
-  // Calculate Sizing (Habé Standards)
-  let shirtSize = "";
-  if (gender === "homme") {
-    if (m.poitrine < 92) shirtSize = "S (37/38)";
-    else if (m.poitrine < 100) shirtSize = "M (39/40)";
-    else if (m.poitrine < 108) shirtSize = "L (41/42)";
-    else if (m.poitrine < 116) shirtSize = "XL (43/44)";
-    else shirtSize = "XXL (45/46+)";
-  } else {
-    const h = m.hauteur || 125;
-    if (h < 90) shirtSize = "2/3 ans";
-    else if (h < 110) shirtSize = "4/6 ans";
-    else if (h < 130) shirtSize = "8/10 ans";
-    else if (h < 150) shirtSize = "12/14 ans";
-    else shirtSize = "Junior Pro";
-  }
-
-  // Blazer / Veste / Kaftan (FR size)
-  let blazerSize = gender === "homme" ? Math.round(m.poitrine / 2) : 0;
-  if (blazerSize > 0) {
-     blazerSize = blazerSize - (blazerSize % 2); // Ensure even
-     blazerSize = Math.max(44, Math.min(64, blazerSize));
-  }
-
-  // Trouser (FR size)
-  let trouserSize = gender === "homme" ? Math.round(m.ceinture / 2) : 0;
-  if (trouserSize > 0) {
-    trouserSize = trouserSize - (trouserSize % 2);
-    trouserSize = Math.max(38, Math.min(60, trouserSize));
-  }
-
-  return {
-    shape,
-    shapeDesc,
-    shirtSize,
-    blazerSize,
-    trouserSize
+interface RecommendedModelCardProps {
+  m: {
+    productId?: string;
+    productName: string;
+    matchScore: number;
+    matchReason?: string;
+    stylingTips?: string;
+    recommendedCut?: string;
   };
+  product: Product | undefined;
+  idx: number;
+  onOrderWithMeasurements: (prod: Product) => void;
+  onAddToCart: (prod: Product) => void;
+}
+
+// Clean static horizontal model card (No 360° animation, no text clutter)
+const RecommendedModelCard: React.FC<RecommendedModelCardProps> = ({
+  m,
+  product,
+  idx,
+  onOrderWithMeasurements,
+  onAddToCart
+}) => {
+  const displayProduct: Product = product || ({
+    id: m.productId || `prod-${idx}`,
+    name: m.productName,
+    price: 165000,
+    category: "Ensemble Royal",
+    target: "Homme",
+    garmentType: "boubou",
+    fabricType: "bazin",
+    image: "",
+    description: "",
+    colors: ["Or & Nacre", "Bleu Nuit"]
+  } as unknown as Product);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: idx * 0.08, duration: 0.35 }}
+      className="w-[280px] sm:w-[320px] md:w-[340px] flex-shrink-0 snap-start bg-[#FFEAD8] rounded-3xl overflow-hidden shadow-xl border border-white/70 flex flex-col justify-between group hover:shadow-2xl hover:border-brand-orange-dark/30 transition-all duration-300 text-stone-900"
+    >
+      {/* Product Image Stage (Crisp static image, no 360 animation) */}
+      <div className="relative aspect-[3/4] bg-stone-100 overflow-hidden flex items-center justify-center p-3">
+        {displayProduct.image ? (
+          <img
+            src={getOptimizedImage(displayProduct.image, 600)}
+            alt={displayProduct.name}
+            className="w-full h-full object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500 ease-out"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <div className="font-heading font-bold text-xs text-stone-400">Modèle Habé</div>
+        )}
+
+        {/* Category Pill */}
+        <div className="absolute top-4 left-4 z-10">
+          <span className="px-3 py-1 bg-stone-950/80 backdrop-blur-md text-white text-[9.5px] font-heading font-extrabold rounded-full uppercase tracking-wider shadow-md">
+            {displayProduct.category || "Haute Couture"}
+          </span>
+        </div>
+      </div>
+
+      {/* Model Information & Action Buttons */}
+      <div className="p-5 flex flex-col flex-grow justify-between space-y-4">
+        <div>
+          <h3 className="font-heading font-bold text-base text-stone-950 group-hover:text-brand-orange-dark transition-colors line-clamp-1 mb-1">
+            {displayProduct.name}
+          </h3>
+          <p className="font-heading font-extrabold text-lg text-brand-orange-dark">
+            {displayProduct.price.toLocaleString("fr-FR")} FCFA
+          </p>
+        </div>
+
+        {/* Direct Action Buttons */}
+        <div className="space-y-2 pt-2 border-t border-stone-200/60">
+          <button
+            type="button"
+            onClick={() => onOrderWithMeasurements(displayProduct)}
+            className="w-full py-3 bg-brand-orange-dark hover:bg-brand-orange-dark/95 text-white rounded-xl text-xs font-heading font-extrabold uppercase tracking-widest transition-all shadow-md shadow-brand-orange-dark/15 border border-brand-orange-light/25 flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            Commander ce modèle
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onAddToCart(displayProduct)}
+            className="w-full py-2.5 bg-white hover:bg-stone-50 text-stone-800 rounded-xl text-[11px] font-heading font-bold uppercase tracking-wider transition-all border border-stone-200 flex items-center justify-center gap-1.5 active:scale-[0.98] cursor-pointer"
+          >
+            <Check className="w-3.5 h-3.5 text-brand-orange-dark" />
+            Ajouter au panier
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
 };
 
 export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoToBoutique }) => {
-  const { user, products, setSelectedProduct, brandLogo } = useStore();
+  const { products, setSelectedProduct, addToCart, brandLogo } = useStore();
   const [gender, setGender] = useState<string>("homme");
   const [profileKey, setProfileKey] = useState<string>("classique");
   const [height, setHeight] = useState<string>("175");
-  const [isLocalFallback, setIsLocalFallback] = useState<boolean>(false);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingStep, setLoadingStep] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<MeasureResult | null>(null);
-  const [adjustedResult, setAdjustedResult] = useState<MeasureResult | null>(null);
-  const [hoveredMeasure, setHoveredMeasure] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"synthese" | "ajustement" | "tuto">("synthese");
-  const [showPassportModal, setShowPassportModal] = useState<boolean>(false);
-  const [copySuccess, setCopySuccess] = useState<boolean>(false);
-  const [showIntro, setShowIntro] = useState<boolean>(true);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const horizontalScrollRef = useRef<HTMLDivElement | null>(null);
 
-  // Auto loading step messages simulation
+  // Fast loading step animation
   useEffect(() => {
     if (!loading) return;
     const interval = setInterval(() => {
       setLoadingStep(prev => (prev < 3 ? prev + 1 : prev));
-    }, 2200);
+    }, 450);
     return () => clearInterval(interval);
   }, [loading]);
 
   const loadingMessages = [
-    "Initialisation de notre cabine de mesure virtuelle...",
-    "Analyse de votre corps et alignement des proportions...",
-    "Calcul précis des mensurations par notre couturier IA...",
-    "Finalisation de votre fiche de style personnalisée..."
+    "Initialisation de votre sélection...",
+    "Analyse de votre silhouette...",
+    "Sélection des modèles Habé idéaux...",
+    "Affichage de vos modèles..."
   ];
 
-  // Initialize camera stream
-  const startCamera = async () => {
-    setError(null);
-    try {
-      setIsCameraActive(true);
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-    } catch (err: any) {
-      console.warn("Camera getUserMedia blocked or unsupported, falling back to file selection:", err);
-      setIsCameraActive(false);
-      // Trigger file selector fallback
-      if (fileInputRef.current) {
-        fileInputRef.current.click();
-      }
-    }
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3500);
   };
 
-  // Stop camera stream
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    setIsCameraActive(false);
-  };
-
-  // Capture frame from video
-  const capturePhoto = () => {
-    if (videoRef.current) {
-      const video = videoRef.current;
-      const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
-      
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        // Optional horizontal flip if front camera
-        ctx.translate(canvas.width, 0);
-        ctx.scale(-1, 1);
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        const dataUrl = canvas.toDataURL("image/jpeg");
-        stopCamera();
-        
-        // Compress and resize image for faster transmission
-        resizeImage(dataUrl).then((resized) => {
-          setImageSrc(resized);
-          calculateMeasurements(resized);
-        }).catch(() => {
-          setImageSrc(dataUrl);
-          calculateMeasurements(dataUrl);
-        });
-      }
-    }
-  };
-
-  // Helper to downscale and compress images for ultra-fast uploads and AI processing
-  const resizeImage = (dataUrl: string, maxWidth = 800, maxHeight = 800): Promise<string> => {
+  // Ultra-fast client-side downscaling and compression (takes < 15ms, reduces image to ~30KB)
+  const resizeImage = (dataUrl: string, maxWidth = 480, maxHeight = 480): Promise<string> => {
     return new Promise((resolve) => {
-      // If the image is already small (under 80KB), keep it untouched
-      if (dataUrl.length < 80000) {
-        resolve(dataUrl);
-        return;
-      }
-
       const img = new Image();
       img.src = dataUrl;
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        let width = img.naturalWidth || img.width || 800;
-        let height = img.naturalHeight || img.height || 800;
+        let width = img.naturalWidth || img.width || 480;
+        let height = img.naturalHeight || img.height || 480;
 
         if (width > maxWidth || height > maxHeight) {
           if (width > height) {
@@ -231,7 +188,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
         const ctx = canvas.getContext("2d");
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL("image/jpeg", 0.75)); // Optimized JPEG compression for lightning-fast AI analysis
+          resolve(canvas.toDataURL("image/jpeg", 0.65));
         } else {
           resolve(dataUrl);
         }
@@ -242,7 +199,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
     });
   };
 
-  // Process manual/mobile file upload
+  // Process mobile / desktop file upload instantly
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -255,7 +212,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
           setError(null);
           
           try {
-            const resized = await resizeImage(base64, 800, 800);
+            const resized = await resizeImage(base64, 480, 480);
             setImageSrc(resized);
             calculateMeasurements(resized);
           } catch (err) {
@@ -275,122 +232,46 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
     }
   };
 
-  // Submit image to Gemini measurement backend
+  // Fast submit to backend with 3.5s timeout for instant model recommendation
   const calculateMeasurements = async (overrideImage?: string) => {
-    let rawActiveImage = overrideImage || imageSrc;
-    if (!rawActiveImage) return;
+    const activeImage = overrideImage || imageSrc;
+    if (!activeImage) return;
     setLoading(true);
     setLoadingStep(0);
     setError(null);
 
-    // Fast image downscaling before network transfer
-    const activeImage = await resizeImage(rawActiveImage, 800, 800);
-
-    // Try to determine the best endpoint dynamically to avoid CORS or "Failed to fetch" errors
-    const endpoints: string[] = [];
-    
-    // 1. Current origin relative endpoint (Most reliable for web browsers)
-    if (window.location.protocol !== "capacitor:" && window.location.protocol !== "file:") {
-      endpoints.push("/api/measure");
-    }
-
-    // 2. User-defined custom backend URL (Ignored if pointing to Supabase misconfiguration)
-    const env = (import.meta as any).env || {};
-    let customBackendUrl = env.VITE_BACKEND_URL;
-    
-    if (customBackendUrl && typeof customBackendUrl === 'string' && !customBackendUrl.toLowerCase().includes('supabase.co')) {
-      customBackendUrl = customBackendUrl.trim();
-      const baseUrl = customBackendUrl.endsWith("/") ? customBackendUrl.slice(0, -1) : customBackendUrl;
-      endpoints.push(`${baseUrl}/api/measure`);
-    }
-
-    // 3. Current window origin (Helpful for some local dev setups)
-    if (window.location.origin && !endpoints.includes(`${window.location.origin}/api/measure`)) {
-      endpoints.push(`${window.location.origin}/api/measure`);
-    }
-
-    // 4. Local network IP / Localhost port 3000 mapping
-    if (
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1" ||
-      window.location.hostname.startsWith("192.168.")
-    ) {
-      if (window.location.port !== "3000") {
-        endpoints.push(`http://${window.location.hostname}:3000/api/measure`);
-      }
-    }
-
     let response: Response | null = null;
-    let primaryEndpointError: string | null = null;
-    let lastFetchError: any = null;
-    let successfulUrl = "";
 
-    for (const url of endpoints) {
-      try {
-        console.log("Tentative de connexion à l'API de mesure:", url);
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            image: activeImage,
-            gender,
-            height: parseInt(height),
-            profile: profileKey
-          })
-        });
+    try {
+      // 3.5s timeout ensures users never wait unnecessarily
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
 
-        if (!res) continue;
+      const res = await fetch("/api/measure", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image: activeImage,
+          gender,
+          height: parseInt(height),
+          profile: profileKey
+        }),
+        signal: controller.signal
+      });
 
-        // If returned 404, the route does not exist on this endpoint, we continue to next
-        if (res.status === 404) {
-          console.warn(`Endpoint ${url} a retourné une erreur 404. Essai du point d'accès suivant...`);
-          const msg = `404 non trouvé à ${url}`;
-          lastFetchError = new Error(msg);
-          if (url === "/api/measure" || url === customBackendUrl) {
-            primaryEndpointError = "Le serveur a retourné une erreur 404 (La route /api/measure n'existe pas ou le backend n'est pas lancé).";
-          }
-          continue;
-        }
+      clearTimeout(timeoutId);
 
-        // If we got redirected (such as AI Studio Google SSO login page) or received HTML instead of JSON
-        const contentType = res.headers.get("content-type") || "";
-        if (res.redirected || contentType.includes("text/html")) {
-          console.warn(`Endpoint ${url} a redirigé ou retourné du HTML. Essai du point d'accès suivant...`);
-          const msg = `Redirection ou réponse HTML reçue de ${url}`;
-          lastFetchError = new Error(msg);
-          if (url === "/api/measure" || url === customBackendUrl) {
-            primaryEndpointError = "La requête a été interceptée par une redirection. Les navigateurs bloquent souvent cela (CORS / Cookies tiers).";
-          }
-          continue;
-        }
-
+      if (res && res.ok) {
         response = res;
-        successfulUrl = url;
-        break; // Found a working endpoint!
-      } catch (err: any) {
-        console.warn(`Échec de connexion au point d'accès ${url}:`, err.message || err);
-        lastFetchError = err;
-        if (url === "/api/measure" || url === customBackendUrl) {
-          primaryEndpointError = `Erreur réseau : ${err.message || "Connexion refusée"}`;
-        }
       }
+    } catch (err: any) {
+      console.warn("Connexion API temporairement longue, bascule instantanée sur le moteur de morphologie local:", err);
     }
 
     try {
       if (!response) {
-        console.warn("Aucune réponse du serveur. Utilisation du processeur de couture local de Habé...");
-        setIsLocalFallback(true);
         const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey, activeImage);
         setResult(localData);
-        setAdjustedResult(localData);
-        
-        localStorage.setItem("habe_ai_measurements", JSON.stringify({
-          ...localData,
-          gender,
-          height: localData.hauteur ? localData.hauteur.toString() : height,
-          date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }),
-          isLocal: true
-        }));
         setLoading(false);
         return;
       }
@@ -404,85 +285,57 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
         } catch (_) {}
 
         if (response.status === 400 || errMsg.toLowerCase().includes("rejet") || errMsg.toLowerCase().includes("personne") || errMsg.toLowerCase().includes("incomplet")) {
-          console.warn("Photo rejetée par l'analyseur IA :", errMsg);
           setError(errMsg);
           setLoading(false);
           setResult(null);
-          setAdjustedResult(null);
           return;
         }
 
-        console.warn("Erreur de réponse du serveur. Utilisation de l'Atelier local Habé...");
-        setIsLocalFallback(true);
         const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey, activeImage);
         setResult(localData);
-        setAdjustedResult(localData);
-        
-        localStorage.setItem("habe_ai_measurements", JSON.stringify({
-          ...localData,
-          gender,
-          height: localData.hauteur ? localData.hauteur.toString() : height,
-          date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }),
-          isLocal: true
-        }));
         setLoading(false);
         return;
       }
 
-      // Safe text-first reading to prevent Safari's native response.json() exception triggers
       const rawText = await response.text();
-      let data: MeasureResult;
+      let rawData: any;
       try {
-        data = JSON.parse(rawText.trim());
-        setIsLocalFallback(data.isLocal === true);
+        rawData = JSON.parse(rawText.trim());
       } catch (parseErr: any) {
-        console.warn("Échec d'analyse de la réponse IA. Utilisation de l'Atelier de couture local...");
-        setIsLocalFallback(true);
-        data = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey, activeImage);
+        rawData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey, activeImage);
       }
 
+      const fallbackComp = computeProfessionalMeasurements(gender as any, rawData.hauteur || parseInt(height), profileKey, activeImage);
+
+      const data: MeasureResult = {
+        ...rawData,
+        morphologyTitle: rawData.morphology_title || rawData.morphologyTitle || fallbackComp.morphologyTitle || "Silhouette Royale",
+        morphologyDescription: rawData.morphology_description || rawData.morphologyDescription || fallbackComp.morphologyDescription || "Proportions adaptées à la confection Habé.",
+        recommendedModels: Array.isArray(rawData.recommended_models) && rawData.recommended_models.length > 0
+          ? rawData.recommended_models.map((rm: any) => ({
+              productId: rm.product_id || rm.productId,
+              productName: rm.product_name || rm.productName,
+              matchScore: Number(rm.match_score || rm.matchScore || 96),
+              matchReason: rm.match_reason || rm.matchReason || "",
+              stylingTips: rm.styling_tips || rm.stylingTips || "",
+              recommendedCut: rm.recommended_cut || rm.recommendedCut || "Coupe Haute-Couture"
+            }))
+          : (rawData.recommendedModels && rawData.recommendedModels.length > 0 ? rawData.recommendedModels : fallbackComp.recommendedModels || [])
+      };
+
       setResult(data);
-      setAdjustedResult(data);
-      
       if (data.hauteur) {
         setHeight(data.hauteur.toString());
       }
       
-      // Save results locally and sync to Neon database
-      const measurementPayload = {
-        ...data,
-        gender,
-        hauteur: data.hauteur ? Number(data.hauteur) : parseInt(height) || 175,
-        height: data.hauteur ? data.hauteur.toString() : height,
-        date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
-      };
-      localStorage.setItem("habe_ai_measurements", JSON.stringify(measurementPayload));
       api.measurements.save({
         ...data,
         hauteur: data.hauteur ? Number(data.hauteur) : parseInt(height) || 175,
         userEmail: localStorage.getItem("habe_local_admin_email") || undefined
       }).catch(e => console.warn("Neon save measurement error:", e));
     } catch (err: any) {
-      console.warn("Exception durant le traitement IA. Utilisation du processeur de couture local...", err);
-      setIsLocalFallback(true);
       const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey, activeImage);
       setResult(localData);
-      setAdjustedResult(localData);
-      
-      const measurementPayload = {
-        ...localData,
-        gender,
-        hauteur: localData.hauteur ? Number(localData.hauteur) : parseInt(height) || 175,
-        height: localData.hauteur ? localData.hauteur.toString() : height,
-        date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }),
-        isLocal: true
-      };
-      localStorage.setItem("habe_ai_measurements", JSON.stringify(measurementPayload));
-      api.measurements.save({
-        ...localData,
-        hauteur: localData.hauteur ? Number(localData.hauteur) : parseInt(height) || 175,
-        userEmail: localStorage.getItem("habe_local_admin_email") || undefined
-      }).catch(e => console.warn("Neon save measurement error:", e));
     } finally {
       setLoading(false);
     }
@@ -492,34 +345,16 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
   const handleReset = () => {
     setImageSrc(null);
     setResult(null);
-    setAdjustedResult(null);
     setError(null);
-    stopCamera();
-    setActiveTab("synthese");
   };
 
-  // Save manual adjustments
-  const saveAdjustedResult = (newResult: MeasureResult) => {
-    setAdjustedResult(newResult);
-    localStorage.setItem("habe_ai_measurements", JSON.stringify({
-      ...newResult,
-      gender,
-      height: newResult.hauteur ? newResult.hauteur.toString() : height,
-      date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }),
-      isAdjusted: true
-    }));
-    api.measurements.save({
-      ...newResult,
-      hauteur: newResult.hauteur ? Number(newResult.hauteur) : parseInt(height) || 175,
-      userEmail: localStorage.getItem("habe_local_admin_email") || undefined
-    }).catch(e => console.warn("Neon sync adjusted measurement error:", e));
+  // Horizontal scroll buttons helper
+  const scrollHorizontal = (direction: "left" | "right") => {
+    if (horizontalScrollRef.current) {
+      const scrollAmount = direction === "left" ? -350 : 350;
+      horizontalScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
   };
-
-  useEffect(() => {
-    return () => {
-      stopCamera();
-    };
-  }, []);
 
   return (
     <div className="min-h-screen text-white font-body py-8 px-4 sm:px-6 relative overflow-hidden" style={{ background: "radial-gradient(circle, #FFAA5E 0%, #C1541A 100%)" }}>
@@ -527,96 +362,53 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
       <div className="absolute top-[10%] left-[5%] w-[40vw] h-[40vw] rounded-full bg-amber-500/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[10%] right-[5%] w-[35vw] h-[35vw] rounded-full bg-orange-600/5 blur-[100px] pointer-events-none" />
 
+      {/* Floating Toast Notification */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-stone-950 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-amber-400/40 text-xs font-heading font-extrabold"
+          >
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            <span>{toastMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header Controls */}
-      <div className="max-w-4xl mx-auto flex items-center justify-between mb-8 z-10 relative">
+      <div className="max-w-6xl mx-auto flex items-center justify-between mb-8 z-10 relative">
         <button
-          onClick={() => {
-            stopCamera();
-            onBackToChoice();
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-stone-50 active:scale-95 text-xs font-heading font-extrabold uppercase tracking-widest rounded-full transition-all border border-stone-200 shadow-sm text-stone-700 hover:text-stone-900"
+          onClick={onBackToChoice}
+          className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-stone-50 active:scale-95 text-xs font-heading font-extrabold uppercase tracking-widest rounded-full transition-all border border-stone-200 shadow-sm text-stone-700 hover:text-stone-900 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 text-brand-orange-dark" />
           Retour
         </button>
 
         <div className="flex items-center gap-2">
-          <div className="bg-white/20 backdrop-blur-xl border border-white/30 p-3 rounded-2xl flex items-center justify-center overflow-hidden shadow-xl">
+          <div className="bg-white/20 backdrop-blur-xl border border-white/30 p-2.5 rounded-2xl flex items-center justify-center overflow-hidden shadow-xl">
             <img 
               src={brandLogo.isCustom ? (brandLogo.logoWideWhite || brandLogo.logoIcon) : brandLogo.logoIcon} 
               alt="Habé" 
-              className="h-14 sm:h-20 w-auto max-w-[200px] sm:max-w-[280px] object-contain drop-shadow-md"
+              className="h-12 sm:h-16 w-auto max-w-[180px] sm:max-w-[240px] object-contain drop-shadow-md"
             />
           </div>
-          <span className="font-heading font-extrabold text-sm tracking-widest uppercase text-white ml-2">
-            MESURES IA
-          </span>
         </div>
+
+        {/* Quick Boutique link */}
+        <button
+          onClick={onGoToBoutique}
+          className="flex items-center gap-2 px-4 py-2 bg-stone-950 hover:bg-stone-900 active:scale-95 text-xs font-heading font-extrabold uppercase tracking-widest rounded-full transition-all border border-amber-400/30 text-white shadow-md cursor-pointer"
+        >
+          <Store className="w-4 h-4 text-amber-400" />
+          <span className="hidden sm:inline">Boutique</span>
+        </button>
       </div>
 
-      <div className="max-w-4xl mx-auto z-10 relative">
-        {/* State 0: Intro Guide */}
-        {showIntro && !loading && !result && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-[#FFEAD8]/95 backdrop-blur-xl border border-stone-200/50 rounded-3xl p-6 sm:p-10 relative shadow-2xl overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-orange-dark/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-500/5 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2" />
-            
-            <div className="relative text-center max-w-2xl mx-auto">
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center mx-auto mb-6 border border-stone-100"
-              >
-                <Sparkles className="w-10 h-10 text-brand-orange-dark" />
-              </motion.div>
-
-              <h2 className="font-heading font-bold text-3xl sm:text-4xl text-stone-950 tracking-tight uppercase leading-tight">
-                Votre Cabine de <br /> <span className="text-brand-orange-dark">Mesure IA</span>
-              </h2>
-              
-              <p className="text-sm font-body text-stone-600 mt-6 leading-relaxed">
-                Bienvenue dans l'atelier numérique de Habé. Notre technologie d'analyse morphologique vous permet d'obtenir vos mensurations de haute-couture en quelques secondes à partir d'une simple photo.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10">
-                {[
-                  { icon: Camera, title: "Photo Simple", desc: "Un cliché de face, corps entier" },
-                  { icon: Cpu, title: "Analyse IA", desc: "Calcul de 12 points clés" },
-                  { icon: Sparkles, title: "Prêt-à-Porter", desc: "Tailles exactes Habé" }
-                ].map((item, i) => (
-                  <div key={i} className="bg-white/50 backdrop-blur-sm border border-white/40 p-4 rounded-2xl flex flex-col items-center text-center">
-                    <item.icon className="w-6 h-6 text-brand-orange-dark mb-3" />
-                    <h4 className="font-heading font-bold text-[11px] uppercase tracking-wider text-stone-900">{item.title}</h4>
-                    <p className="text-[10px] text-stone-500 mt-1">{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
-                <button
-                  onClick={() => setShowIntro(false)}
-                  className="w-full sm:w-auto px-10 py-4 bg-brand-orange-dark hover:bg-brand-orange-dark/90 text-white rounded-2xl font-heading font-extrabold text-xs uppercase tracking-[0.2em] shadow-xl shadow-brand-orange-dark/20 transition-all active:scale-95 flex items-center justify-center gap-2"
-                >
-                  Commencer l'Analyse
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={onBackToChoice}
-                  className="w-full sm:w-auto px-8 py-4 bg-white/60 hover:bg-white text-stone-700 border border-stone-200 rounded-2xl font-heading font-extrabold text-xs uppercase tracking-widest transition-all"
-                >
-                  Plus tard
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* State 1: Loading Screen */}
+      <div className="max-w-6xl mx-auto z-10 relative">
+        {/* Loading Screen */}
         {loading && (
           <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center bg-[#FFEAD8]/95 backdrop-blur-md rounded-3xl border border-stone-200/50 shadow-2xl relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/5 via-transparent to-orange-600/5 pointer-events-none" />
@@ -627,7 +419,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
               </div>
 
               <h3 className="font-heading font-bold text-xl tracking-wide text-stone-950 uppercase mb-2">
-                Analyse Couture IA en Cours
+                Modèle Habé Textile
               </h3>
               
               <p className="text-sm text-stone-600 max-w-md h-12 leading-relaxed transition-all duration-500 font-medium">
@@ -648,387 +440,136 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
           </div>
         )}
 
-        {/* State 2: Results Display */}
-        {!loading && result && adjustedResult && (
-          <>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="grid grid-cols-1 md:grid-cols-12 gap-8"
-          >
-            {/* 3D Bodygee Animated Scanner Column */}
-            <div className="md:col-span-5 bg-[#FFEAD8]/95 backdrop-blur-xl border border-white/40 rounded-3xl p-4 sm:p-5 flex flex-col items-center justify-center min-h-[360px] sm:min-h-[450px] shadow-2xl relative overflow-hidden w-full max-w-sm md:max-w-none mx-auto">
-              <div className="absolute top-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
-              <div className="w-full flex items-center justify-between mb-3 border-b border-white/30 pb-2">
-                <h3 className="text-xs font-heading font-bold uppercase tracking-widest text-brand-orange-dark flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" /> Avatar 3D Bodygee
-                </h3>
-                <span className="text-[9px] font-mono text-stone-500 bg-white/50 px-2 py-0.5 rounded-full border border-stone-200">
-                  360° Scan
+        {/* Results Screen: ONLY Recommended Models Displayed Horizontally + Button to Boutique */}
+        {!loading && result && (
+          <div className="space-y-6">
+            {/* Top Bar with Boutique button and Navigation Arrows */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/20 backdrop-blur-xl border border-white/30 p-4 sm:p-5 rounded-3xl shadow-xl">
+              <div className="flex items-center gap-3">
+                <h2 className="font-heading font-extrabold text-lg sm:text-xl uppercase tracking-wider text-white">
+                  Modèles Recommandés
+                </h2>
+                <span className="text-xs bg-stone-950/70 text-amber-300 px-3 py-1 rounded-full font-mono font-bold">
+                  {(result.recommendedModels || []).length} modèles
                 </span>
               </div>
 
-              <Bodygee3DScanner
-                adjustedResult={adjustedResult}
-                imageSrc={imageSrc}
-                gender={gender}
-                height={height}
-                hoveredMeasure={hoveredMeasure}
-                setHoveredMeasure={setHoveredMeasure}
-              />
-
-              <div className="mt-4 flex gap-3 text-stone-600 text-[10px] font-extrabold font-heading">
-                <span className="flex items-center gap-1 bg-white/40 px-2 py-1 rounded-full border border-white/20">
-                  <span className="w-2.5 h-2.5 rounded-full bg-brand-orange-dark" />
-                  Habé 3D
-                </span>
-                <span className="flex items-center gap-1 bg-white/40 px-2 py-1 rounded-full border border-white/20">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                  Hauteur : {height} cm
-                </span>
-              </div>
-            </div>
-
-            {/* Measurements & Tailor Advice Box with Tabs */}
-            <div className="md:col-span-7 flex flex-col justify-between">
-              <div className="bg-[#FFEAD8]/95 backdrop-blur-xl border border-white/40 rounded-3xl p-5 sm:p-6 mb-6 shadow-2xl text-stone-900">
-                
-                {/* Header */}
-                <div className="flex items-center justify-between mb-4 border-b border-white/30 pb-3">
-                  <div>
-                    <span className="text-[9px] uppercase font-heading tracking-widest text-brand-orange-dark font-bold flex items-center gap-1">
-                      <Cpu className="w-3.5 h-3.5 animate-pulse" /> Atelier Numérique Habé
-                    </span>
-                    <h2 className="font-heading font-bold text-xl text-stone-950 tracking-tight uppercase">
-                      Vos Mensurations de Couture
-                    </h2>
-                  </div>
-                  {isLocalFallback ? (
-                    <div className="px-2.5 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-700 text-[10px] rounded-full flex items-center gap-1 font-heading font-extrabold shrink-0">
-                      <Cpu className="w-3 h-3 animate-pulse text-amber-600" /> ATELIER LOCAL
-                    </div>
-                  ) : (
-                    <div className="px-2.5 py-0.5 bg-green-500/10 border border-green-500/20 text-green-600 text-[10px] rounded-full flex items-center gap-1 font-heading font-extrabold shrink-0">
-                      <Check className="w-3 h-3" /> PRÉCISION IA
-                    </div>
-                  )}
-                </div>
-
-                {/* Tab Navigation */}
-                <div className="flex border-b border-stone-200/40 mb-4 overflow-x-auto scrollbar-none gap-1 py-1">
-                  {[
-                    { id: "synthese", label: "Synthèse", icon: Sparkles },
-                    { id: "ajustement", label: "Ajustement Pro", icon: SlidersHorizontal },
-                    { id: "tuto", label: "Tuto Mesures", icon: Info }
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id as any)}
-                      className={`flex items-center gap-1.5 px-3 py-2 text-[10px] font-heading font-extrabold uppercase tracking-wider rounded-lg transition-all border shrink-0 ${
-                        activeTab === tab.id
-                          ? "bg-brand-orange-dark text-white border-brand-orange-dark shadow-md shadow-brand-orange-dark/15"
-                          : "bg-white/60 text-stone-600 border-stone-200/50 hover:bg-white hover:text-stone-900"
-                      }`}
-                    >
-                      <tab.icon className="w-3.5 h-3.5" />
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Tab Contents */}
-                <AnimatePresence mode="wait">
-                  {activeTab === "synthese" && (
-                    <motion.div
-                      key="synthese"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2 }}
-                      className="space-y-4"
-                    >
-                      {/* Measurements Grid */}
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {[
-                          { key: "epaule", label: "Épaule", value: adjustedResult.epaule, color: "border-amber-500/30" },
-                          { key: "cou", label: "Tour de Cou", value: adjustedResult.cou, color: "border-amber-500/30" },
-                          { key: "manche", label: "Longueur Manche", value: adjustedResult.manche, color: "border-amber-400/30" },
-                          { key: "tour_manche", label: "Tour de Manche", value: adjustedResult.tour_manche, color: "border-amber-400/30" },
-                          { key: "longueur_boubou", label: "Longueur Boubou", value: adjustedResult.longueur_boubou, color: "border-orange-500/30" },
-                          { key: "longueur_pantalon", label: "Longueur Pantalon", value: adjustedResult.longueur_pantalon, color: "border-orange-500/30" },
-                          { key: "fesse", label: "Tour de Fesse", value: adjustedResult.fesse, color: "border-brand-orange-light/30" },
-                          { key: "poitrine", label: "Tour de Poitrine", value: adjustedResult.poitrine, color: "border-orange-400/30" },
-                          { key: "cuisse", label: "Tour de Cuisse", value: adjustedResult.cuisse, color: "border-orange-400/30" },
-                          { key: "ceinture", label: "Ceinture (Fesse)", value: adjustedResult.ceinture, color: "border-brand-orange-light/30" }
-                        ].map((m, i) => (
-                          <div 
-                            key={i} 
-                            onMouseEnter={() => setHoveredMeasure(m.key)}
-                            onMouseLeave={() => setHoveredMeasure(null)}
-                            className={`bg-white/80 border ${m.color} rounded-2xl p-3 flex flex-col justify-between relative overflow-hidden transition-all duration-300 cursor-pointer ${
-                              hoveredMeasure === m.key ? "bg-white ring-2 ring-brand-orange-dark/50 shadow-md scale-[1.02]" : "hover:bg-white/95"
-                            }`}
-                          >
-                            <span className="text-stone-500 text-[9px] font-body font-bold uppercase tracking-wider block">
-                              {m.label}
-                            </span>
-                            <div className="flex items-baseline gap-1 mt-1">
-                              <span className="text-xl font-heading font-extrabold text-stone-900">
-                                {m.value}
-                              </span>
-                              <span className="text-[10px] text-brand-orange-dark font-heading font-bold">cm</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Virtual Tailor Advice */}
-                      <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-4 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
-                        <h4 className="text-[10px] font-heading font-extrabold uppercase text-amber-700 tracking-widest flex items-center gap-1.5 mb-2">
-                          <Sparkles className="w-3.5 h-3.5 animate-bounce" /> Avis de notre Maître Tailleur
-                        </h4>
-                        <p className="text-xs text-stone-700 leading-relaxed font-body italic">
-                           "{adjustedResult.comment}"
-                        </p>
-                      </div>
-
-                      {/* Premium Action to Generate Passport */}
-                      <button
-                        onClick={() => setShowPassportModal(true)}
-                        className="w-full py-3 bg-gradient-to-r from-amber-500 to-brand-orange-dark hover:from-amber-600 hover:to-brand-orange-dark text-white rounded-xl font-heading font-extrabold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-orange-dark/15 border border-brand-orange-light/20 active:scale-[0.99] cursor-pointer"
-                      >
-                        <Sparkles className="w-4 h-4 text-amber-200 animate-pulse" />
-                        Générer mon Passeport de Couture
-                      </button>
-                    </motion.div>
-                  )}
-
-                  {activeTab === "ajustement" && (
-                    <motion.div
-                      key="ajustement"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2 }}
-                      className="space-y-4"
-                    >
-                      <div className="bg-white/60 border border-stone-200/40 p-3 rounded-xl flex items-start gap-2 mb-1">
-                        <Sliders className="w-4 h-4 text-brand-orange-dark shrink-0 mt-0.5" />
-                        <p className="text-[10px] text-stone-600 leading-relaxed font-body">
-                          <strong>Ajustement Expert :</strong> L'estimation de l'IA est un excellent point de départ. Utilisez les curseurs ci-dessous pour affiner vos mensurations si vous connaissez vos valeurs réelles exactes. Vos ajustements se synchronisent en direct.
-                        </p>
-                      </div>
-
-                      {/* Sliders loop */}
-                      <div className="space-y-2 bg-white/80 border border-stone-200/30 p-3 rounded-2xl shadow-sm max-h-[220px] overflow-y-auto">
-                        {[
-                          { key: "hauteur", label: "Hauteur de votre Corps", min: 100, max: 220 },
-                          { key: "epaule", label: "Épaule", min: 35, max: 65 },
-                          { key: "cou", label: "Tour de Cou", min: 25, max: 55 },
-                          { key: "manche", label: "Longueur de Manche", min: 40, max: 85 },
-                          { key: "tour_manche", label: "Tour de Manche", min: 20, max: 55 },
-                          { key: "longueur_boubou", label: "Longueur Boubou", min: 70, max: 120 },
-                          { key: "longueur_pantalon", label: "Longueur Pantalon", min: 80, max: 130 },
-                          { key: "fesse", label: "Tour de Fesse", min: 70, max: 130 },
-                          { key: "poitrine", label: "Tour de Poitrine", min: 70, max: 130 },
-                          { key: "cuisse", label: "Tour de Cuisse", min: 35, max: 85 },
-                          { key: "ceinture", label: "Ceinture (Fesse)", min: 70, max: 130 }
-                        ].map((slider) => {
-                          const val = (adjustedResult[slider.key as keyof MeasureResult] as number) || (slider.key === "hauteur" ? parseInt(height) : 0);
-                          return (
-                            <div 
-                              key={slider.key} 
-                              className={`space-y-1 p-1.5 rounded-xl transition-all duration-300 border ${
-                                hoveredMeasure === slider.key ? "bg-amber-50/40 border-amber-200/40" : "border-transparent"
-                              }`}
-                              onMouseEnter={() => setHoveredMeasure(slider.key)}
-                              onMouseLeave={() => setHoveredMeasure(null)}
-                            >
-                              <div className="flex justify-between items-center text-xs">
-                                <span className="font-heading font-extrabold text-stone-800 uppercase tracking-wider text-[10px]">{slider.label}</span>
-                                <div className="flex items-center gap-1 font-heading font-extrabold text-[11px]">
-                                  <span className="text-brand-orange-dark">{val}</span>
-                                  <span className="text-stone-400 text-[9px]">cm</span>
-                                </div>
-                              </div>
-                              <input
-                                type="range"
-                                min={slider.min}
-                                max={slider.max}
-                                value={val}
-                                onChange={(e) => {
-                                  const newVal = parseInt(e.target.value);
-                                  let updated = { ...adjustedResult, [slider.key]: newVal };
-                                  if (slider.key === "hauteur") {
-                                    setHeight(newVal.toString());
-                                  } else if (slider.key === "fesse") {
-                                    updated.ceinture = newVal;
-                                    updated.poitrine = newVal + 5;
-                                  } else if (slider.key === "ceinture") {
-                                    updated.fesse = newVal;
-                                    updated.poitrine = newVal + 5;
-                                  }
-                                  saveAdjustedResult(updated);
-                                }}
-                                className="w-full accent-brand-orange-dark cursor-pointer h-1 bg-stone-200 rounded-lg appearance-none"
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {activeTab === "tuto" && (
-                    <motion.div
-                      key="tuto"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2 }}
-                      className="space-y-3 max-h-[250px] overflow-y-auto pr-1"
-                    >
-                      <h4 className="text-xs font-heading font-extrabold uppercase text-stone-800 tracking-wider">Comment vérifier vos mesures chez vous ?</h4>
-                      {[
-                        { title: "Tour de Poitrine", text: "Passez le ruban horizontalement sous les aisselles, par-dessus la pointe des seins sans serrer." },
-                        { title: "Tour de Taille", text: "Mesurez au creux de votre taille naturelle, généralement au-dessus du nombril à l'endroit le plus mince." },
-                        { title: "Tour de Hanche", text: "Passez le ruban à l'endroit le plus fort des hanches et fessiers, pieds bien joints." },
-                        { title: "Longueur de Manche", text: "Partez de la couture de l'épaule jusqu'à l'os du poignet, le bras légèrement fléchi." },
-                        { title: "Tour de Coude", text: "Pliez légèrement votre coude et entourez le ruban horizontalement à la pliure." }
-                      ].map((t, idx) => (
-                        <div key={idx} className="bg-white/80 border border-stone-200/30 p-2.5 rounded-2xl">
-                          <span className="text-[9px] font-heading font-extrabold text-brand-orange-dark uppercase tracking-wide block">{t.title}</span>
-                          <p className="text-[11px] text-stone-600 font-body leading-relaxed mt-0.5">{t.text}</p>
-                        </div>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button
-                  onClick={handleReset}
-                  className="flex-1 py-4 bg-white hover:bg-stone-50 active:scale-95 text-stone-700 border border-stone-300/80 rounded-2xl font-heading font-extrabold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
-                >
-                  <RotateCw className="w-4 h-4 text-brand-orange-dark" />
-                  Reprendre la photo
-                </button>
-
-                <button
-                  onClick={onGoToBoutique}
-                  className="flex-1 py-4 bg-brand-orange-dark hover:bg-brand-orange-dark/90 active:scale-[0.98] text-white rounded-2xl font-heading font-extrabold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl shadow-brand-orange-dark/20 border border-brand-orange-light/35 cursor-pointer"
-                >
-                  Découvrir nos Collections
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Recommendations of 3 clothing models that match the analyzed profile */}
-          {(() => {
-            const recommendedProducts = products
-              .filter(p => p.target.toLowerCase() === gender.toLowerCase() && p.garmentType !== 'accessoire' && p.image)
-              .slice(0, 3);
-
-            if (recommendedProducts.length === 0) return null;
-
-            return (
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                className="bg-[#FFEAD8]/95 backdrop-blur-xl border border-white/40 rounded-3xl p-6 sm:p-8 shadow-2xl text-stone-900 mt-8"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-white/30 pb-4">
-                  <div>
-                    <span className="text-[10px] uppercase font-heading tracking-widest text-brand-orange-dark font-extrabold flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" /> Recommandations Personnalisées
-                    </span>
-                    <h3 className="font-heading font-bold text-xl text-stone-950 mt-1 uppercase">
-                      Modèles suggérés pour votre corps
-                    </h3>
-                    <p className="text-xs text-stone-600 mt-1 font-body font-medium">
-                      Sélection exclusive de créations Habé adaptées à votre morphologie et idéales pour vos mensurations.
-                    </p>
-                  </div>
+              <div className="flex items-center gap-3">
+                {/* Horizontal scroll arrows */}
+                <div className="flex items-center gap-1.5">
                   <button
-                    onClick={onGoToBoutique}
-                    className="px-4 py-2 bg-white/60 hover:bg-white text-stone-800 rounded-xl text-xs font-heading font-extrabold uppercase tracking-wider transition-all border border-stone-200 shadow-sm flex items-center gap-1.5 self-start sm:self-center cursor-pointer"
+                    type="button"
+                    onClick={() => scrollHorizontal("left")}
+                    className="w-9 h-9 rounded-full bg-white/90 hover:bg-white text-stone-850 shadow-md flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                    title="Défiler vers la gauche"
                   >
-                    Boutique complète
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    <ChevronLeft className="w-5 h-5 text-stone-850" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollHorizontal("right")}
+                    className="w-9 h-9 rounded-full bg-white/90 hover:bg-white text-stone-850 shadow-md flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                    title="Défiler vers la droite"
+                  >
+                    <ChevronRight className="w-5 h-5 text-stone-850" />
                   </button>
                 </div>
 
-                <div className="flex flex-row overflow-x-auto pb-4 gap-4 scrollbar-thin scrollbar-thumb-stone-200/50 md:grid md:grid-cols-3 md:overflow-visible md:max-w-xl md:mx-auto">
-                  {recommendedProducts.map((p) => (
-                    <motion.div
-                      key={p.id}
-                      whileHover={{ y: -4, scale: 1.01 }}
-                      transition={{ duration: 0.2 }}
-                      onClick={() => setSelectedProduct(p)}
-                      className="bg-white/85 border border-white/50 rounded-xl overflow-hidden shadow-sm flex flex-col justify-between cursor-pointer group hover:bg-white transition-colors duration-300 min-w-[125px] sm:min-w-[150px] md:min-w-0 flex-shrink-0 md:flex-shrink snap-start"
-                    >
-                      <div className="relative aspect-square bg-stone-950/5 overflow-hidden flex items-center justify-center border-b border-stone-100">
-                        {p.image ? (
-                          <img
-                            src={getOptimizedImage(p.image, 200)}
-                            alt={p.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            referrerPolicy="no-referrer"
-                          />
-                        ) : (
-                          <div className="font-heading font-bold text-[10px] text-stone-400">Image indisponible</div>
-                        )}
-                        <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-brand-orange-dark/90 backdrop-blur-md text-white text-[6.5px] sm:text-[7.5px] font-heading font-bold rounded-full uppercase tracking-wider">
-                          {p.category}
-                        </span>
-                      </div>
-                      
-                      <div className="p-2 sm:p-3 flex flex-col justify-between flex-grow">
-                        <div>
-                          <h4 className="font-body font-bold text-[10.5px] sm:text-xs text-stone-900 group-hover:text-brand-orange-dark transition-colors line-clamp-1 text-left">
-                            {p.name}
-                          </h4>
-                          <p className="text-[9px] sm:text-[10px] text-stone-500 mt-0.5 line-clamp-2 leading-relaxed text-left">
-                            {p.description || "Un modèle de couture d'exception."}
-                          </p>
-                        </div>
-                        
-                        <div className="mt-2 pt-2 border-t border-stone-100 flex items-center justify-between">
-                          <span className="font-heading font-extrabold text-[9.5px] sm:text-[11px] text-brand-orange-dark">
-                            {p.price.toLocaleString("fr-FR")} FCFA
-                          </span>
-                          <span className="text-[8px] sm:text-[9px] font-heading font-bold uppercase tracking-wider text-stone-600 flex items-center gap-0.5 group-hover:translate-x-1 transition-transform">
-                            Voir <ChevronRight className="w-2.5 h-2.5 text-brand-orange-dark animate-pulse" />
-                          </span>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            );
-          })()}
-          </>
+                {/* Direct boutique button */}
+                <button
+                  type="button"
+                  onClick={onGoToBoutique}
+                  className="px-5 py-2.5 bg-stone-950 hover:bg-stone-900 text-white rounded-2xl text-xs font-heading font-extrabold uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg border border-amber-400/40 cursor-pointer active:scale-95"
+                >
+                  <Store className="w-4 h-4 text-amber-400" />
+                  <span>Aller à la Boutique</span>
+                  <ChevronRight className="w-4 h-4 text-white" />
+                </button>
+              </div>
+            </div>
+
+            {/* HORIZONTAL SCROLLABLE ROW OF RECOMMENDED MODELS (CLEAN & DIRECT) */}
+            <div 
+              ref={horizontalScrollRef}
+              className="flex flex-row overflow-x-auto gap-5 pb-6 pt-1 snap-x snap-mandatory scroll-smooth"
+              style={{ scrollbarWidth: "thin" }}
+            >
+              {(result.recommendedModels && result.recommendedModels.length > 0
+                ? result.recommendedModels
+                : [
+                    {
+                      productId: "hm-1",
+                      productName: "Boubou Royal d'Or",
+                      matchScore: 98
+                    },
+                    {
+                      productId: "hm-2",
+                      productName: "Kaftan Bleu Nuit Brodé",
+                      matchScore: 96
+                    },
+                    {
+                      productId: "hm-6",
+                      productName: "Kaftan Impérial Brodé",
+                      matchScore: 94
+                    }
+                  ]
+              ).map((m, idx) => {
+                const matchedProduct = products.find(p => p.id === m.productId || p.name.toLowerCase().includes(m.productName.toLowerCase())) || products[idx % products.length];
+
+                return (
+                  <RecommendedModelCard
+                    key={m.productId || idx}
+                    m={m}
+                    product={matchedProduct}
+                    idx={idx}
+                    onOrderWithMeasurements={(prod) => {
+                      setSelectedProduct(prod);
+                    }}
+                    onAddToCart={(prod) => {
+                      addToCart(prod);
+                      showToast(`${prod.name} a été ajouté à votre panier !`);
+                    }}
+                  />
+                );
+              })}
+            </div>
+
+            {/* Bottom Actions: Clear Boutique Button & Retake Option */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <button
+                type="button"
+                onClick={onGoToBoutique}
+                className="flex-1 py-4 bg-stone-950 hover:bg-stone-900 text-white rounded-2xl font-heading font-extrabold text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-3 shadow-2xl border border-amber-400/30 cursor-pointer active:scale-98"
+              >
+                <Store className="w-5 h-5 text-amber-400" />
+                <span>Aller à la Boutique</span>
+                <ChevronRight className="w-4 h-4 text-amber-400" />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleReset}
+                className="py-4 px-6 bg-white/90 hover:bg-white text-stone-850 border border-stone-200 rounded-2xl font-heading font-extrabold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-98"
+              >
+                <RotateCw className="w-4 h-4 text-brand-orange-dark" />
+                <span>Changer de photo</span>
+              </button>
+            </div>
+          </div>
         )}
 
-        {/* State 3: Workflow Inputs & Snapper */}
-        {!loading && !result && !showIntro && (
+        {/* Direct Photo Capture / Selection Screen (No intermediate intro screen) */}
+        {!loading && !result && (
           <div className="bg-[#FFEAD8]/95 backdrop-blur-xl border border-stone-200/50 rounded-3xl p-6 sm:p-8 relative shadow-2xl">
             <div className="text-center max-w-xl mx-auto mb-8">
               <span className="text-[10px] font-heading font-bold uppercase tracking-[0.25em] text-brand-orange-dark bg-brand-orange-dark/5 border border-brand-orange-dark/15 px-3 py-1 rounded-full">
                 Exclusivité Habé
               </span>
               <h2 className="font-heading font-bold text-3xl text-stone-950 tracking-tight uppercase mt-4">
-                Mesure IA
+                Modèle Habé Textile
               </h2>
               <p className="text-xs font-body text-stone-600 mt-2 leading-relaxed">
-                Prenez une photo de vous de face et en entier pour obtenir instantanément vos mesures exactes de couture grâce à notre intelligence artificielle. C'est 100% gratuit.
+                Mettez votre photo : notre atelier analyse votre silhouette pour vous proposer directement les modèles qui vous correspondent sans défaut.
               </p>
             </div>
 
@@ -1045,13 +586,13 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
               <div className="space-y-6">
                 <div>
                   <h3 className="text-xs font-heading font-extrabold uppercase tracking-widest text-stone-900 mb-3 flex items-center gap-2">
-                    <Sliders className="w-4 h-4 text-stone-750" /> 1. CHOIX DU PROFIL COUTURE
+                    <Sliders className="w-4 h-4 text-stone-750" /> 1. Choix du Profil Couture
                   </h3>
                   
                   {/* Gender selection */}
                   <div className="space-y-2 mb-4">
                     <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-600">
-                      1. Sélectionner le Profil
+                      Sélectionner le Profil
                     </label>
                     <div className="grid grid-cols-2 gap-2">
                       {[
@@ -1065,7 +606,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                             setGender(g.id);
                             setHeight(g.id === "homme" ? "175" : "125");
                           }}
-                          className={`py-2.5 rounded-xl text-xs font-heading font-bold tracking-wide uppercase transition-all ${
+                          className={`py-2.5 rounded-xl text-xs font-heading font-bold tracking-wide uppercase transition-all cursor-pointer ${
                             gender === g.id 
                               ? "bg-brand-orange-dark border-brand-orange-light/35 text-white shadow-md shadow-brand-orange-dark/15" 
                               : "bg-stone-100 hover:bg-stone-200/80 border border-stone-200 text-stone-600 hover:text-stone-800"
@@ -1081,7 +622,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                   {gender === "homme" && (
                     <div className="space-y-2 mb-4">
                       <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-600">
-                        2. Type de Corpulence
+                        Type de Corpulence
                       </label>
                       <div className="grid grid-cols-2 gap-2">
                         {Object.entries(MEN_PROFILES).map(([key, p]) => (
@@ -1089,7 +630,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                             key={key}
                             type="button"
                             onClick={() => setProfileKey(key)}
-                            className={`py-2 px-1 rounded-xl text-[9px] font-heading font-bold tracking-tight uppercase transition-all flex flex-col items-center justify-center min-h-[50px] ${
+                            className={`py-2 px-1 rounded-xl text-[9px] font-heading font-bold tracking-tight uppercase transition-all flex flex-col items-center justify-center min-h-[50px] cursor-pointer ${
                               profileKey === key 
                                 ? "bg-amber-100 border-amber-300 text-amber-900 shadow-sm" 
                                 : "bg-stone-50 border border-stone-200 text-stone-500 hover:bg-white"
@@ -1105,19 +646,13 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
 
                 <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 text-[10px] text-stone-850 leading-relaxed space-y-2 font-medium">
                   <div className="flex items-center gap-1.5 text-amber-700 font-extrabold uppercase tracking-wider">
-                    <motion.div
-                      animate={{ scale: [1, 1.25, 1], rotate: [0, 10, -10, 0] }}
-                      transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
-                      className="inline-block"
-                    >
-                      <Sparkles className="w-4 h-4 text-amber-600" />
-                    </motion.div>
+                    <Sparkles className="w-4 h-4 text-amber-600" />
                     <span>Recommandations de l'Atelier :</span>
                   </div>
                   <ul className="list-disc pl-4 space-y-1 text-stone-600">
                     <li>Tenez-vous bien droit(e), face à l'appareil de préférence.</li>
-                    <li>Portez des vêtements ajustés pour des mesures plus précises.</li>
-                    <li>L'IA déterminera automatiquement votre hauteur et toutes vos mensurations clés à partir du cliché.</li>
+                    <li>Un cliché net permet d'identifier votre silhouette sans délai.</li>
+                    <li>Les modèles les plus seyants vous seront directement présentés.</li>
                   </ul>
                 </div>
               </div>
@@ -1125,7 +660,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
               {/* Right Column: Direct Photo Frame */}
               <div className="space-y-4">
                 <h3 className="text-xs font-heading font-extrabold uppercase tracking-widest text-stone-900 mb-3 flex items-center gap-2">
-                  <Camera className="w-3.5 h-3.5 text-stone-750" /> 3. Photo complète du corps
+                  <Camera className="w-3.5 h-3.5 text-stone-750" /> 2. Votre Photo
                 </h3>
 
                 {/* Frame Stage */}
@@ -1149,7 +684,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                   {imageSrc && (
                     <img
                       src={imageSrc}
-                      alt="Aperçu de la photo complète du corps"
+                      alt="Aperçu de la photo"
                       className="w-full h-full object-cover"
                     />
                   )}
@@ -1165,15 +700,15 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                         <Camera className="w-8 h-8" />
                       </motion.div>
                       <p className="text-sm font-heading font-bold text-stone-900 uppercase tracking-wider mb-2">
-                        Capturer ma Silhouette
+                        Mettre ma Photo
                       </p>
                       <p className="text-[10px] text-stone-500 leading-relaxed font-medium">
-                        Cliquez pour ouvrir l'appareil photo ou importer une photo de face.
+                        Cliquez ici pour prendre une photo ou sélectionner une image de vous.
                       </p>
                     </div>
                   )}
 
-                  {/* Top-Right action button to reset and choose another one */}
+                  {/* Action button to reset and choose another one */}
                   {imageSrc && (
                     <button
                       type="button"
@@ -1181,7 +716,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                         e.stopPropagation();
                         handleReset();
                       }}
-                      className="absolute bottom-4 right-4 z-20 w-8 h-8 rounded-full bg-stone-900/90 hover:bg-stone-900 text-brand-orange-light flex items-center justify-center border border-stone-800 transition-colors"
+                      className="absolute bottom-4 right-4 z-20 w-8 h-8 rounded-full bg-stone-900/90 hover:bg-stone-900 text-brand-orange-light flex items-center justify-center border border-stone-800 transition-colors cursor-pointer"
                       title="Effacer et reprendre"
                     >
                       <RotateCw className="w-4 h-4" />
@@ -1189,224 +724,27 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                   )}
                 </div>
 
-                {/* Photo Tips Toggle */}
-                <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl">
-                  <div className="w-full flex items-center justify-between text-[10px] font-heading font-extrabold uppercase tracking-wider text-amber-700">
-                    <span className="flex items-center gap-2">
-                      <Info className="w-3.5 h-3.5" />
-                      Conseils pour une mesure précise
-                    </span>
-                  </div>
-                  <p className="text-[9px] text-stone-600 mt-2 leading-relaxed font-medium">
-                    L'IA de Habé analyse les pixels pour déduire les centimètres. Un fond uni, des vêtements ajustés et une lumière de face garantissent une précision chirurgicale.
-                  </p>
-                </div>
+                {/* File selection element */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
 
-                {/* Controls below Frame */}
-                <div className="flex gap-3">
-                  {/* File selection element */}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={triggerFileSelector}
-                    className="w-full py-3.5 bg-brand-orange-dark hover:bg-brand-orange-dark/95 text-white rounded-xl text-xs font-heading font-extrabold uppercase tracking-widest border border-brand-orange-light/20 shadow-lg shadow-brand-orange-dark/15 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-                  >
-                    <Camera className="w-4 h-4" />
-                    Prendre une photo / Galerie
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={triggerFileSelector}
+                  className="w-full py-3.5 bg-brand-orange-dark hover:bg-brand-orange-dark/95 text-white rounded-xl text-xs font-heading font-extrabold uppercase tracking-widest border border-brand-orange-light/20 shadow-lg shadow-brand-orange-dark/15 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Camera className="w-4 h-4" />
+                  Prendre une photo / Choisir une image
+                </button>
               </div>
             </div>
           </div>
         )}
-
-        {/* Passport Modal */}
-        <AnimatePresence>
-          {showPassportModal && adjustedResult && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-              {/* Backdrop */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setShowPassportModal(false)}
-                className="absolute inset-0 bg-stone-950/60 backdrop-blur-xs"
-              />
-
-              {/* Passport Ticket */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="relative bg-[#FCFBF9] text-stone-900 w-full max-w-lg rounded-3xl border border-stone-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] z-10"
-              >
-                {/* Vintage Boarding Pass Notch Header */}
-                <div className="bg-[#C1541A] text-white p-5 text-center relative shrink-0">
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-8 bg-stone-950/60 rounded-r-full" />
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-8 bg-stone-950/60 rounded-l-full" />
-                  <div className="bg-white/90 p-3 rounded-2xl mx-auto inline-flex items-center justify-center shadow-lg mb-2">
-                    <img 
-                      src={brandLogo.logo || brandLogo.logoIcon} 
-                      alt="Habé Logo" 
-                      className="h-14 w-auto max-w-[200px] object-contain"
-                    />
-                  </div>
-                  <h3 className="font-heading font-bold text-xs uppercase tracking-[0.3em] mt-2 text-amber-200">
-                    Passeport de Couture Numérique
-                  </h3>
-                </div>
-
-                <div className="p-6 overflow-y-auto space-y-6 flex-1">
-                  {/* User Profile Info */}
-                  <div className="flex justify-between border-b border-dashed border-stone-200 pb-4 text-xs font-body">
-                    <div>
-                      <span className="text-stone-400 font-bold uppercase tracking-wider block text-[9px]">Titulaire</span>
-                      <span className="font-heading font-extrabold text-stone-800 text-sm mt-0.5 block">
-                        {user?.user_metadata?.full_name || user?.email || "Couturier Invité"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-stone-400 font-bold uppercase tracking-wider block text-[9px]">Couture Profil</span>
-                      <span className="font-heading font-extrabold text-stone-800 text-sm mt-0.5 block">
-                        {gender === "homme" ? "Homme" : "Enfant"} • {height} cm
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-stone-400 font-bold uppercase tracking-wider block text-[9px]">Délivré le</span>
-                      <span className="font-heading font-extrabold text-stone-800 text-sm mt-0.5 block">
-                        {new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" })}
-                      </span>
-                    </div>
-                  </div>
-
-                   {/* Big Measurements List */}
-                   <div className="space-y-2">
-                     <span className="text-stone-400 font-bold uppercase tracking-wider block text-[9px]">Mensurations Officielles</span>
-                     <div className="grid grid-cols-2 gap-2 text-xs">
-                       {[
-                         { label: "Épaule", value: adjustedResult.epaule },
-                         { label: "Tour de Cou", value: adjustedResult.cou },
-                         { label: "Tour de Poitrine", value: adjustedResult.poitrine },
-                         { label: "Ceinture (Fesse)", value: adjustedResult.ceinture },
-                         { label: "Tour de Fesse", value: adjustedResult.fesse },
-                         { label: "Longueur Manche", value: adjustedResult.manche }
-                       ].map((m, i) => (
-                         <div key={i} className="flex justify-between items-center bg-stone-50 border border-stone-100 p-2.5 rounded-xl font-body">
-                           <span className="text-stone-500 font-medium">{m.label}</span>
-                           <span className="font-heading font-extrabold text-stone-900">{m.value} cm</span>
-                         </div>
-                       ))}
-                     </div>
-                   </div>
-
-                  {/* Recommendations */}
-                  <div className="space-y-2">
-                    <span className="text-stone-400 font-bold uppercase tracking-wider block text-[9px]">Recommandations de Tailles</span>
-                    {(() => {
-                      const recs = getRecommendations(gender, adjustedResult);
-                      return (
-                        <div className="bg-amber-500/5 border border-amber-500/10 p-3.5 rounded-2xl flex justify-between items-center text-xs">
-                          <div className="space-y-0.5">
-                            <span className="text-brand-orange-dark font-extrabold text-[10px] uppercase tracking-wider">Morphologie</span>
-                            <span className="font-heading font-extrabold text-stone-800 block text-xs">{recs.shape}</span>
-                          </div>
-                          <div className="flex gap-3 text-right">
-                            <div>
-                              <span className="text-stone-400 text-[9px] uppercase font-bold block">Chemise</span>
-                              <span className="font-heading font-extrabold text-stone-800">{recs.shirtSize}</span>
-                            </div>
-                            <div>
-                              <span className="text-stone-400 text-[9px] uppercase font-bold block">Veste</span>
-                              <span className="font-heading font-extrabold text-stone-800">T{recs.blazerSize}</span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-
-                  {/* Barcode / QR Section */}
-                  <div className="border-t border-stone-200 pt-5 flex flex-col items-center justify-center shrink-0">
-                    <div className="font-mono text-[10px] text-stone-400 tracking-[0.25em] uppercase mb-1.5">
-                      MAISON HABE Bespoke ID
-                    </div>
-                    <div className="h-10 w-full max-w-[280px] flex items-center justify-between opacity-80 gap-[2px]">
-                      {/* Generates a nice retro abstract barcode using SVG bars */}
-                      {Array.from({ length: 42 }).map((_, idx) => {
-                        const heights = ["h-6", "h-8", "h-10", "h-7"];
-                        const widths = ["w-[1px]", "w-[2px]", "w-[3px]"];
-                        const randomHeight = heights[(idx * 3 + 1) % heights.length];
-                        const randomWidth = widths[(idx * 7 + 2) % widths.length];
-                        return (
-                          <div key={idx} className={`${randomWidth} ${randomHeight} bg-stone-900 rounded-xs`} />
-                        );
-                      })}
-                    </div>
-                    <div className="font-mono text-[9px] text-stone-500 mt-1">
-                      *MH-B-{height}-{gender.toUpperCase()}-{adjustedResult.poitrine}*
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer Controls */}
-                <div className="bg-stone-50 p-4 border-t border-stone-200/80 flex flex-col sm:flex-row gap-2.5 shrink-0">
-                  <button
-                     onClick={() => {
-                       if (!adjustedResult) return;
-                       const text = `PASSEPORT DE COUTURE NUMÉRIQUE - HABÉ\n\n` +
-                         `Titulaire : ${user?.user_metadata?.full_name || user?.email || "Couturier Invité"}\n` +
-                         `Genre : ${gender === "homme" ? "Homme" : "Enfant"}\n` +
-                         `Hauteur : ${height} cm\n\n` +
-                         `MESURATIONS :\n` +
-                         `- Épaule : ${adjustedResult.epaule} cm\n` +
-                         `- Tour de Cou : ${adjustedResult.cou} cm\n` +
-                         `- Longueur de Manche : ${adjustedResult.manche} cm\n` +
-                         `- Tour de Manche : ${adjustedResult.tour_manche} cm\n` +
-                         `- Longueur de Boubou : ${adjustedResult.longueur_boubou} cm\n` +
-                         `- Longueur de Pantalon : ${adjustedResult.longueur_pantalon} cm\n` +
-                         `- Tour de Fesse : ${adjustedResult.fesse} cm\n` +
-                         `- Tour de Poitrine : ${adjustedResult.poitrine} cm\n` +
-                         `- Tour de Cuisse : ${adjustedResult.cuisse} cm\n` +
-                         `- Ceinture (Fesse) : ${adjustedResult.ceinture} cm\n\n` +
-                         `Recommandations de tailles d'Atelier : Veste T${getRecommendations(gender, adjustedResult).blazerSize}, Chemise ${getRecommendations(gender, adjustedResult).shirtSize}\n` +
-                         `Délivré numériquement sur Habé IA`;
-
-                       navigator.clipboard.writeText(text);
-                       setCopySuccess(true);
-                       setTimeout(() => setCopySuccess(false), 2500);
-                     }}
-                    className="flex-1 py-3 bg-white hover:bg-stone-100 active:scale-95 text-stone-700 border border-stone-300 rounded-xl font-heading font-extrabold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
-                  >
-                    <Clipboard className="w-3.5 h-3.5 text-brand-orange-dark" />
-                    {copySuccess ? "Copié !" : "Copier les mesures"}
-                  </button>
-
-                  <button
-                    onClick={() => window.print()}
-                    className="flex-1 py-3 bg-brand-orange-dark hover:bg-brand-orange-dark/95 active:scale-95 text-white rounded-xl font-heading font-extrabold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md shadow-brand-orange-dark/15 border border-brand-orange-light/20 cursor-pointer"
-                  >
-                    <Printer className="w-3.5 h-3.5" />
-                    Imprimer / PDF
-                  </button>
-
-                  <button
-                    onClick={() => setShowPassportModal(false)}
-                    className="py-3 px-4 bg-stone-200 hover:bg-stone-300 active:scale-95 text-stone-600 rounded-xl font-heading font-extrabold text-[10px] uppercase tracking-wider transition-all cursor-pointer"
-                  >
-                    Fermer
-                  </button>
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );
