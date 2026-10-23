@@ -23,21 +23,18 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, isTransparen
         role="button"
         tabIndex={0}
       >
-        <div className="h-full flex items-center justify-center">
-          {/* Logo with a small outline background for visibility */}
-          <div className="h-10 sm:h-12 px-2.5 py-1 bg-white rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.06)] flex items-center justify-center">
-            <img 
-              src={brandLogo.logoWide || brandLogo.logo || "/logo.png"} 
-              alt="Habé" 
-              className="h-full w-auto max-w-[105px] sm:max-w-[130px] object-contain transition-opacity duration-300"
-              onError={(e) => {
-                const img = e.target as HTMLImageElement;
-                if (!img.src.includes('logo-icon')) {
-                  img.src = "/logo-icon.png";
-                }
-              }}
-            />
-          </div>
+        <div className="h-full flex items-center py-1">
+          <img 
+            src={brandLogo.logo || "/logo.png"} 
+            alt="Habé Textile" 
+            className="h-10 sm:h-12 w-auto max-w-[140px] sm:max-w-[180px] object-contain transition-transform duration-300 group-hover:scale-[1.03]"
+            onError={(e) => {
+              const img = e.target as HTMLImageElement;
+              if (!img.src.includes('logo.png')) {
+                img.src = "/logo.png";
+              }
+            }}
+          />
         </div>
       </div>
 
@@ -57,23 +54,35 @@ const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, isTransparen
               <span className="text-[11px] font-body font-bold hidden sm:inline-block max-w-[100px] truncate text-brand-black uppercase tracking-wider">
                 {user.user_metadata?.full_name?.split(' ')[0] || 'Compte'}
               </span>
-              {user.email?.toLowerCase() === 'prodioumar910@gmail.com' ? (
-                <div className="w-10 h-10 rounded-full overflow-hidden border border-brand-orange-dark/60 bg-stone-950 p-0.5 shadow-sm flex items-center justify-center">
-                  <img 
-                    src={brandLogo.logoIcon} 
-                    alt="Admin Avatar" 
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-              ) : (
-                <div className="w-8 h-8 bg-brand-orange-dark text-white rounded-full flex items-center justify-center text-[11px] font-heading font-bold uppercase shadow-sm">
-                  {(user.user_metadata?.full_name?.[0] || user.email?.[0] || 'U')}
-                </div>
-              )}
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border border-brand-orange-dark/50 bg-stone-950 p-0.5 shadow-sm flex items-center justify-center">
+                <img 
+                  src={user.user_metadata?.avatar_url || brandLogo.logoIcon || "/logo-icon.png"} 
+                  alt="Avatar Habé" 
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    const img = e.target as HTMLImageElement;
+                    if (!img.src.includes('logo-icon.png')) {
+                      img.src = "/logo-icon.png";
+                    }
+                  }}
+                />
+              </div>
             </div>
           ) : (
-            <div className="p-2 rounded-full transition-colors hover:bg-black/5 text-brand-black">
-              <UserIcon className="w-6 h-6" />
+            <div className="flex items-center gap-2 p-1 rounded-full transition-colors hover:bg-black/5 text-brand-black">
+              <div className="w-8 h-8 rounded-full overflow-hidden border border-brand-orange-dark/40 bg-stone-950/90 p-0.5 shadow-xs flex items-center justify-center">
+                <img 
+                  src={brandLogo.logoIcon || "/logo-icon.png"} 
+                  alt="Habé" 
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    const img = e.target as HTMLImageElement;
+                    if (!img.src.includes('logo-icon.png')) {
+                      img.src = "/logo-icon.png";
+                    }
+                  }}
+                />
+              </div>
             </div>
           )}
         </button>

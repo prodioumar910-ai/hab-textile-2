@@ -60,12 +60,18 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
               ease: [0.22, 1, 0.36, 1],
               delay: 0.1
             }}
-            className="relative flex items-center justify-center overflow-visible w-28 sm:w-36 h-20 sm:h-24"
+            className="relative flex items-center justify-center overflow-visible w-40 sm:w-52 h-24 sm:h-32"
           >
             <motion.img
-              src={logo}
+              src={logo || "/logo.png"}
               alt="Habé Textile"
               className="w-full h-full object-contain drop-shadow-sm"
+              onError={(e: any) => {
+                const img = e.target as HTMLImageElement;
+                if (!img.src.includes('logo.png')) {
+                  img.src = "/logo.png";
+                }
+              }}
             />
           </motion.div>
         </motion.div>

@@ -13,9 +13,15 @@ const Footer: React.FC = () => {
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
             <img 
-              src={logoWideWhite} 
+              src={logoWideWhite || "/logo-white.png"} 
               alt="Habé Textile" 
-              className="h-12 sm:h-14 w-auto max-w-[280px] sm:max-w-[340px] object-contain drop-shadow-md"
+              className="h-12 sm:h-16 w-auto max-w-[180px] sm:max-w-[220px] object-contain drop-shadow-md"
+              onError={(e) => {
+                const img = e.target as HTMLImageElement;
+                if (!img.src.includes('logo-white.png')) {
+                  img.src = "/logo-white.png";
+                }
+              }}
             />
           </div>
           <p className="text-xs text-white/50 leading-relaxed max-w-xs font-body">

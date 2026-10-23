@@ -345,8 +345,18 @@ const Admin: React.FC<AdminProps> = ({ onClose }) => {
                 <ArrowLeft className="w-5 h-5" />
               </button>
             )}
-            <div className="h-40 sm:h-52 px-8 py-3 bg-white rounded-[2rem] shadow-[0_0_0_1px_rgba(0,0,0,0.05),0_10px_25px_rgba(0,0,0,0.1)] flex items-center justify-center text-white shrink-0 overflow-hidden border-2 border-brand-orange-dark/10 group transition-all hover:scale-[1.02]">
-              <img src={brandLogo.logoWide || brandLogo.logoIcon} alt="Habé Logo" className="h-full w-auto max-w-[400px] sm:max-w-[600px] object-contain" />
+            <div className="h-14 sm:h-16 px-4 py-1.5 bg-white rounded-xl shadow-xs flex items-center justify-center shrink-0 border border-stone-200">
+              <img 
+                src={brandLogo.logo || "/logo.png"} 
+                alt="Habé Textile" 
+                className="h-10 sm:h-12 w-auto max-w-[130px] sm:max-w-[160px] object-contain" 
+                onError={(e) => {
+                  const img = e.target as HTMLImageElement;
+                  if (!img.src.includes('logo.png')) {
+                    img.src = "/logo.png";
+                  }
+                }}
+              />
             </div>
             <div>
               <h1 className="font-heading font-extrabold text-xl tracking-tight text-brand-black">Dashboard Admin</h1>

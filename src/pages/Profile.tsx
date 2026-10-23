@@ -48,12 +48,15 @@ const Profile: React.FC<ProfileProps> = ({ onOpenAdmin, onOpenMeasure }) => {
       >
         <div className="w-24 h-24 rounded-full border-4 border-white/60 overflow-hidden mb-4 shadow-xl bg-stone-950 p-2 flex items-center justify-center">
           <img
-            src={user.email?.toLowerCase() === 'prodioumar910@gmail.com'
-              ? brandLogo.logoIcon
-              : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop"
-            }
-            alt="Avatar"
+            src={user.user_metadata?.avatar_url || brandLogo.logoIcon || "/logo-icon.png"}
+            alt="Avatar Habé"
             className="w-full h-full object-contain"
+            onError={(e) => {
+              const img = e.target as HTMLImageElement;
+              if (!img.src.includes('logo-icon.png')) {
+                img.src = "/logo-icon.png";
+              }
+            }}
           />
         </div>
         <h2 className="font-heading font-bold text-xl text-brand-black">

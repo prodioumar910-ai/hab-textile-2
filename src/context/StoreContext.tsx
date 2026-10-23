@@ -54,7 +54,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const syncGlobalSettings = async () => {
       try {
         const globalLogoUrl = await api.settings.getLogo();
-        if (globalLogoUrl && globalLogoUrl.trim().length > 5) {
+        if (globalLogoUrl && globalLogoUrl.trim().length > 5 && !globalLogoUrl.includes('googleusercontent.com') && !globalLogoUrl.includes('176SP') && !globalLogoUrl.includes('habe-textile') && !globalLogoUrl.startsWith('data:image')) {
           const localLogoUrl = localStorage.getItem('habe_custom_logo_url');
           if (globalLogoUrl !== localLogoUrl) {
             localStorage.setItem('habe_custom_logo_url', globalLogoUrl);
@@ -62,7 +62,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             window.dispatchEvent(new CustomEvent('habe_logo_updated', { detail: globalLogoUrl }));
           }
         } else {
-          // If server setting is empty, remove stale legacy custom logo
+          // If server setting is empty or broken, remove stale legacy custom logo
           if (localStorage.getItem('habe_custom_logo_url')) {
             localStorage.removeItem('habe_custom_logo_url');
             window.dispatchEvent(new Event('storage'));
@@ -280,7 +280,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     // Sync logo from backend Neon PostgreSQL database so all devices and sessions stay in sync
     api.settings.getLogo().then((serverLogo) => {
-      if (serverLogo && serverLogo.trim().length > 5) {
+      if (serverLogo && serverLogo.trim().length > 5 && !serverLogo.includes('googleusercontent.com') && !serverLogo.includes('176SP') && !serverLogo.includes('habe-textile') && !serverLogo.startsWith('data:image')) {
         const currentLocal = localStorage.getItem('habe_custom_logo_url');
         if (currentLocal !== serverLogo.trim()) {
           localStorage.setItem('habe_custom_logo_url', serverLogo.trim());

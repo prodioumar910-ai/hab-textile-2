@@ -387,14 +387,18 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
           Retour
         </button>
 
-        <div className="flex items-center gap-2">
-          <div className="bg-white/20 backdrop-blur-xl border border-white/30 p-2.5 rounded-2xl flex items-center justify-center overflow-hidden shadow-xl">
-            <img 
-              src={brandLogo.isCustom ? (brandLogo.logoWideWhite || brandLogo.logoIcon) : brandLogo.logoIcon} 
-              alt="Habé" 
-              className="h-12 sm:h-16 w-auto max-w-[180px] sm:max-w-[240px] object-contain drop-shadow-md"
-            />
-          </div>
+        <div className="flex items-center">
+          <img 
+            src={brandLogo.logoWhite || "/logo-white.png"} 
+            alt="Habé Textile" 
+            className="h-9 sm:h-11 w-auto max-w-[140px] sm:max-w-[180px] object-contain drop-shadow-md"
+            onError={(e) => {
+              const img = e.target as HTMLImageElement;
+              if (!img.src.includes('logo-white.png')) {
+                img.src = "/logo-white.png";
+              }
+            }}
+          />
         </div>
 
         {/* Quick Boutique link */}

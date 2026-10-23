@@ -302,19 +302,25 @@ async function startServer() {
   app.get("/api/settings/logo", async (req, res) => {
     try {
       const logoUrl = await getSetting("habe_custom_logo_url");
-      res.json({ logoUrl: logoUrl || "" });
+      if (!logoUrl || logoUrl.includes("googleusercontent.com") || logoUrl.includes("176SP") || logoUrl.startsWith("data:image")) {
+        return res.json({ logoUrl: "/logo.png" });
+      }
+      res.json({ logoUrl });
     } catch (err: any) {
       console.error("Error in GET /api/settings/logo:", err);
-      res.json({ logoUrl: "" });
+      res.json({ logoUrl: "/logo.png" });
     }
   });
 
   app.post("/api/settings/logo", async (req, res) => {
     try {
       const { logoUrl } = req.body;
-      const cleanUrl = typeof logoUrl === 'string' ? logoUrl.trim() : "";
+      let cleanUrl = typeof logoUrl === 'string' ? logoUrl.trim() : "";
+      if (!cleanUrl || cleanUrl.includes("googleusercontent.com") || cleanUrl.includes("176SP")) {
+        cleanUrl = "/logo.png";
+      }
       await setSetting("habe_custom_logo_url", cleanUrl);
-      console.log(`[Site Settings] Saved custom logo (${cleanUrl ? cleanUrl.substring(0, 40) + '...' : 'cleared'})`);
+      console.log(`[Site Settings] Saved logo (${cleanUrl})`);
       res.json({ success: true, logoUrl: cleanUrl });
     } catch (err: any) {
       console.error("Error in POST /api/settings/logo:", err);

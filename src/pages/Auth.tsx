@@ -11,7 +11,7 @@ interface AuthProps {
 }
 
 const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
-  const { logoIcon, logoWide, isCustom } = useBrandLogo();
+  const { logo, logoIcon, logoWide, isCustom } = useBrandLogo();
   const [isLogin, setIsLogin] = useState(true); // Default to sign in first for best user flow
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -194,25 +194,25 @@ const Auth: React.FC<AuthProps> = ({ showSkip = false, onSkip }) => {
         className="w-full max-w-md bg-white/95 backdrop-blur-xl border border-white/50 p-8 rounded-3xl shadow-[0_24px_50px_rgba(0,0,0,0.15)]"
       >
         {/* Logo and Greeting Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <motion.div 
-            initial={{ scale: 0.9 }}
+            initial={{ scale: 0.95 }}
             animate={{ scale: 1 }}
-            className="inline-block mb-3"
+            className="flex items-center justify-center mb-2"
           >
-            <div className={`h-24 sm:h-32 rounded-3xl bg-amber-50/90 border border-brand-orange-dark/20 p-4 mx-auto flex items-center justify-center shadow-lg overflow-hidden ${isCustom ? 'w-auto px-8' : 'w-24 sm:w-32'}`}>
-              <img 
-                src={isCustom ? (logoWide || logoIcon) : logoIcon} 
-                alt="Habé" 
-                className="h-full w-auto object-contain drop-shadow-sm"
-              />
-            </div>
+            <img 
+              src={logo || "/logo.png"} 
+              alt="Habé Textile" 
+              className="h-16 sm:h-20 w-auto max-w-[180px] sm:max-w-[220px] object-contain drop-shadow-sm"
+              onError={(e) => {
+                const img = e.target as HTMLImageElement;
+                if (!img.src.includes('logo.png')) {
+                  img.src = "/logo.png";
+                }
+              }}
+            />
           </motion.div>
-          
-          <h2 className="font-heading font-extrabold text-2xl text-brand-black tracking-tight mt-1 uppercase">
-            Habé
-          </h2>
-          <p className="text-xs font-body text-brand-black/60 mt-1 uppercase tracking-widest">
+          <p className="text-xs font-body text-brand-black/60 uppercase tracking-widest font-medium">
             Haute Couture &amp; Tradition
           </p>
         </div>

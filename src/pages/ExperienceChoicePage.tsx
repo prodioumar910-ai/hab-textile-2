@@ -45,30 +45,26 @@ export const ExperienceChoicePage: React.FC<ExperienceChoicePageProps> = ({
       <div className="absolute bottom-[20%] right-[10%] w-[35vw] h-[35vw] rounded-full bg-orange-600/5 blur-[100px] pointer-events-none" />
 
       {/* Brand Header */}
-      <div className="text-center mb-12 z-10 relative">
+      {/* Brand Header */}
+      <div className="text-center mb-10 z-10 relative">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6 }}
-          className="inline-block mb-3"
-        >
-          <div className="bg-white/30 backdrop-blur-xl border border-white/40 p-3 sm:p-4 rounded-2xl shadow-xl flex items-center justify-center overflow-hidden">
-            <img
-              src={isCustom ? (logoWhite || logoIcon) : logo}
-              alt="Habé"
-              className="h-14 sm:h-18 w-auto max-w-[130px] sm:max-w-[160px] mx-auto object-contain drop-shadow-md"
-            />
-          </div>
-        </motion.div>
-
-        <motion.h1
-          initial={{ opacity: 0, y: 15 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="font-heading font-extrabold text-3xl sm:text-4xl text-white tracking-widest uppercase mt-2"
+          transition={{ duration: 0.6 }}
+          className="flex items-center justify-center mb-4"
         >
-          Habé
-        </motion.h1>
+          <img
+            src={logoWhite || "/logo-white.png"}
+            alt="Habé Textile"
+            className="h-24 sm:h-32 w-auto max-w-[220px] sm:max-w-[280px] object-contain drop-shadow-xl"
+            onError={(e) => {
+              const img = e.target as HTMLImageElement;
+              if (!img.src.includes('logo-white.png')) {
+                img.src = "/logo-white.png";
+              }
+            }}
+          />
+        </motion.div>
         
         <motion.p
           initial={{ opacity: 0, y: 15 }}
