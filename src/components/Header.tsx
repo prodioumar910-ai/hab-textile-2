@@ -9,25 +9,43 @@ interface HeaderProps {
   setActivePage?: (page: number) => void;
   isTransparent?: boolean;
   onOpenMeasure?: () => void;
+  onOpenChoice?: () => void;
+  onSelectBoutique?: () => void;
+  selectedExperience?: 'choice' | 'boutique' | 'measure';
 }
 
-const Header: React.FC<HeaderProps> = ({ activePage, setActivePage, isTransparent, onOpenMeasure }) => {
+const Header: React.FC<HeaderProps> = ({ 
+  activePage, 
+  setActivePage, 
+  isTransparent, 
+  onOpenMeasure,
+  onOpenChoice,
+  onSelectBoutique,
+  selectedExperience = 'boutique'
+}) => {
   const { cart, user } = useStore();
   const brandLogo = useBrandLogo();
 
   return (
-    <header className="w-full h-20 sm:h-24 bg-transparent flex items-center justify-between px-6 sm:px-12 z-40 relative transition-all duration-300">
+    <header className="w-full h-20 sm:h-24 bg-transparent flex items-center justify-between px-4 sm:px-12 z-40 relative transition-all duration-300">
       <div 
-        onClick={() => setActivePage && setActivePage(0)}
-        className="flex items-center gap-4 cursor-pointer active:scale-95 transition-all group h-full py-4"
+        onClick={() => {
+          if (onOpenChoice) {
+            onOpenChoice();
+          } else if (setActivePage) {
+            setActivePage(0);
+          }
+        }}
+        className="flex items-center gap-4 cursor-pointer active:scale-95 transition-all group h-full py-4 shrink-0"
         role="button"
         tabIndex={0}
+        title="Retour au choix initial"
       >
         <div className="h-full flex items-center py-1">
           <img 
             src={brandLogo.logo || "/logo.png"} 
             alt="Habé Textile" 
-            className="h-10 sm:h-12 w-auto max-w-[140px] sm:max-w-[180px] object-contain transition-transform duration-300 group-hover:scale-[1.03]"
+            className="h-10 sm:h-12 w-auto max-w-[130px] sm:max-w-[180px] object-contain transition-transform duration-300 group-hover:scale-[1.03]"
             onError={(e) => {
               const img = e.target as HTMLImageElement;
               if (!img.src.includes('logo.png')) {

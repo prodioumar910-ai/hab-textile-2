@@ -41,21 +41,32 @@ const Boutique: React.FC = () => {
       exit={{ opacity: 0, x: -20 }}
       className="px-4 pt-4 pb-32"
     >
-      {/* Target Selector */}
-      <div className="flex justify-center gap-4 mb-8">
-        {(['Enfant', 'Homme'] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setActiveTarget(t)}
-            className={`px-6 py-2 rounded-full font-heading font-bold text-sm transition-all shadow-sm border ${
-              activeTarget === t 
-                ? 'bg-brand-orange-dark text-white border-brand-orange-dark' 
-                : 'bg-white text-stone-600 border-stone-200 hover:border-brand-orange-dark/30'
-            }`}
-          >
-            {t}
-          </button>
-        ))}
+      {/* Target Selector: Séparation stricte Homme & Enfant */}
+      <div className="flex justify-center gap-3 mb-8">
+        {[
+          { id: 'Homme' as const, label: 'Collection Homme', icon: '👔' },
+          { id: 'Enfant' as const, label: 'Collection Enfant', icon: '🧒' }
+        ].map((t) => {
+          const isSelected = activeTarget === t.id;
+          const count = products.filter(p => p.target === t.id && (activeCategory ? p.category === activeCategory : true)).length;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setActiveTarget(t.id)}
+              className={`px-5 py-2.5 rounded-full font-heading font-extrabold text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2 border cursor-pointer ${
+                isSelected 
+                  ? 'bg-brand-orange-dark text-white border-brand-orange-dark shadow-brand-orange-dark/25 scale-105' 
+                  : 'bg-white/95 text-stone-700 border-stone-200 hover:border-brand-orange-dark/40 hover:bg-white'
+              }`}
+            >
+              <span>{t.icon}</span>
+              <span>{t.label}</span>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${isSelected ? 'bg-black/25 text-white' : 'bg-stone-100 text-stone-600'}`}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <motion.section 

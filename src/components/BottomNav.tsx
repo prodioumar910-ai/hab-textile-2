@@ -1,11 +1,12 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Home, ShoppingBag, User, Info, Camera } from 'lucide-react';
+import { Home, ShoppingBag, User, Info, Camera, LayoutGrid } from 'lucide-react';
 
 interface BottomNavProps {
   activePage: number;
   setActivePage: (index: number) => void;
   onOpenMeasure?: () => void;
+  onOpenChoice?: () => void;
 }
 
 const BottomNav: React.FC<BottomNavProps> = ({ activePage, setActivePage, onOpenMeasure }) => {

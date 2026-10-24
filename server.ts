@@ -382,7 +382,7 @@ async function startServer() {
   // API endpoints FIRST
   app.post("/api/measure", async (req, res) => {
     try {
-      const { image, gender, height, profile } = req.body;
+      const { image, gender, height, profile, rotationSalt } = req.body;
       if (!image) {
         return res.status(400).json({ error: "L'image est requise." });
       }
@@ -448,33 +448,30 @@ async function startServer() {
 
       const systemInstruction = `Tu es le Directeur Artistique et Maître Tailleur Expert chez Habé, prestigieuse maison de haute-couture africaine (Boubous royaux, Kaftans, Sénateurs).
 
-## MISSION CRUCIALE : RECOMMANDATION DE MODÈLES HABÉ SANS DÉFAUT & MESURES
-Le client t'envoie sa photo. Tu dois observer fidèlement sa silhouette, sa carrure, sa posture et son harmonie corporelle réelle.
+## MISSION CRUCIALE : RECOMMANDATION DE 3 MODÈLES HABÉ DISTINCTS (1 ENSEMBLE ROYAL, 1 TENDANCE, 1 CLASSIQUE)
+Le client t'envoie sa photo. Tu observes fidèlement sa silhouette, sa carrure, sa posture et son harmonie corporelle réelle.
 Tu dois :
-1. Calculer ses mensurations de haute confection uniques et réalistes (interdiction formelle de mesures répétitives d'un cliché à l'autre ; varie les épaules, poitrine, longueurs selon le cliché).
-2. Identifier sa morphologie exacte (ex: "Silhouette Athlétique V-Shape", "Silhouette Élancée Royale", "Silhouette Noble & Puissante").
-3. PROPOSER DIRECTEMENT 3 MODÈLES DU CATALOGUE HABÉ qui lui correspondent parfaitement sans aucun défaut :
-   - Pour Homme, choisis parmi :
-     * "hm-1" : Boubou Royal d'Or (coupe impériale, bazin riche)
-     * "hm-2" : Kaftan Bleu Nuit Brodé (col officier, coupe cintrée)
-     * "hm-3" : Kaftan Blanc Éclat (coton pur, coupe raffinée)
-     * "hm-4" : Boubou Prestige Moutarde (ampleur noble, bazin d'apparat)
-     * "hm-5" : Sénateur Moderne Vert (ligne épurée, chic contemporain)
-     * "hm-6" : Kaftan Impérial Brodé (broderies verticales structurantes)
-     * "hm-7" : Ensemble Signature Noir (élégance sobre et distinguée)
-     * "hm-8" : Boubou Royal Excellence (majestueux pour galas)
-   - Pour Enfant, choisis parmi :
-     * "kd-1" : Ensemble Royal Junior Or
-     * "kd-2" : Kaftan Royal Kid Indigo
-     * "kd-3" : Boubou Impérial Kid
-     * "kd-4" : Sénateur Kid Tissu Vert
-     * "kd-5" : Kaftan Tendance Enfant
-Pour chaque modèle recommandé, explique précisément POURQUOI il correspond à la personne sans aucun défaut (tombé du tissu, mise en valeur de la carrure, fluidité de la silhouette).
+1. Calculer ses mensurations de haute confection uniques et réalistes selon le cliché.
+2. Identifier sa morphologie flatteuse (ex: "Silhouette Athlétique V-Shape", "Silhouette Élancée Royale", "Silhouette Noble & Puissante").
+3. RÈGLE STRICTE OBLIGATOIRE - TU DOIS PROPOSER EXACTEMENT 3 MODÈLES :
+   - PREMIER MODÈLE : Une création de la catégorie "Ensemble Royal" (vêtement d'apparat impérial et majestueux)
+     * Pour Homme, choisis parmi : "hm-1" (Boubou Royal d'Or), "hm-4" (Boubou Prestige Moutarde), "e2" (Habit Impérial Brodé), "e3" (Kaftan Prestige Royal), "e5" (Boubou Souverain Bazin), "e6" (Sénateur Couronne Blanche), "e7" (Boubou Majesté Céleste), "e13" (Grand Boubou Excellence), "e14" (Kaftan Or & Bazin), "e15" (Sénateur Royalissime), "e16" (Ensemble Noblesse Africaine).
+     * Pour Enfant, choisis parmi : "kd-1" (Ensemble Royal Junior Or), "kd-2" (Kaftan Royal Kid Indigo), "kd-3" (Boubou Impérial Kid), "kd-8" (Ensemble Dynastie Kid Wax), "kd-9" (Boubou d'Or Enfant).
+   - DEUXIÈME MODÈLE : Une création de la catégorie "Tendance" (coupe moderne, contemporaine, cintrée ou urbaine chic)
+     * Pour Homme, choisis parmi : "hm-2" (Kaftan Bleu Nuit Brodé), "hm-5" (Sénateur Moderne Vert), "hm-6" (Kaftan Impérial Brodé), "hm-8" (Boubou Royal Excellence), "t-1" (Ensemble Tendance Sahel), "t-2" (Boubou Moderne Indigo), "t-3" (Ensemble Casual Bazin), "t-4" (Sénateur Modernisé), "t-5" (Boubou Style Urbain), "t-6" (Bazin Tendance Slim), "t-9" (Agbada Tendance Moderne).
+     * Pour Enfant, choisis parmi : "kd-4" (Sénateur Kid Tissu Vert), "kd-5" (Kaftan Tendance Enfant), "kd-10" (Tunique Célébration Junior), "kd-11" (Boubou Kid Style Moderne), "t-7" (Tunique Kid Tendance).
+   - TROISIÈME MODÈLE : Une création de la catégorie "Classique" (intemporel, sobre, élégance traditionnelle pure)
+     * Pour Homme, choisis parmi : "hm-3" (Kaftan Blanc Éclat), "hm-7" (Ensemble Signature Noir), "e1" (Boubou Royal Bazin d'Or), "c-1" (Boubou Classique d'Ébène), "c-2" (Sénateur Traditionnel Blanc), "c-3" (Kaftan Élégance Classique), "c-4" (Grand Boubou d'Honneur), "c-5" (Ensemble Sénateur Prestige), "c-14" (Boubou Héritage Africain), "c-15" (L’Empire Classique Blanc), "c-18" (Sénateur Intemporel).
+     * Pour Enfant, choisis parmi : "kd-6" (Boubou Kid Classique Blanc), "kd-7" (Tunique Prince Junior), "c-8" (Ensemble Kid Classique Royal), "c-9" (Kaftan Enfant Noblesse), "c-10" (Boubou Junior Classique), "c-11" (Sénateur Junior Coton).
+
+VARIATION DYNAMIQUE OBLIGATOIRE :
+À chaque cliché envoyé, propose une combinaison NOUVELLE et différente ! Ne propose pas toujours les mêmes modèles d'un essai à l'autre. Explore la diversité du catalogue Habé.
+
+Pour chaque modèle, explique pourquoi sa coupe sublime la personne sans aucun défaut.
 
 ## ACCEPTATION LARGE DES PHOTOS
 Accepte les photos de face, trois-quarts, portraits ou corps entier.
-Si les jambes ne sont pas entièrement visibles, estime le haut du corps et extrapole harmonieusement le bas.
-Rejette l'image UNIQUEMENT si AUCUN être humain n'est présent.
+Rejette l'image UNIQUEMENT si aucun être humain n'est présent.
 
 ## PARAMÈTRES
 - Stature par défaut : ${h} cm
@@ -507,7 +504,7 @@ Rejette l'image UNIQUEMENT si AUCUN être humain n'est présent.
                   }
                 },
                 {
-                  text: `Analyse cette photo de client pour la maison de couture Habé Textile. Recommande directement les 3 meilleurs modèles Habé qui correspondent parfaitement à sa stature (${h} cm, ${gender}) sans aucun défaut.`
+                  text: `Analyse cette photo de client pour la maison de couture Habé Textile. Propose 3 nouveaux modèles différents adaptés à sa stature (${h} cm, ${gender}) : exactement 1 Ensemble Royal, 1 Tendance, et 1 Classique.`
                 }
               ]
             }
@@ -535,12 +532,13 @@ Rejette l'image UNIQUEMENT si AUCUN être humain n'est présent.
                 comment: { type: Type.STRING, description: "Avis du Maître Tailleur Habé" },
                 recommended_models: {
                   type: Type.ARRAY,
-                  description: "Les modèles Habé idéaux pour cette personne",
+                  description: "Exactement 3 modèles : 1 Ensemble Royal, 1 Tendance, 1 Classique",
                   items: {
                     type: Type.OBJECT,
                     properties: {
-                      product_id: { type: Type.STRING, description: "ID du modèle Habé (ex: hm-1, hm-2, hm-6)" },
+                      product_id: { type: Type.STRING, description: "ID du modèle Habé" },
                       product_name: { type: Type.STRING, description: "Nom complet du modèle" },
+                      category: { type: Type.STRING, description: "Catégorie : Ensemble Royal, Tendance, ou Classique" },
                       match_score: { type: Type.INTEGER, description: "Score de 94 à 99" },
                       match_reason: { type: Type.STRING, description: "Pourquoi ce modèle convient" },
                       styling_tips: { type: Type.STRING, description: "Conseil de style" },
@@ -552,7 +550,7 @@ Rejette l'image UNIQUEMENT si AUCUN être humain n'est présent.
               },
               required: ["is_valid_image", "recommended_models"]
             },
-            temperature: 0.2
+            temperature: 0.75
           }
         });
 
@@ -568,14 +566,66 @@ Rejette l'image UNIQUEMENT si AUCUN être humain n'est présent.
       }
 
       if (!responseText) {
-        console.warn("[Habé AI] Modèles distants temporairement occupés. Calcul morphologique et recommandations par signature visuelle.");
+        console.warn("[Habé AI] Modèles distants temporairement occupés. Calcul morphologique et sélection tripartite dynamique (Royal, Tendance, Classique).");
         const isHomme = gender === "homme";
         const baseH = h;
         
+        const salt = Math.abs(imageHash + (Number(rotationSalt) || Date.now()));
         const varNum = (seedOffset: number, min: number, max: number) => {
-          const val = (imageHash * 37 + seedOffset) % 10007;
+          const val = (salt * 37 + seedOffset) % 10007;
           return min + (Math.abs(val) % (max - min + 1));
         };
+
+        const royalPoolHomme = [
+          { id: "hm-1", name: "Boubou Royal d'Or", cut: "Coupe Royale Confort", tips: "Babouches dorées et montre précieuse." },
+          { id: "hm-4", name: "Boubou Prestige Moutarde", cut: "Coupe Impériale Droite", tips: "Gala et célébrations d'envergure." },
+          { id: "e2", name: "Habit Impérial Brodé", cut: "Coupe Prestige Structurée", tips: "Souliers cirés en cuir noble." },
+          { id: "e3", name: "Kaftan Prestige Royal", cut: "Coupe Souveraine Cintrée", tips: "Chéchia traditionnelle assortie." },
+          { id: "e5", name: "Boubou Souverain Bazin", cut: "Coupe Majesté Bazin", tips: "Prières solennelles et réceptions." },
+          { id: "e7", name: "Boubou Majesté Céleste", cut: "Coupe Grand Apparat", tips: "Cérémonies nuptiales et intronisations." },
+          { id: "e13", name: "Grand Boubou Excellence", cut: "Coupe Royale Héritage", tips: "Babouches artisanales en cuir beige." }
+        ];
+
+        const tendancePoolHomme = [
+          { id: "hm-2", name: "Kaftan Bleu Nuit Brodé", cut: "Coupe Cintrée Prestige", tips: "Élégance de jour comme de soirée." },
+          { id: "hm-5", name: "Sénateur Moderne Vert", cut: "Coupe Moderne Ajustée", tips: "Chic contemporain épuré." },
+          { id: "hm-6", name: "Kaftan Impérial Brodé", cut: "Coupe Structurée Tendance", tips: "Tenue d'apparat moderne." },
+          { id: "hm-8", name: "Boubou Royal Excellence", cut: "Coupe Slim Fit Moderne", tips: "Démarche noble et contemporaine." },
+          { id: "t-1", name: "Ensemble Tendance Sahel", cut: "Coupe Épurée Sahel", tips: "Teintes chaudes et sandales fines." },
+          { id: "t-2", name: "Boubou Moderne Indigo", cut: "Coupe Contemporaine Indigo", tips: "Idéal pour réceptions privées." },
+          { id: "t-9", name: "Agbada Tendance Moderne", cut: "Coupe Agbada Stylisée", tips: "Pans délicatement drapés sur l'avant-bras." }
+        ];
+
+        const classiquePoolHomme = [
+          { id: "hm-3", name: "Kaftan Blanc Éclat", cut: "Coupe Droite Raffinée", tips: "Le grand classique indémodable." },
+          { id: "hm-7", name: "Ensemble Signature Noir", cut: "Coupe Signature Habé", tips: "Sobriété et prestance absolue." },
+          { id: "e1", name: "Boubou Royal Bazin d'Or", cut: "Coupe Traditionnelle Riche", tips: "Prière et fêtes traditionnelles." },
+          { id: "c-1", name: "Boubou Classique d'Ébène", cut: "Coupe Ébène Intemporelle", tips: "Chapeau traditionnel et babouches." },
+          { id: "c-2", name: "Sénateur Traditionnel Blanc", cut: "Coupe Classique Sénateur", tips: "Ligne pure en toute saison." },
+          { id: "c-4", name: "Grand Boubou d'Honneur", cut: "Coupe Honneur Grand Bazin", tips: "Tenue d'honneur des notables." },
+          { id: "c-14", name: "Boubou Héritage Africain", cut: "Coupe Héritage Ancestral", tips: "Fierté du patrimoine africain." }
+        ];
+
+        const royalPoolKid = [
+          { id: "kd-1", name: "Ensemble Royal Junior Or", cut: "Coupe Junior Confort", tips: "Baptêmes et fêtes de famille." },
+          { id: "kd-2", name: "Kaftan Royal Kid Indigo", cut: "Coupe Évolutive Habé", tips: "Petites babouches traditionnelles." },
+          { id: "kd-3", name: "Boubou Impérial Kid", cut: "Coupe Traditionnelle Junior", tips: "Célébrations religieuses." },
+          { id: "kd-8", name: "Ensemble Dynastie Kid Wax", cut: "Coupe Dynastie Prince", tips: "Fêtes traditionnelles colorées." }
+        ];
+
+        const tendancePoolKid = [
+          { id: "kd-4", name: "Sénateur Kid Tissu Vert", cut: "Coupe Moderne Junior", tips: "Baskets habillées ou mocassins souples." },
+          { id: "kd-5", name: "Kaftan Tendance Enfant", cut: "Coupe Tendance Enfant", tips: "Confort pour jouer en restant chic." },
+          { id: "kd-10", name: "Tunique Célébration Junior", cut: "Coupe Célébration Kid", tips: "Anniversaires et fêtes scolaires." },
+          { id: "kd-11", name: "Boubou Kid Style Moderne", cut: "Coupe Urbaine Enfant", tips: "Sorties élégantes du week-end." }
+        ];
+
+        const classiquePoolKid = [
+          { id: "kd-6", name: "Boubou Kid Classique Blanc", cut: "Coupe Blanche Pureté", tips: "Prières et fêtes solennelles." },
+          { id: "kd-7", name: "Tunique Prince Junior", cut: "Coupe Traditionnelle Douce", tips: "Mocassins doux en cuir." },
+          { id: "c-8", name: "Ensemble Kid Classique Royal", cut: "Coupe Classique Kid", tips: "Réunions de famille." },
+          { id: "c-10", name: "Boubou Junior Classique", cut: "Coupe Junior Bazin", tips: "Élégance respectueuse pour l'enfant." }
+        ];
 
         let fallbackResults;
         if (isHomme) {
@@ -583,6 +633,10 @@ Rejette l'image UNIQUEMENT si AUCUN être humain n'est présent.
           const baseEpaule = Math.round(baseH * 0.26);
           const finalEpaule = Math.max(43, Math.min(54, baseEpaule + epauleVar));
           const poitrineVal = Math.round(baseH * 0.57) + varNum(808, -5, 5);
+
+          const rItem = royalPoolHomme[Math.abs((salt * 17 + 3) % royalPoolHomme.length)];
+          const tItem = tendancePoolHomme[Math.abs((salt * 37 + 11) % tendancePoolHomme.length)];
+          const cItem = classiquePoolHomme[Math.abs((salt * 53 + 23) % classiquePoolHomme.length)];
 
           fallbackResults = {
             hauteur: baseH,
@@ -600,36 +654,44 @@ Rejette l'image UNIQUEMENT si AUCUN être humain n'est présent.
             morphology_description: `Carrure de ${finalEpaule} cm avec proportions harmonieuses. Les coupes structurées Habé épousent parfaitement votre silhouette sans pli disgracieux.`,
             recommended_models: [
               {
-                product_id: "hm-1",
-                product_name: "Boubou Royal d'Or",
+                product_id: rItem.id,
+                product_name: rItem.name,
+                category: "Ensemble Royal",
                 match_score: 98,
-                match_reason: `La coupe impériale et les broderies d'or structurent majestueusement votre carrure de ${finalEpaule} cm sans aucun défaut de tombé.`,
-                styling_tips: "À porter avec des babouches assorties pour un charisme absolu.",
-                recommended_cut: "Coupe Royale Confort"
+                match_reason: `[Ensemble Royal] La coupe impériale et le tombé noble valorisent majestueusement votre carrure de ${finalEpaule} cm sans aucun pli disgracieux.`,
+                styling_tips: rItem.tips,
+                recommended_cut: rItem.cut
               },
               {
-                product_id: "hm-2",
-                product_name: "Kaftan Bleu Nuit Brodé",
+                product_id: tItem.id,
+                product_name: tItem.name,
+                category: "Tendance",
                 match_score: 96,
-                match_reason: `Le col officier étire la ligne de cou et valorise vos ${poitrineVal} cm de tour de poitrine avec finesse.`,
-                styling_tips: "Élégance sobre et moderne pour vos réceptions privées.",
-                recommended_cut: "Coupe Cintrée Prestige"
+                match_reason: `[Tendance] Ligne contemporaine et cintrée qui dynamise votre silhouette (${poitrineVal} cm de poitrine) avec modernité.`,
+                styling_tips: tItem.tips,
+                recommended_cut: tItem.cut
               },
               {
-                product_id: "hm-6",
-                product_name: "Kaftan Impérial Brodé",
-                match_score: 94,
-                match_reason: "Broderies géométriques d'exception qui allongent le buste et apportent une prestance royale immédiate.",
-                styling_tips: "Idéal pour les cérémonies solennelles.",
-                recommended_cut: "Coupe Impériale Structurée"
+                product_id: cItem.id,
+                product_name: cItem.name,
+                category: "Classique",
+                match_score: 95,
+                match_reason: `[Classique] L'intemporel de la haute tradition Habé : équilibre et sobriété absolue adaptés à votre morphologie.`,
+                styling_tips: cItem.tips,
+                recommended_cut: cItem.cut
               }
             ],
-            comment: `Analyse visuelle personnalisée : carrure de ${finalEpaule} cm. Proportions idéales pour sublimer les modèles Habé recommandés.`,
+            comment: `Analyse visuelle personnalisée : carrure de ${finalEpaule} cm. Voici vos 3 sélections exclusives : 1 Ensemble Royal, 1 Tendance, et 1 Classique.`,
             isLocal: true
           };
         } else {
           const epauleVar = varNum(111, -1, 2);
           const finalEpaule = 26 + epauleVar;
+
+          const rItem = royalPoolKid[Math.abs((salt * 17 + 3) % royalPoolKid.length)];
+          const tItem = tendancePoolKid[Math.abs((salt * 37 + 11) % tendancePoolKid.length)];
+          const cItem = classiquePoolKid[Math.abs((salt * 53 + 23) % classiquePoolKid.length)];
+
           fallbackResults = {
             hauteur: baseH,
             epaule: finalEpaule,
@@ -646,23 +708,34 @@ Rejette l'image UNIQUEMENT si AUCUN être humain n'est présent.
             morphology_description: "Proportions adaptées à la croissance et liberté de mouvement de l'enfant.",
             recommended_models: [
               {
-                product_id: "kd-1",
-                product_name: "Ensemble Royal Junior Or",
+                product_id: rItem.id,
+                product_name: rItem.name,
+                category: "Ensemble Royal",
                 match_score: 98,
-                match_reason: `Coupe étudiée avec aisance pour accompagner la carrure de ${finalEpaule} cm de l'enfant avec noblesse.`,
-                styling_tips: "Parfait pour les baptêmes et célébrations de famille.",
-                recommended_cut: "Coupe Junior Confort"
+                match_reason: `[Ensemble Royal] Coupe étudiée avec aisance pour accompagner la carrure de ${finalEpaule} cm de l'enfant avec noblesse.`,
+                styling_tips: rItem.tips,
+                recommended_cut: rItem.cut
               },
               {
-                product_id: "kd-2",
-                product_name: "Kaftan Royal Kid Indigo",
+                product_id: tItem.id,
+                product_name: tItem.name,
+                category: "Tendance",
+                match_score: 96,
+                match_reason: `[Tendance] Tissu dynamique et liberté de mouvement avec une touche tendance.`,
+                styling_tips: tItem.tips,
+                recommended_cut: tItem.cut
+              },
+              {
+                product_id: cItem.id,
+                product_name: cItem.name,
+                category: "Classique",
                 match_score: 95,
-                match_reason: "Tissu souple et col doux sans frottement.",
-                styling_tips: "Assortir avec des babouches enfants Habé.",
-                recommended_cut: "Coupe Évolutive"
+                match_reason: `[Classique] Douceur et tenue traditionnelle d'honneur pour enfant.`,
+                styling_tips: cItem.tips,
+                recommended_cut: cItem.cut
               }
             ],
-            comment: `Analyse visuelle Junior Habé : carrure de ${finalEpaule} cm avec aisance confortable pour une liberté royale.`,
+            comment: `Morphologie Junior analysée : 3 modèles exclusifs sur mesure (1 Ensemble Royal, 1 Tendance, 1 Classique).`,
             isLocal: true
           };
         }

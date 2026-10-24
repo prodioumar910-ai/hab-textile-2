@@ -77,6 +77,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, []);
 
   const [products, setProducts] = useState<Product[]>(() => {
+    const CACHE_VERSION = 'habe_products_v35_strict_separation';
+    const currentVersion = localStorage.getItem('habe_products_cache_version');
+    if (currentVersion !== CACHE_VERSION) {
+      localStorage.setItem('habe_products_cache_version', CACHE_VERSION);
+      localStorage.removeItem('habe_products');
+    }
+
     const saved = localStorage.getItem('habe_products');
     
     // Retrieve deleted products list so deletions are preserved forever and not restored on reload
@@ -142,7 +149,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     localStorage.setItem('habe_products', JSON.stringify(filteredInitial));
     return filteredInitial;
   });
-  const [activeTarget, setActiveTargetState] = useState<Target>('Enfant');
+  const [activeTarget, setActiveTargetState] = useState<Target>('Homme');
   const [user, setUser] = useState<User | null>(null);
   const [activeCategory, setActiveCategory] = useState<Category | null>('Ensemble Royal');
   const [orders, setOrders] = useState<Order[]>(() => {

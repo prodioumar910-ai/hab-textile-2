@@ -67,8 +67,31 @@ export const PRET_PRODUCTS: PretProduct[] = [
   }
 ];
 
+export const PRET_PRODUCTS_HOMME: PretProduct[] = [
+  PRET_PRODUCTS[0], // Tunique Sahel Chic
+  PRET_PRODUCTS[1], // Robe Kaftan Divine
+  PRET_PRODUCTS[2], // Sénateur Moderne
+  PRET_PRODUCTS[4], // Kaftan Citadin Pur
+];
+
+export const PRET_PRODUCTS_ENFANT: PretProduct[] = [
+  PRET_PRODUCTS[3], // Ensemble Urbain Junior
+  {
+    id: 'p6-enf',
+    name: 'Kaftan Petit Monarque',
+    price: 32000,
+    images: [
+      'https://lh3.googleusercontent.com/d/1yeajzyrvgzNNdkslAaL1yVLctlwC8gc3'
+    ],
+    description: 'Ensemble prêt-à-porter junior raffiné pour les fêtes et cérémonies.'
+  }
+];
+
 const PretAPorterSection: React.FC = () => {
   const { setIsPretAPorterOpen, setSelectedPretProduct } = useStore();
+  const [activeTarget, setActiveTarget] = React.useState<'Homme' | 'Enfant'>('Homme');
+
+  const currentList = activeTarget === 'Homme' ? PRET_PRODUCTS_HOMME : PRET_PRODUCTS_ENFANT;
 
   const handleProductClick = (product: PretProduct) => {
     setSelectedPretProduct(product);
@@ -79,18 +102,46 @@ const PretAPorterSection: React.FC = () => {
     <div className="w-full">
       {/* Main horizontal scrolling section on the homepage */}
       <section className="px-5 py-8 bg-transparent">
-        <motion.h2 
-          initial={{ opacity: 0, y: 15 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-base font-heading font-black text-white uppercase tracking-widest mb-4 px-1"
-        >
-          Vos Prêt-à-porter
-        </motion.h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 px-1">
+          <motion.h2 
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-base font-heading font-black text-white uppercase tracking-widest"
+          >
+            Vos Prêt-à-porter
+          </motion.h2>
+
+          {/* Homme / Enfant Switcher */}
+          <div className="flex items-center gap-1.5 bg-black/20 backdrop-blur-md p-1 rounded-full border border-white/10 self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setActiveTarget('Homme')}
+              className={`px-3 py-1 rounded-full text-[10px] font-heading font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
+                activeTarget === 'Homme'
+                  ? 'bg-brand-orange-dark text-white shadow-md'
+                  : 'text-white/70 hover:text-white'
+              }`}
+            >
+              👔 Homme
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTarget('Enfant')}
+              className={`px-3 py-1 rounded-full text-[10px] font-heading font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
+                activeTarget === 'Enfant'
+                  ? 'bg-brand-orange-dark text-white shadow-md'
+                  : 'text-white/70 hover:text-white'
+              }`}
+            >
+              🧒 Enfant
+            </button>
+          </div>
+        </div>
         
         <div className="flex overflow-x-auto gap-4 pb-2 scrollbar-none snap-x snap-mandatory">
-          {PRET_PRODUCTS.map((prod, idx) => (
+          {currentList.map((prod, idx) => (
             <motion.div 
               key={prod.id} 
               initial={{ opacity: 0, x: 20 }}

@@ -19,6 +19,7 @@ import { getOptimizedImage } from "../utils/image";
 import { MeasureResult, Product } from "../types";
 import { api } from "../lib/api";
 import { computeProfessionalMeasurements, MEN_PROFILES } from "../utils/measurements";
+import { INITIAL_PRODUCTS } from "../data/initialProducts";
 
 interface MeasurePageProps {
   onBackToChoice: () => void;
@@ -29,6 +30,7 @@ interface RecommendedModelCardProps {
   m: {
     productId?: string;
     productName: string;
+    category?: string;
     matchScore: number;
     matchReason?: string;
     stylingTips?: string;
@@ -36,39 +38,72 @@ interface RecommendedModelCardProps {
   };
   product: Product | undefined;
   idx: number;
+  targetGender: 'Homme' | 'Enfant';
   onOrderWithMeasurements: (prod: Product) => void;
   onAddToCart: (prod: Product) => void;
 }
 
-// Clean static horizontal model card (No 360° animation, no text clutter)
+// Clean static horizontal model card with Tripartite Badges (1 Ensemble Royal, 1 Tendance, 1 Classique)
 const RecommendedModelCard: React.FC<RecommendedModelCardProps> = ({
   m,
   product,
   idx,
+  targetGender,
   onOrderWithMeasurements,
   onAddToCart
 }) => {
-  const displayProduct: Product = product || ({
-    id: m.productId || `prod-${idx}`,
-    name: m.productName,
-    price: 165000,
-    category: "Ensemble Royal",
-    target: "Homme",
-    garmentType: "boubou",
-    fabricType: "bazin",
-    image: "",
-    description: "",
-    colors: ["Or & Nacre", "Bleu Nuit"]
-  } as unknown as Product);
+  // Determine distinct category style
+  const categoryName = 
+    (m.category as string) || 
+    (idx === 0 ? "Ensemble Royal" : idx === 1 ? "Tendance" : "Classique");
+
+  const categoryBadgeConfig: Record<string, { label: string; badgeClass: string; icon: string; borderHover: string }> = {
+    "Ensemble Royal": {
+      label: "Ensemble Royal",
+      badgeClass: "bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 text-amber-50 border-amber-300/50 shadow-amber-900/30",
+      icon: "👑",
+      borderHover: "hover:border-amber-500/50"
+    },
+    "Tendance": {
+      label: "Tendance",
+      badgeClass: "bg-gradient-to-r from-orange-600 via-rose-500 to-orange-700 text-white border-orange-200/50 shadow-orange-950/30",
+      icon: "✨",
+      borderHover: "hover:border-orange-500/50"
+    },
+    "Classique": {
+      label: "Classique",
+      badgeClass: "bg-gradient-to-r from-stone-900 via-stone-850 to-stone-950 text-amber-200 border-amber-400/40 shadow-black/40",
+      icon: "⚜️",
+      borderHover: "hover:border-stone-700/50"
+    }
+  };
+
+  const badgeInfo = categoryBadgeConfig[categoryName] || categoryBadgeConfig[idx === 0 ? "Ensemble Royal" : idx === 1 ? "Tendance" : "Classique"];
+
+  const displayProduct: Product = 
+    product || 
+    INITIAL_PRODUCTS.find(p => p.target === targetGender && (p.id === m.productId || p.name.toLowerCase() === m.productName.toLowerCase())) || 
+    ({
+      id: m.productId || `prod-${idx}`,
+      name: m.productName,
+      price: targetGender === "Enfant" ? (idx === 0 ? 85000 : idx === 1 ? 65000 : 55000) : (idx === 0 ? 185000 : idx === 1 ? 165000 : 155000),
+      category: categoryName,
+      target: targetGender,
+      garmentType: "boubou",
+      fabricType: "bazin",
+      image: "",
+      description: "",
+      colors: ["Or & Nacre", "Bleu Nuit"]
+    } as unknown as Product);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: idx * 0.08, duration: 0.35 }}
-      className="w-[280px] sm:w-[320px] md:w-[340px] flex-shrink-0 snap-start bg-[#FFEAD8] rounded-3xl overflow-hidden shadow-xl border border-white/70 flex flex-col justify-between group hover:shadow-2xl hover:border-brand-orange-dark/30 transition-all duration-300 text-stone-900"
+      className={`w-[280px] sm:w-[320px] md:w-[340px] flex-shrink-0 snap-start bg-[#FFEAD8] rounded-3xl overflow-hidden shadow-xl border border-white/70 flex flex-col justify-between group hover:shadow-2xl ${badgeInfo.borderHover} transition-all duration-300 text-stone-900`}
     >
-      {/* Product Image Stage (Crisp static image, no 360 animation) */}
+      {/* Product Image Stage */}
       <div className="relative aspect-[3/4] bg-stone-100 overflow-hidden flex items-center justify-center p-3">
         {displayProduct.image ? (
           <img
@@ -81,10 +116,18 @@ const RecommendedModelCard: React.FC<RecommendedModelCardProps> = ({
           <div className="font-heading font-bold text-xs text-stone-400">Modèle Habé</div>
         )}
 
-        {/* Category Pill */}
+        {/* Distinct Tripartite Category Pill (👑 Ensemble Royal / ✨ Tendance / ⚜️ Classique) */}
         <div className="absolute top-4 left-4 z-10">
-          <span className="px-3 py-1 bg-stone-950/80 backdrop-blur-md text-white text-[9.5px] font-heading font-extrabold rounded-full uppercase tracking-wider shadow-md">
-            {displayProduct.category || "Haute Couture"}
+          <span className={`px-3 py-1.5 backdrop-blur-md text-[10px] font-heading font-extrabold rounded-full uppercase tracking-wider shadow-lg flex items-center gap-1.5 border ${badgeInfo.badgeClass}`}>
+            <span>{badgeInfo.icon}</span>
+            <span>{badgeInfo.label}</span>
+          </span>
+        </div>
+
+        {/* Match Score Badge */}
+        <div className="absolute top-4 right-4 z-10">
+          <span className="px-2.5 py-1 bg-stone-950/85 backdrop-blur-md text-amber-300 border border-amber-400/30 text-[10px] font-mono font-black rounded-full shadow-md">
+            {m.matchScore}% Match
           </span>
         </div>
       </div>
@@ -92,12 +135,23 @@ const RecommendedModelCard: React.FC<RecommendedModelCardProps> = ({
       {/* Model Information & Action Buttons */}
       <div className="p-5 flex flex-col flex-grow justify-between space-y-4">
         <div>
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <span className="text-[10px] font-heading font-bold uppercase tracking-wider text-stone-500 line-clamp-1">
+              {m.recommendedCut || displayProduct.category || "Coupe Couture Habé"}
+            </span>
+          </div>
           <h3 className="font-heading font-bold text-base text-stone-950 group-hover:text-brand-orange-dark transition-colors line-clamp-1 mb-1">
             {displayProduct.name}
           </h3>
           <p className="font-heading font-extrabold text-lg text-brand-orange-dark">
             {displayProduct.price.toLocaleString("fr-FR")} FCFA
           </p>
+
+          {m.matchReason && (
+            <p className="text-[11px] text-stone-600 line-clamp-2 mt-2 leading-relaxed italic bg-white/60 p-2 rounded-xl border border-stone-200/60">
+              « {m.matchReason.replace(/^\[.*?\]\s*/, "")} »
+            </p>
+          )}
         </div>
 
         {/* Direct Action Buttons */}
@@ -136,6 +190,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<MeasureResult | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [rotationCount, setRotationCount] = useState<number>(0);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const horizontalScrollRef = useRef<HTMLDivElement | null>(null);
@@ -152,7 +207,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
   const loadingMessages = [
     "Initialisation de votre sélection...",
     "Analyse de votre silhouette...",
-    "Sélection des modèles Habé idéaux...",
+    "Sélection des 3 modèles Habé (Royal, Tendance, Classique)...",
     "Affichage de vos modèles..."
   ];
 
@@ -199,7 +254,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
     });
   };
 
-  // Process mobile / desktop file upload instantly
+  // Process mobile / desktop file upload instantly with guaranteed fresh model rotation
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -211,13 +266,16 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
           setLoadingStep(0);
           setError(null);
           
+          const nextRotation = rotationCount + 1;
+          setRotationCount(nextRotation);
+
           try {
             const resized = await resizeImage(base64, 480, 480);
             setImageSrc(resized);
-            calculateMeasurements(resized);
+            calculateMeasurements(resized, nextRotation * 31);
           } catch (err) {
             setImageSrc(base64);
-            calculateMeasurements(base64);
+            calculateMeasurements(base64, nextRotation * 31);
           }
         }
       };
@@ -232,13 +290,15 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
     }
   };
 
-  // Fast submit to backend with 3.5s timeout for instant model recommendation
-  const calculateMeasurements = async (overrideImage?: string) => {
+  // Fast submit to backend with 3.5s timeout for instant tripartite model recommendation
+  const calculateMeasurements = async (overrideImage?: string, overrideSalt?: number) => {
     const activeImage = overrideImage || imageSrc;
     if (!activeImage) return;
     setLoading(true);
     setLoadingStep(0);
     setError(null);
+
+    const activeSalt = overrideSalt !== undefined ? overrideSalt : (rotationCount + 1);
 
     let response: Response | null = null;
 
@@ -254,7 +314,8 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
           image: activeImage,
           gender,
           height: parseInt(height),
-          profile: profileKey
+          profile: profileKey,
+          rotationSalt: activeSalt
         }),
         signal: controller.signal
       });
@@ -270,7 +331,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
 
     try {
       if (!response) {
-        const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey, activeImage);
+        const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey, activeImage, activeSalt);
         setResult(localData);
         setLoading(false);
         return;
@@ -291,7 +352,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
           return;
         }
 
-        const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey, activeImage);
+        const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey, activeImage, activeSalt);
         setResult(localData);
         setLoading(false);
         return;
@@ -302,20 +363,21 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
       try {
         rawData = JSON.parse(rawText.trim());
       } catch (parseErr: any) {
-        rawData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey, activeImage);
+        rawData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey, activeImage, activeSalt);
       }
 
-      const fallbackComp = computeProfessionalMeasurements(gender as any, rawData.hauteur || parseInt(height), profileKey, activeImage);
+      const fallbackComp = computeProfessionalMeasurements(gender as any, rawData.hauteur || parseInt(height), profileKey, activeImage, activeSalt);
 
       const data: MeasureResult = {
         ...rawData,
         morphologyTitle: rawData.morphology_title || rawData.morphologyTitle || fallbackComp.morphologyTitle || "Silhouette Royale",
         morphologyDescription: rawData.morphology_description || rawData.morphologyDescription || fallbackComp.morphologyDescription || "Proportions adaptées à la confection Habé.",
         recommendedModels: Array.isArray(rawData.recommended_models) && rawData.recommended_models.length > 0
-          ? rawData.recommended_models.map((rm: any) => ({
+          ? rawData.recommended_models.map((rm: any, idx: number) => ({
               productId: rm.product_id || rm.productId,
               productName: rm.product_name || rm.productName,
-              matchScore: Number(rm.match_score || rm.matchScore || 96),
+              category: rm.category || (idx === 0 ? "Ensemble Royal" : idx === 1 ? "Tendance" : "Classique"),
+              matchScore: Number(rm.match_score || rm.matchScore || (98 - idx * 2)),
               matchReason: rm.match_reason || rm.matchReason || "",
               stylingTips: rm.styling_tips || rm.stylingTips || "",
               recommendedCut: rm.recommended_cut || rm.recommendedCut || "Coupe Haute-Couture"
@@ -334,7 +396,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
         userEmail: localStorage.getItem("habe_local_admin_email") || undefined
       }).catch(e => console.warn("Neon save measurement error:", e));
     } catch (err: any) {
-      const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey, activeImage);
+      const localData = computeProfessionalMeasurements(gender as any, parseInt(height), profileKey, activeImage, activeSalt);
       setResult(localData);
     } finally {
       setLoading(false);
@@ -449,13 +511,27 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
           <div className="space-y-6">
             {/* Top Bar with Boutique button and Navigation Arrows */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/20 backdrop-blur-xl border border-white/30 p-4 sm:p-5 rounded-3xl shadow-xl">
-              <div className="flex items-center gap-3">
-                <h2 className="font-heading font-extrabold text-lg sm:text-xl uppercase tracking-wider text-white">
-                  Modèles Recommandés
-                </h2>
-                <span className="text-xs bg-stone-950/70 text-amber-300 px-3 py-1 rounded-full font-mono font-bold">
-                  {(result.recommendedModels || []).length} modèles
-                </span>
+              <div>
+                <div className="flex items-center gap-3">
+                  <h2 className="font-heading font-extrabold text-lg sm:text-xl uppercase tracking-wider text-white">
+                    Modèles Recommandés
+                  </h2>
+                  <span className="text-xs bg-stone-950/70 text-amber-300 px-3 py-1 rounded-full font-mono font-bold">
+                    3 sélections exclusives
+                  </span>
+                </div>
+                {/* Tripartite indicators */}
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  <span className="text-[10px] bg-amber-500/25 text-amber-100 border border-amber-300/40 px-2.5 py-0.5 rounded-full font-heading font-bold flex items-center gap-1 shadow-sm">
+                    <span>👑</span> Ensemble Royal
+                  </span>
+                  <span className="text-[10px] bg-orange-500/25 text-orange-100 border border-orange-300/40 px-2.5 py-0.5 rounded-full font-heading font-bold flex items-center gap-1 shadow-sm">
+                    <span>✨</span> Tendance
+                  </span>
+                  <span className="text-[10px] bg-stone-900/60 text-stone-200 border border-stone-500/30 px-2.5 py-0.5 rounded-full font-heading font-bold flex items-center gap-1 shadow-sm">
+                    <span>⚜️</span> Classique
+                  </span>
+                </div>
               </div>
 
               <div className="flex items-center gap-3">
@@ -498,27 +574,60 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
               className="flex flex-row overflow-x-auto gap-5 pb-6 pt-1 snap-x snap-mandatory scroll-smooth"
               style={{ scrollbarWidth: "thin" }}
             >
-              {(result.recommendedModels && result.recommendedModels.length > 0
+              {((result.recommendedModels && result.recommendedModels.length > 0)
                 ? result.recommendedModels
-                : [
-                    {
-                      productId: "hm-1",
-                      productName: "Boubou Royal d'Or",
-                      matchScore: 98
-                    },
-                    {
-                      productId: "hm-2",
-                      productName: "Kaftan Bleu Nuit Brodé",
-                      matchScore: 96
-                    },
-                    {
-                      productId: "hm-6",
-                      productName: "Kaftan Impérial Brodé",
-                      matchScore: 94
-                    }
-                  ]
+                : (gender === "enfant"
+                    ? [
+                        {
+                          productId: "kd-1",
+                          productName: "Ensemble Royal Junior Or",
+                          category: "Ensemble Royal",
+                          matchScore: 98
+                        },
+                        {
+                          productId: "kd-4",
+                          productName: "Sénateur Kid Tissu Vert",
+                          category: "Tendance",
+                          matchScore: 96
+                        },
+                        {
+                          productId: "kd-6",
+                          productName: "Boubou Kid Classique Blanc",
+                          category: "Classique",
+                          matchScore: 94
+                        }
+                      ]
+                    : [
+                        {
+                          productId: "hm-1",
+                          productName: "Boubou Royal d'Or",
+                          category: "Ensemble Royal",
+                          matchScore: 98
+                        },
+                        {
+                          productId: "hm-2",
+                          productName: "Kaftan Bleu Nuit Brodé",
+                          category: "Tendance",
+                          matchScore: 96
+                        },
+                        {
+                          productId: "hm-3",
+                          productName: "Kaftan Blanc Éclat",
+                          category: "Classique",
+                          matchScore: 94
+                        }
+                      ]
+                  )
               ).map((m, idx) => {
-                const matchedProduct = products.find(p => p.id === m.productId || p.name.toLowerCase().includes(m.productName.toLowerCase())) || products[idx % products.length];
+                const targetGender: 'Homme' | 'Enfant' = gender === "enfant" ? "Enfant" : "Homme";
+                const targetPool = products.filter(p => p.target === targetGender);
+                const targetInitialPool = INITIAL_PRODUCTS.filter(p => p.target === targetGender);
+
+                const matchedProduct = 
+                  targetPool.find(p => p.id === m.productId || p.name.toLowerCase().includes(m.productName.toLowerCase())) ||
+                  targetInitialPool.find(p => p.id === m.productId || p.name.toLowerCase().includes(m.productName.toLowerCase())) ||
+                  targetPool[idx % (targetPool.length || 1)] ||
+                  targetInitialPool[idx % (targetInitialPool.length || 1)];
 
                 return (
                   <RecommendedModelCard
@@ -526,6 +635,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
                     m={m}
                     product={matchedProduct}
                     idx={idx}
+                    targetGender={targetGender}
                     onOrderWithMeasurements={(prod) => {
                       setSelectedProduct(prod);
                     }}
@@ -538,14 +648,28 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
               })}
             </div>
 
-            {/* Bottom Actions: Clear Boutique Button & Retake Option */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            {/* Bottom Actions: Fresh 3 Models, Boutique Button & Retake Option */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  const nextRotation = rotationCount + 1;
+                  setRotationCount(nextRotation);
+                  calculateMeasurements(imageSrc || undefined, nextRotation * 7919 + Date.now());
+                  showToast("3 nouveaux modèles exclusifs sélectionnés !");
+                }}
+                className="py-4 px-5 bg-gradient-to-r from-brand-orange-dark via-amber-600 to-brand-orange-dark text-white rounded-2xl font-heading font-extrabold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl shadow-brand-orange-dark/20 border border-amber-300/30 cursor-pointer active:scale-98 hover:brightness-110"
+              >
+                <Sparkles className="w-4 h-4 text-amber-200" />
+                <span>3 Autres Modèles</span>
+              </button>
+
               <button
                 type="button"
                 onClick={onGoToBoutique}
-                className="flex-1 py-4 bg-stone-950 hover:bg-stone-900 text-white rounded-2xl font-heading font-extrabold text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-3 shadow-2xl border border-amber-400/30 cursor-pointer active:scale-98"
+                className="py-4 px-5 bg-stone-950 hover:bg-stone-900 text-white rounded-2xl font-heading font-extrabold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-2xl border border-amber-400/30 cursor-pointer active:scale-98"
               >
-                <Store className="w-5 h-5 text-amber-400" />
+                <Store className="w-4 h-4 text-amber-400" />
                 <span>Aller à la Boutique</span>
                 <ChevronRight className="w-4 h-4 text-amber-400" />
               </button>
@@ -553,7 +677,7 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
               <button
                 type="button"
                 onClick={handleReset}
-                className="py-4 px-6 bg-white/90 hover:bg-white text-stone-850 border border-stone-200 rounded-2xl font-heading font-extrabold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-98"
+                className="py-4 px-5 bg-white/95 hover:bg-white text-stone-900 border border-stone-200 rounded-2xl font-heading font-extrabold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-98"
               >
                 <RotateCw className="w-4 h-4 text-brand-orange-dark" />
                 <span>Changer de photo</span>
@@ -585,87 +709,38 @@ export const MeasurePage: React.FC<MeasurePageProps> = ({ onBackToChoice, onGoTo
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-              {/* Left Column: Form Parameters */}
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xs font-heading font-extrabold uppercase tracking-widest text-stone-900 mb-3 flex items-center gap-2">
-                    <Sliders className="w-4 h-4 text-stone-750" /> 1. Choix du Profil Couture
-                  </h3>
-                  
-                  {/* Gender selection */}
-                  <div className="space-y-2 mb-4">
-                    <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-600">
-                      Sélectionner le Profil
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        { id: "homme", label: "Homme" },
-                        { id: "enfant", label: "Enfant" }
-                      ].map((g) => (
-                        <button
-                          key={g.id}
-                          type="button"
-                          onClick={() => {
-                            setGender(g.id);
-                            setHeight(g.id === "homme" ? "175" : "125");
-                          }}
-                          className={`py-2.5 rounded-xl text-xs font-heading font-bold tracking-wide uppercase transition-all cursor-pointer ${
-                            gender === g.id 
-                              ? "bg-brand-orange-dark border-brand-orange-light/35 text-white shadow-md shadow-brand-orange-dark/15" 
-                              : "bg-stone-100 hover:bg-stone-200/80 border border-stone-200 text-stone-600 hover:text-stone-800"
-                          }`}
-                        >
-                          {g.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Profile Key selection for Men */}
-                  {gender === "homme" && (
-                    <div className="space-y-2 mb-4">
-                      <label className="block text-[10px] uppercase font-bold tracking-wider text-stone-600">
-                        Type de Corpulence
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {Object.entries(MEN_PROFILES).map(([key, p]) => (
-                          <button
-                            key={key}
-                            type="button"
-                            onClick={() => setProfileKey(key)}
-                            className={`py-2 px-1 rounded-xl text-[9px] font-heading font-bold tracking-tight uppercase transition-all flex flex-col items-center justify-center min-h-[50px] cursor-pointer ${
-                              profileKey === key 
-                                ? "bg-amber-100 border-amber-300 text-amber-900 shadow-sm" 
-                                : "bg-stone-50 border border-stone-200 text-stone-500 hover:bg-white"
-                            }`}
-                          >
-                            <span>{p.name}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 text-[10px] text-stone-850 leading-relaxed space-y-2 font-medium">
-                  <div className="flex items-center gap-1.5 text-amber-700 font-extrabold uppercase tracking-wider">
-                    <Sparkles className="w-4 h-4 text-amber-600" />
-                    <span>Recommandations de l'Atelier :</span>
-                  </div>
-                  <ul className="list-disc pl-4 space-y-1 text-stone-600">
-                    <li>Tenez-vous bien droit(e), face à l'appareil de préférence.</li>
-                    <li>Un cliché net permet d'identifier votre silhouette sans délai.</li>
-                    <li>Les modèles les plus seyants vous seront directement présentés.</li>
-                  </ul>
+            <div className="max-w-md mx-auto space-y-6">
+              {/* Gender selection */}
+              <div className="space-y-2">
+                <label className="block text-center text-[11px] font-heading font-extrabold uppercase tracking-widest text-stone-700">
+                  Sélectionner le Profil
+                </label>
+                <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto">
+                  {[
+                    { id: "homme", label: "👔 Homme" },
+                    { id: "enfant", label: "🧒 Enfant" }
+                  ].map((g) => (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => {
+                        setGender(g.id);
+                        setHeight(g.id === "homme" ? "175" : "125");
+                      }}
+                      className={`py-3 rounded-2xl text-xs font-heading font-extrabold tracking-wide uppercase transition-all cursor-pointer border ${
+                        gender === g.id 
+                          ? "bg-brand-orange-dark border-brand-orange-light/35 text-white shadow-lg shadow-brand-orange-dark/25 scale-[1.02]" 
+                          : "bg-white/90 hover:bg-white border-stone-200 text-stone-700 hover:text-stone-900 shadow-sm"
+                      }`}
+                    >
+                      {g.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Right Column: Direct Photo Frame */}
-              <div className="space-y-4">
-                <h3 className="text-xs font-heading font-extrabold uppercase tracking-widest text-stone-900 mb-3 flex items-center gap-2">
-                  <Camera className="w-3.5 h-3.5 text-stone-750" /> 2. Votre Photo
-                </h3>
+              {/* Direct Photo Frame */}
+              <div className="space-y-3">
 
                 {/* Frame Stage */}
                 <div 

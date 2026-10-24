@@ -4,23 +4,31 @@ import { X, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Eye } from 'lucide-react
 import { useStore } from '../context/StoreContext';
 import { getOptimizedImage } from '../utils/image';
 
-const TRENDING_ITEMS = [
-  { id: 'hm-1', name: "Boubou Royal d'Or", image: 'https://lh3.googleusercontent.com/d/18HxJiKqb9dRx5J_9OHyLwQwbwViDnmws' },
-  { id: 'kd-1', name: "Ensemble Royal Junior Or", image: 'https://lh3.googleusercontent.com/d/1WhYofpnj4MpoDAIY2wvWX-qYwfl9Nqve' },
-  { id: 'hm-8', name: 'Boubou Royal Excellence', image: 'https://lh3.googleusercontent.com/d/1CSU6vDruqukQpvS5FV8_pWFIZdITPRZj' },
-  { id: 'kd-9', name: "Boubou d'Or Enfant", image: 'https://lh3.googleusercontent.com/d/11H8t34yu0Xe4lQUgEkTWHk8BWP3UdKmX' },
-  { id: 'hm-6', name: 'Kaftan Impérial Brodé', image: 'https://lh3.googleusercontent.com/d/1eZ48hX3O_tlrBe1iDSTCIBlmlBsjX6Ma' },
-  { id: 'kd-3', name: "Boubou Impérial Kid", image: 'https://lh3.googleusercontent.com/d/1T0OQcSvsgR6GbMuR128mIjIr46scc5Px' },
-  { id: 'hm-4', name: 'Boubou Prestige Moutarde', image: 'https://lh3.googleusercontent.com/d/1w9n95-LCG8z6oSKgrY4pz78VlSMJ7gR2' },
-  { id: 'kd-8', name: "Ensemble Dynastie Kid Wax", image: 'https://lh3.googleusercontent.com/d/1MgkG5BWdubX74GSs1QSOihYxPNOI4HLL' },
-  { id: 'hm-2', name: 'Kaftan Bleu Nuit Brodé', image: 'https://lh3.googleusercontent.com/d/1G3sC5y1cwyJd3Ml2pX7yXS0NbH_pVtoY' },
-  { id: 'kd-2', name: "Kaftan Royal Kid Indigo", image: 'https://lh3.googleusercontent.com/d/13urnzRLr1NkJfn8Q4Y5vO3GAieBEAxrY' },
+const TRENDING_ITEMS_HOMME = [
+  { id: 'hm-1', name: "Boubou Royal d'Or", image: 'https://lh3.googleusercontent.com/d/18HxJiKqb9dRx5J_9OHyLwQwbwViDnmws', target: 'Homme' },
+  { id: 'hm-8', name: 'Boubou Royal Excellence', image: 'https://lh3.googleusercontent.com/d/1CSU6vDruqukQpvS5FV8_pWFIZdITPRZj', target: 'Homme' },
+  { id: 'hm-6', name: 'Kaftan Impérial Brodé', image: 'https://lh3.googleusercontent.com/d/1eZ48hX3O_tlrBe1iDSTCIBlmlBsjX6Ma', target: 'Homme' },
+  { id: 'hm-4', name: 'Boubou Prestige Moutarde', image: 'https://lh3.googleusercontent.com/d/1w9n95-LCG8z6oSKgrY4pz78VlSMJ7gR2', target: 'Homme' },
+  { id: 'hm-2', name: 'Kaftan Bleu Nuit Brodé', image: 'https://lh3.googleusercontent.com/d/1G3sC5y1cwyJd3Ml2pX7yXS0NbH_pVtoY', target: 'Homme' },
+  { id: 'hm-5', name: 'Sénateur Moderne Vert', image: 'https://lh3.googleusercontent.com/d/1q5B8bLIKQaFVvKVnxmuSEz6MTn0M7NCm', target: 'Homme' },
+];
+
+const TRENDING_ITEMS_ENFANT = [
+  { id: 'kd-1', name: "Ensemble Royal Junior Or", image: 'https://lh3.googleusercontent.com/d/1WhYofpnj4MpoDAIY2wvWX-qYwfl9Nqve', target: 'Enfant' },
+  { id: 'kd-9', name: "Boubou d'Or Enfant", image: 'https://lh3.googleusercontent.com/d/11H8t34yu0Xe4lQUgEkTWHk8BWP3UdKmX', target: 'Enfant' },
+  { id: 'kd-3', name: "Boubou Impérial Kid", image: 'https://lh3.googleusercontent.com/d/1T0OQcSvsgR6GbMuR128mIjIr46scc5Px', target: 'Enfant' },
+  { id: 'kd-8', name: "Ensemble Dynastie Kid Wax", image: 'https://lh3.googleusercontent.com/d/1MgkG5BWdubX74GSs1QSOihYxPNOI4HLL', target: 'Enfant' },
+  { id: 'kd-2', name: "Kaftan Royal Kid Indigo", image: 'https://lh3.googleusercontent.com/d/13urnzRLr1NkJfn8Q4Y5vO3GAieBEAxrY', target: 'Enfant' },
+  { id: 'kd-4', name: "Sénateur Kid Tissu Vert", image: 'https://lh3.googleusercontent.com/d/1Zkg3F_-ua_y6YEFtMu2TZEji1kSWjsT-', target: 'Enfant' },
 ];
 
 const TrendingSection: React.FC = () => {
   const { setIsTrendingOpen } = useStore();
+  const [selectedTarget, setSelectedTarget] = useState<'Homme' | 'Enfant'>('Homme');
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [isZoomed, setIsZoomed] = useState(false);
+
+  const currentTrending = selectedTarget === 'Homme' ? TRENDING_ITEMS_HOMME : TRENDING_ITEMS_ENFANT;
 
   useEffect(() => {
     setIsTrendingOpen(viewerIndex !== null);
@@ -111,18 +119,18 @@ const TrendingSection: React.FC = () => {
       e.stopPropagation();
       return;
     }
-    setViewerIndex(idx % TRENDING_ITEMS.length);
+    setViewerIndex(idx % currentTrending.length);
   };
 
   const handlePrev = useCallback(() => {
     setIsZoomed(false);
-    setViewerIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : TRENDING_ITEMS.length - 1));
-  }, []);
+    setViewerIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : currentTrending.length - 1));
+  }, [currentTrending.length]);
 
   const handleNext = useCallback(() => {
     setIsZoomed(false);
-    setViewerIndex((prev) => (prev !== null && prev < TRENDING_ITEMS.length - 1 ? prev + 1 : 0));
-  }, []);
+    setViewerIndex((prev) => (prev !== null && prev < currentTrending.length - 1 ? prev + 1 : 0));
+  }, [currentTrending.length]);
 
   const handleClose = useCallback(() => {
     setViewerIndex(null);
@@ -149,18 +157,54 @@ const TrendingSection: React.FC = () => {
 
   return (
     <section className="py-12 bg-white/5">
-      <div className="px-6 mb-8 flex justify-between items-center">
-        <motion.h2 
-          initial={{ opacity: 0, x: -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          className="font-heading font-bold text-xl uppercase tracking-wider text-brand-black/90"
-        >
-          Tendance Habé
-        </motion.h2>
-        <span className="text-[10px] uppercase font-mono tracking-widest text-brand-black/40">
-          Clic pour zoomer
-        </span>
+      <div className="px-6 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <motion.h2 
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="font-heading font-bold text-xl uppercase tracking-wider text-brand-black/90"
+          >
+            Tendance Habé
+          </motion.h2>
+          <span className="text-[10px] uppercase font-mono tracking-widest text-brand-black/40">
+            Clic pour zoomer
+          </span>
+        </div>
+
+        {/* Tab Switcher: Strictly Homme or Enfant (Never mixed) */}
+        <div className="flex items-center gap-2 bg-stone-900/10 p-1 rounded-full border border-stone-200">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedTarget('Homme');
+              setViewerIndex(null);
+            }}
+            className={`px-4 py-1.5 rounded-full text-xs font-heading font-extrabold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
+              selectedTarget === 'Homme'
+                ? 'bg-brand-orange-dark text-white shadow-md'
+                : 'text-stone-600 hover:text-stone-900'
+            }`}
+          >
+            <span>👔</span>
+            <span>Collection Homme</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedTarget('Enfant');
+              setViewerIndex(null);
+            }}
+            className={`px-4 py-1.5 rounded-full text-xs font-heading font-extrabold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
+              selectedTarget === 'Enfant'
+                ? 'bg-brand-orange-dark text-white shadow-md'
+                : 'text-stone-600 hover:text-stone-900'
+            }`}
+          >
+            <span>🧒</span>
+            <span>Collection Enfant</span>
+          </button>
+        </div>
       </div>
       
       <div 
@@ -174,9 +218,9 @@ const TrendingSection: React.FC = () => {
       >
         {/* Track 1: Prefix */}
         <div className="flex gap-6 flex-shrink-0">
-          {TRENDING_ITEMS.map((product, idx) => (
+          {currentTrending.map((product, idx) => (
             <motion.div 
-              key={`${product.id}-prefix`}
+              key={`${product.id}-prefix-${selectedTarget}`}
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
@@ -207,9 +251,9 @@ const TrendingSection: React.FC = () => {
 
         {/* Track 2: Main */}
         <div className="flex gap-6 flex-shrink-0">
-          {TRENDING_ITEMS.map((product, idx) => (
+          {currentTrending.map((product, idx) => (
             <motion.div 
-              key={`${product.id}-main`}
+              key={`${product.id}-main-${selectedTarget}`}
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
@@ -240,9 +284,9 @@ const TrendingSection: React.FC = () => {
 
         {/* Track 3: Suffix */}
         <div className="flex gap-6 flex-shrink-0">
-          {TRENDING_ITEMS.map((product, idx) => (
+          {currentTrending.map((product, idx) => (
             <div 
-              key={`${product.id}-suffix`}
+              key={`${product.id}-suffix-${selectedTarget}`}
               className="flex-shrink-0 w-60"
               onClick={(e) => handleItemClick(idx, e)}
             >
@@ -270,7 +314,7 @@ const TrendingSection: React.FC = () => {
 
       {/* Modern High-Fidelity Lightbox with Animation */}
       <AnimatePresence>
-        {viewerIndex !== null && (
+        {viewerIndex !== null && currentTrending[viewerIndex] && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -316,7 +360,7 @@ const TrendingSection: React.FC = () => {
             >
               <div className="w-full h-full flex items-center justify-center p-4">
                 <motion.div
-                  key={viewerIndex}
+                  key={`${viewerIndex}-${selectedTarget}`}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
@@ -325,8 +369,8 @@ const TrendingSection: React.FC = () => {
                   onClick={(e) => e.stopPropagation()} // Prevent click inside image container from closing
                 >
                   <img
-                    src={getOptimizedImage(TRENDING_ITEMS[viewerIndex].image, 600)}
-                    alt={TRENDING_ITEMS[viewerIndex].name}
+                    src={getOptimizedImage(currentTrending[viewerIndex].image, 600)}
+                    alt={currentTrending[viewerIndex].name}
                     className="w-auto h-auto max-w-[85vw] max-h-[82vh] md:max-w-[70vw] md:max-h-[82vh] rounded-3xl object-contain shadow-[0_25px_60px_rgba(0,0,0,0.6)] border border-white/10"
                     referrerPolicy="no-referrer"
                   />
